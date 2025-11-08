@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import '../global/routes.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -10,265 +11,204 @@ class ResetPasswordScreen extends StatefulWidget {
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final TextEditingController _emailController = TextEditingController();
+  bool _sending = false;
+
+  InputDecoration _inputDecoration(String hint) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: Colors.white70),
+    filled: true,
+    fillColor: Colors.white10,
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF00C7A7)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1),
+    ),
+  );
+
+  Future<void> _sendReset() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      // Do nothing when email is empty (silent return per UX request)
+      return;
+    }
+
+    setState(() => _sending = true);
+    await Future.delayed(const Duration(seconds: 1)); // simulate network
+    setState(() => _sending = false);
+
+    // Navigate to check-mail confirmation screen without showing a snackbar
+    Get.toNamed(AppRoutes.checkMail);
+  }
 
   @override
   void dispose() {
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  void _handleResetPassword() {
-    String password = _passwordController.text;
-    String confirmPassword = _confirmPasswordController.text;
-
-    if (password.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return;
-    }
-
-    if (password.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 8 characters')),
-      );
-      return;
-    }
-
-    if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
-      return;
-    }
-
-    // Handle password reset logic here
-    // Then navigate to login or success screen
-    Get.offAllNamed('/login');
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0E0E12),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Back button + title
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-                    onPressed: () => Get.back(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    "Login",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w300,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
+    // using MediaQuery only for padding where needed
 
-              // Page title
-              Text(
-                "Create New Password",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 24,
-                  color: Colors.white,
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Use a solid background color per design (#141823)
+          Positioned.fill(child: Container(color: const Color(0xFF141823))),
+
+          // Back arrow and 'Login' label on the same line
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 12,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  // Navigate explicitly to the login screen instead of popping
+                  onTap: () => Get.toNamed(AppRoutes.login),
+                  child: Icon(
+                    Icons.chevron_left,
+                    color: const Color(0xFFFFEEFF),
+                    size: 22,
+                    semanticLabel: 'Back to Login',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Login',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFFFFEEFF),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    height: 1.0,
+                    letterSpacing: 0.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Title: Reset Password (positioned per spec)
+          Positioned(
+            top: 147.0,
+            left: 44.0,
+            child: SizedBox(
+              width: 196.0,
+              height: 30.0,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Reset Password',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    height: 1.0,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
+            ),
+          ),
 
-              Text(
-                "Your new password must be different from previous used password",
+          // Description text (positioned per spec)
+          Positioned(
+            top: 204.0,
+            left: 44.0,
+            child: SizedBox(
+              width: 294.0,
+              height: 122.0,
+              child: Text(
+                "Enter the email associated with your account and we'll send an email with instructions and passcode to reset your password.",
                 style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 14,
                   color: Colors.white70,
+                  fontSize: 14,
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 40),
+            ),
+          ),
 
-              // Password label
-              Text(
-                "Password",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 16,
-                  color: Colors.white,
+          // Email TextField (moved up closer to description)
+          Positioned(
+            top: 328.0,
+            left: 39.0,
+            child: SizedBox(
+              width: 304.0,
+              height: 56.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15.0),
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // Password field
-              _GradientBorderTextField(
-                controller: _passwordController,
-                hintText: "Key-in password",
-                obscureText: _obscurePassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-              const SizedBox(height: 8),
-
-              Text(
-                "Must be at least 8 characters",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 12,
-                  color: Colors.white60,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Confirm password label
-              Text(
-                "Confirm Password",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Confirm password field
-              _GradientBorderTextField(
-                controller: _confirmPasswordController,
-                hintText: "Key-in password confirmation",
-                obscureText: _obscureConfirmPassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
-              ),
-              const SizedBox(height: 8),
-
-              Text(
-                "Both passwords must match",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 12,
-                  color: Colors.white60,
-                ),
-              ),
-              const Spacer(),
-
-              // Reset button
-              Center(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _handleResetPassword,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
+                child: TextField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: const Color(0xFF00C7A7),
+                  decoration: _inputDecoration('Email').copyWith(
+                    filled: true,
+                    fillColor: Colors.transparent,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 18,
                     ),
-                    child: Text(
-                      "Reset Password",
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.black,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: const BorderSide(color: Color(0xFF00C7A7)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF00C7A7),
+                        width: 1,
                       ),
                     ),
                   ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
               ),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Gradient border container for TextFields
-class _GradientBorderTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hintText;
-  final bool obscureText;
-  final VoidCallback? onToggleVisibility;
-
-  const _GradientBorderTextField({
-    required this.controller,
-    required this.hintText,
-    this.obscureText = false,
-    this.onToggleVisibility,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [Color(0xFF09FACA), Color(0xFF00FFA6)],
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: const EdgeInsets.all(2), // border thickness
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0E0E12),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          obscuringCharacter: '•',
-          style: GoogleFonts.openSans(
-            fontWeight: FontWeight.w400,
-            fontSize: 14,
-            color: Colors.white,
-          ),
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: GoogleFonts.openSans(
-              color: Colors.white54,
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
             ),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            suffixIcon: onToggleVisibility != null
-                ? IconButton(
-                    icon: Icon(
-                      obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: Colors.white54,
-                      size: 20,
-                    ),
-                    onPressed: onToggleVisibility,
-                  )
-                : null,
           ),
-        ),
+
+          // Reset Password button (moved up to sit closer to the field)
+          Positioned(
+            top: 392.0,
+            left: 38.0,
+            child: SizedBox(
+              width: 303.0,
+              height: 46.0,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                ),
+                onPressed: _sending ? null : _sendReset,
+                child: _sending
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        'Reset Password',
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
