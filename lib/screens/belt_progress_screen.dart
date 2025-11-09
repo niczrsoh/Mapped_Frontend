@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'button_navigationbar_screen.dart';
 
 class BeltProgressScreen extends StatelessWidget {
   const BeltProgressScreen({super.key});
@@ -308,8 +307,6 @@ class BeltProgressScreen extends StatelessWidget {
           ),
         ),
       ),
-
-      bottomNavigationBar: const bottomNav(),
     );
   }
 
