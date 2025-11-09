@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Color(0xFF1a1f2e),
         useMaterial3: true,
       ),
-      initialRoute: AppRoutes.splash, // Start with splash screen!!!!!!
+      initialRoute: AppRoutes.splash,
       getPages: AppPages.routes,
     );
   }

@@ -24,9 +24,14 @@ class HomeScreen extends GetView<HomeController> {
               Text(msg),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: controller.load,
-                child: const Text('Load Sample'),
-              ),
+              onPressed: () {
+                controller.insert(
+                  title: 'New Title',
+                  content: 'Inserted from Flutter!',
+                );
+              },
+              child: const Text('Insert Sample'),
+            ),
             ],
           );
         }),
