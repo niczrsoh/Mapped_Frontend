@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:mapped_frontend/screens/belt_detail_screen.dart';
+
 class BeltProgressScreen extends StatelessWidget {
   const BeltProgressScreen({super.key});
 
@@ -26,7 +28,7 @@ class BeltProgressScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Dashboard',
@@ -237,6 +239,15 @@ class BeltProgressScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Table container without any horizontal lines
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const BeltDetailScreen(),
+                      ),
+                    );
+                  },
+                  child:
                 Container(
                   padding: const EdgeInsets.all(0),
                   decoration: BoxDecoration(
@@ -302,6 +313,7 @@ class BeltProgressScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
 
                 const SizedBox(height: 40),
               ],

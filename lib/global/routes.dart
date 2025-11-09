@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:mapped_frontend/screens/coachBot_screen.dart';
 import 'package:mapped_frontend/screens/forum_screen.dart';
-import 'package:mapped_frontend/screens/main_navigation.dart';
+import 'package:mapped_frontend/screens/main_navigation_screen.dart';
 import 'package:mapped_frontend/screens/session_scree.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
@@ -123,6 +123,6 @@ class AppPages {
       name: AppRoutes.session,
       page: () => SessionScreen(),
     ),
-    GetPage(name: AppRoutes.main, page: () => const MainNavigation()),
+    GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
   ];
 }

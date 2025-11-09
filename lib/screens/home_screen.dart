@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
+import 'package:mapped_frontend/screens/coaching_screen.dart';
+import 'package:mapped_frontend/screens/resource_screen.dart';
+import 'package:mapped_frontend/screens/search_result_screen.dart';
+import 'package:mapped_frontend/screens/trainee_screen.dart';
 import './belt_progress_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controller/home_controller/controller/home_controller.dart';
@@ -76,61 +81,92 @@ class HomeScreen extends GetView<HomeController> {
 
               const SizedBox(height: 18),
               // Search bar
-              Container(
-                height: 56,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0E1517),
-                  borderRadius: BorderRadius.circular(40),
-                  border: Border.all(
-                    color: cardBorder.withOpacity(0.7),
-                    width: 1.0,
+             GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SearchResultsScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  height: 56,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0E1517),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(
+                      color: cardBorder.withOpacity(0.7),
+                      width: 1.0,
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                        decoration: InputDecoration(
-                          isCollapsed: true,
-                          hintText: 'Search Students, Sessions, Forums ...',
-                          hintStyle: TextStyle(
-                            color: Colors.white.withOpacity(0.95),
-                            fontSize: 14,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 18,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () {},
-                      child: SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: const Center(
-                          child: Icon(
-                            Icons.search,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          style: const TextStyle(
                             color: Colors.white,
-                            size: 20,
+                            fontSize: 16,
+                          ),
+                          decoration: InputDecoration(
+                            isCollapsed: true,
+                            hintText: 'Search Students, Sessions, Forums ...',
+                            hintStyle: TextStyle(
+                              color: Colors.white.withOpacity(0.95),
+                              fontSize: 14,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
+                          ),
+                          readOnly: true, // Make TextField non-editable
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const SearchResultsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const SearchResultsScreen(),
+                            ),
+                          );
+                        },
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: const Center(
+                            child: Icon(
+                              Icons.search,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
               const SizedBox(height: 18),
 
-              // Certification Progress Card
+             GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const BeltDashboardScreen(),
+                  ),
+                );
+              },
+              child:
               _sectionCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,11 +384,12 @@ class HomeScreen extends GetView<HomeController> {
 
                                                 // Make the first (white) bar tappable to open Belt Progress
                                                 if (i == 0) {
-                                                  return GestureDetector(
+                                                return GestureDetector(
                                                     onTap: () {
-                                                      Get.to(
-                                                        () =>
-                                                            const BeltProgressScreen(),
+                                                      Navigator.of(context).push(
+                                                        MaterialPageRoute(
+                                                          builder: (context) => const BeltProgressScreen(),
+                                                        ),
                                                       );
                                                     },
                                                     child: bar,
@@ -428,49 +465,68 @@ class HomeScreen extends GetView<HomeController> {
                   ],
                 ),
               ),
+             ),
 
               const SizedBox(height: 14),
 
-              // Trainee Card
-              _sectionCard(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Trainee',
-                          style: GoogleFonts.poppins(
+             // Trainee Card
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const TraineesScreen(),
+                    ),
+                  );
+                },
+                child: _sectionCard(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Trainee',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Monitor the trainee',
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Center(
+                          child: Icon(
+                            Icons.people_outline,
                             color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                            size: 28,
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Monitor the trainee',
-                          style: GoogleFonts.poppins(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Center(
-                        child: Icon(
-                          Icons.people_outline,
-                          color: Colors.white,
-                          size: 28,
-                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
               const SizedBox(height: 12),
 
               // Today's Recommendation
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const DailyCoachingScreen(),
+                    ),
+                  );
+                },
+              child:
               _sectionCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -490,10 +546,20 @@ class HomeScreen extends GetView<HomeController> {
                   ],
                 ),
               ),
+            ),
 
               const SizedBox(height: 12),
 
               // Quick Actions
+               GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ResourcesScreen(),
+                    ),
+                  );
+                },
+              child:
               _sectionCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,6 +627,7 @@ class HomeScreen extends GetView<HomeController> {
                   ],
                 ),
               ),
+            ),
 
               const SizedBox(height: 12),
 

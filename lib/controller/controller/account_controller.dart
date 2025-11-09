@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 import 'package:mapped_frontend/screens/notification_screen.dart';
@@ -33,9 +34,13 @@ class AccountController extends GetxController {
     Get.to(() => NotificationScreen());
   }
   
-  void editProfile() {
-    // Navigate to edit profile page
-    Get.to(() => ProfileEditorScreen());
+  void editProfile() 
+  {
+    Navigator.of(Get.context!).push(
+      MaterialPageRoute(
+        builder: (context) => ProfileEditorScreen(),
+      ),
+    );
   }
   
   void logout() {
