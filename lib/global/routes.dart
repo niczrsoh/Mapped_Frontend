@@ -15,6 +15,8 @@ import '../controller/controller/account_controller.dart';
 import '../screens/profile_editor_screen.dart';
 import '../controller/controller/profile_editor_controller.dart';
 import '../screens/notification_screen.dart';
+import '../screens/security_screen.dart';
+import '../controller/controller/security_controller.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -32,6 +34,7 @@ class AppRoutes {
   static const String account = '/account';
   static const String editProfile = '/edit-profile';
   static const String notification = '/notification';
+  static const String security = '/security';
 
   static const String bottomNav = '/bottom-nav';
 }
@@ -102,6 +105,13 @@ class AppPages {
     GetPage(
       name: AppRoutes.notification,
       page: () => NotificationScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.security,
+      page: () => SecurityScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(SecurityController());
+      }),
     ),
   ];
 }
