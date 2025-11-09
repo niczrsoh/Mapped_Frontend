@@ -12,54 +12,55 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _glowController;
   late AnimationController _fadeController;
   late AnimationController _circleController;
   late AnimationController _textController;
-  
+
   int _currentStage = 0;
 
   @override
   void initState() {
     super.initState();
-    
+
     _glowController = AnimationController(
       duration: Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _fadeController = AnimationController(
       duration: Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _circleController = AnimationController(
       duration: Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _textController = AnimationController(
       duration: Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _startSplashSequence();
   }
-  
+
   void _startSplashSequence() async {
     // Stage 0: Glowing map pin logo (Splash 1)
     setState(() => _currentStage = 0);
     _fadeController.forward();
     await Future.delayed(Duration(milliseconds: 2000));
     await _fadeController.reverse();
-    
+
     // Stage 1: Martial artist silhouette (Splash 2)
     setState(() => _currentStage = 1);
     _fadeController.forward();
     await Future.delayed(Duration(milliseconds: 2000));
     await _fadeController.reverse();
-    
+
     // Stage 2: "Explore with MAPPED" circle (Splash 3)
     setState(() => _currentStage = 2);
     _fadeController.forward();
@@ -70,13 +71,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     await _fadeController.reverse();
     _circleController.reset();
     _textController.reset();
-    
+
     // Stage 3: Welcome text fade in (Splash 4)
     setState(() => _currentStage = 3);
     _fadeController.forward();
     await Future.delayed(Duration(milliseconds: 1500));
     await _fadeController.reverse();
-    
+
     // Navigate to Splash 5 (Start/Login page)
     if (mounted) {
       Get.offNamed(AppRoutes.welcome);
@@ -100,11 +101,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0a4d3c),
-              Color(0xFF1a1f2e),
-              Color(0xFF0f1419),
-            ],
+            colors: [Color(0xFF0a4d3c), Color(0xFF1a1f2e), Color(0xFF0f1419)],
           ),
         ),
         child: Center(
@@ -116,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
   }
-  
+
   Widget _buildCurrentStage() {
     switch (_currentStage) {
       case 0:
@@ -129,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         return Container();
     }
   }
-  
+
   // Splash 1: Glowing background with your image
   Widget _buildGlowingMapPin() {
     return AnimatedBuilder(
@@ -146,8 +143,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Color(0xFF00D9B5).withValues(alpha: 0.5 + _glowController.value * 0.3),
-                    Color(0xFF00D9B5).withValues(alpha: 0.2 + _glowController.value * 0.2),
+                    Color(
+                      0xFF00D9B5,
+                    ).withValues(alpha: 0.5 + _glowController.value * 0.3),
+                    Color(
+                      0xFF00D9B5,
+                    ).withValues(alpha: 0.2 + _glowController.value * 0.2),
                     Color(0xFF00D9B5).withValues(alpha: 0.05),
                     Colors.transparent,
                   ],
@@ -174,7 +175,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       },
     );
   }
-  
+
   // Splash 2: Your image with fade effect
   Widget _buildMartialArtistSilhouette() {
     return Image.asset(
@@ -191,7 +192,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       },
     );
   }
-  
+
   // Splash 3: "Explore with MAPPED" with animated circle
   Widget _buildExploreWithMapped() {
     return Stack(
@@ -244,9 +245,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 // Map Pin Painter
 class MapPinPainter extends CustomPainter {
   final double glowIntensity;
-  
+
   MapPinPainter({required this.glowIntensity});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -254,20 +255,22 @@ class MapPinPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
-    
+
     final fillPaint = Paint()
       ..color = Color(0xFF00D9B5).withValues(alpha: glowIntensity * 0.2)
       ..style = PaintingStyle.fill;
-    
+
     final centerX = size.width / 2;
     final pinWidth = size.width * 0.65;
     final pinHeight = size.height * 0.85;
-    
+
     final path = Path();
     path.moveTo(centerX, pinHeight);
     path.quadraticBezierTo(
-      centerX - pinWidth / 3, pinHeight - pinHeight / 4,
-      centerX - pinWidth / 2, pinHeight / 2,
+      centerX - pinWidth / 3,
+      pinHeight - pinHeight / 4,
+      centerX - pinWidth / 2,
+      pinHeight / 2,
     );
     path.arcToPoint(
       Offset(centerX + pinWidth / 2, pinHeight / 2),
@@ -275,23 +278,25 @@ class MapPinPainter extends CustomPainter {
       clockwise: false,
     );
     path.quadraticBezierTo(
-      centerX + pinWidth / 3, pinHeight - pinHeight / 4,
-      centerX, pinHeight,
+      centerX + pinWidth / 3,
+      pinHeight - pinHeight / 4,
+      centerX,
+      pinHeight,
     );
-    
+
     canvas.drawPath(path, fillPaint);
     canvas.drawPath(path, paint);
-    
+
     // Martial artist icon inside
     final iconPaint = Paint()
       ..color = Color(0xFF00D9B5).withValues(alpha: glowIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
-    
+
     final figY = size.height * 0.3;
     canvas.drawCircle(Offset(centerX, figY - 5), 8, iconPaint);
-    
+
     final figPath = Path();
     figPath.moveTo(centerX, figY + 5);
     figPath.lineTo(centerX - 18, figY + 30);
@@ -301,12 +306,13 @@ class MapPinPainter extends CustomPainter {
     figPath.lineTo(centerX - 12, figY + 50);
     figPath.moveTo(centerX, figY + 30);
     figPath.lineTo(centerX + 35, figY + 28);
-    
+
     canvas.drawPath(figPath, iconPaint);
   }
-  
+
   @override
-  bool shouldRepaint(MapPinPainter oldDelegate) => oldDelegate.glowIntensity != glowIntensity;
+  bool shouldRepaint(MapPinPainter oldDelegate) =>
+      oldDelegate.glowIntensity != glowIntensity;
 }
 
 // Kick Silhouette Painter
@@ -316,13 +322,13 @@ class KickSilhouettePainter extends CustomPainter {
     final paint = Paint()
       ..color = Color(0xFF2d4a5c).withValues(alpha: 0.6)
       ..style = PaintingStyle.fill;
-    
+
     final cx = size.width / 2;
     final cy = size.height / 2;
-    
+
     // Head
     canvas.drawCircle(Offset(cx - 30, cy - 70), 28, paint);
-    
+
     // Body and limbs
     final bodyPath = Path();
     bodyPath.moveTo(cx - 30, cy - 42);
@@ -330,28 +336,28 @@ class KickSilhouettePainter extends CustomPainter {
     bodyPath.lineTo(cx - 40, cy + 10);
     bodyPath.lineTo(cx - 10, cy - 10);
     bodyPath.close();
-    
+
     bodyPath.moveTo(cx - 10, cy - 10);
     bodyPath.lineTo(cx + 80, cy - 20);
     bodyPath.lineTo(cx + 90, cy - 10);
     bodyPath.lineTo(cx + 10, cy);
     bodyPath.close();
-    
+
     bodyPath.moveTo(cx - 40, cy + 10);
     bodyPath.lineTo(cx - 50, cy + 75);
     bodyPath.lineTo(cx - 35, cy + 80);
     bodyPath.lineTo(cx - 25, cy + 15);
     bodyPath.close();
-    
+
     bodyPath.moveTo(cx - 15, cy + 10);
     bodyPath.lineTo(cx + 40, cy + 75);
     bodyPath.lineTo(cx + 52, cy + 70);
     bodyPath.lineTo(cx, cy + 5);
     bodyPath.close();
-    
+
     canvas.drawPath(bodyPath, paint);
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
@@ -360,9 +366,9 @@ class KickSilhouettePainter extends CustomPainter {
 class AnimatedCirclePainter extends CustomPainter {
   final double progress;
   final Color color;
-  
+
   AnimatedCirclePainter({required this.progress, required this.color});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -370,10 +376,10 @@ class AnimatedCirclePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
-    
+
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 10;
-    
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi / 2,
@@ -382,9 +388,10 @@ class AnimatedCirclePainter extends CustomPainter {
       paint,
     );
   }
-  
+
   @override
-  bool shouldRepaint(AnimatedCirclePainter oldDelegate) => oldDelegate.progress != progress;
+  bool shouldRepaint(AnimatedCirclePainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 // SPLASH 5: Welcome Screen with Image Background
@@ -419,7 +426,7 @@ class WelcomeScreen extends StatelessWidget {
               },
             ),
           ),
-          
+
           // Optional: Dark overlay for better text visibility
           Container(
             decoration: BoxDecoration(
@@ -433,13 +440,14 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Content
           SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.end, // Push content to bottom
+                mainAxisAlignment:
+                    MainAxisAlignment.end, // Push content to bottom
                 children: [
                   // Title with gradient
                   ShaderMask(
@@ -466,7 +474,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 12),
-                  
+
                   // Subtitle
                   Text(
                     'Martial Art Coaches',
@@ -479,9 +487,9 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   SizedBox(height: 60),
-                  
+
                   // Buttons Row
                   Row(
                     children: [
@@ -500,7 +508,9 @@ class WelcomeScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               elevation: 8,
-                              shadowColor: Color(0xFF00D9B5).withValues(alpha: 0.5),
+                              shadowColor: Color(
+                                0xFF00D9B5,
+                              ).withValues(alpha: 0.5),
                             ),
                             child: Text(
                               'Start',
@@ -512,9 +522,9 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      
+
                       SizedBox(width: 15),
-                      
+
                       // Login Button
                       Expanded(
                         child: SizedBox(
@@ -524,7 +534,10 @@ class WelcomeScreen extends StatelessWidget {
                               Get.toNamed('/login');
                             },
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Color(0xFF00D9B5), width: 2),
+                              side: BorderSide(
+                                color: Color(0xFF00D9B5),
+                                width: 2,
+                              ),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
@@ -542,7 +555,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   SizedBox(height: 60), // Bottom padding
                 ],
               ),
@@ -565,7 +578,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  
+
   final List<OnboardingData> _pages = [
     OnboardingData(
       title: 'Explore with Us',
@@ -583,7 +596,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       imagePath: 'assets/images/onboarding3.png',
     ),
   ];
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -592,11 +605,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0a4d3c),
-              Color(0xFF1a1f2e),
-              Color(0xFF0f1419),
-            ],
+            colors: [Color(0xFF0a4d3c), Color(0xFF1a1f2e), Color(0xFF0f1419)],
           ),
         ),
         child: SafeArea(
@@ -647,7 +656,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       _buildRegisterButton()
                     else
                       _buildNextButton(),
-                    SizedBox(height: 40),  
+                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -657,7 +666,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-  
+
   Widget _buildPage(OnboardingData data) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 30),
@@ -720,25 +729,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-    
-    Widget _buildIndicators() {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(_pages.length, (index) {
-          return Container(
-            margin: EdgeInsets.symmetric(horizontal: 4),
-            width: _currentPage == index ? 24 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: _currentPage == index 
-                  ? Color(0xFF00D9B5)
-                  : Colors.white.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          );
-        }),
-      );
-    }
+
+  Widget _buildIndicators() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(_pages.length, (index) {
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: 4),
+          width: _currentPage == index ? 24 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: _currentPage == index
+                ? Color(0xFF00D9B5)
+                : Colors.white.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        );
+      }),
+    );
+  }
 
   Widget _buildRegisterButton() {
     return SizedBox(
@@ -746,16 +755,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: 55,
       child: ElevatedButton(
         onPressed: () {
-          Get.offNamed('/signup');
+          Get.toNamed(AppRoutes.register);
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF00D9B5),
+          backgroundColor: const Color(0xFF00D9B5),
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
         ),
-        child: Text(
+        child: const Text(
           'Register',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
@@ -794,7 +803,7 @@ class OnboardingData {
   final String title;
   final String subtitle;
   final String imagePath;
-  
+
   OnboardingData({
     required this.title,
     required this.subtitle,
@@ -807,42 +816,44 @@ class GradientBorderCirclePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-    
+
     // Draw background circle
     final backgroundPaint = Paint()
       ..color = Colors.transparent
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawCircle(center, radius, backgroundPaint);
-    
+
     // Draw gradient border
     final rect = Rect.fromCircle(center: center, radius: radius);
-    
+
     // Calculate gradient angle (136.44 degrees to radians)
     // 136.44° = 2.38 radians
     // Convert to Alignment coordinates
     final double angle = 136.44 * math.pi / 180;
     final dx = math.cos(angle);
     final dy = math.sin(angle);
-    
+
     final gradientPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment(-dx, -dy),
         end: Alignment(dx, dy),
         colors: [
-          Color(0xFF00FFA6),                      // Green at 14.85%
-          Color(0xFFA77CBE).withValues(alpha: 0),       // Transparent purple at 34.62%
-          Color(0xFF6FA8C3).withValues(alpha: 0),       // Transparent blue at 57.43%
-          Color(0xFF09FACA),                      // Cyan at 85.31%
+          Color(0xFF00FFA6), // Green at 14.85%
+          Color(
+            0xFFA77CBE,
+          ).withValues(alpha: 0), // Transparent purple at 34.62%
+          Color(0xFF6FA8C3).withValues(alpha: 0), // Transparent blue at 57.43%
+          Color(0xFF09FACA), // Cyan at 85.31%
         ],
         stops: [0.1485, 0.3462, 0.5743, 0.8531],
       ).createShader(rect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
-    
+
     canvas.drawCircle(center, radius - 0.5, gradientPaint);
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
