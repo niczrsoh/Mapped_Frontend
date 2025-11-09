@@ -32,6 +32,8 @@ class AppRoutes {
   static const String account = '/account';
   static const String editProfile = '/edit-profile';
   static const String notification = '/notification';
+
+  static const String bottomNav = '/bottom-nav';
 }
 
 class AppPages {
@@ -59,6 +61,7 @@ class AppPages {
       page: () => const LoginScreen(),
       binding: LoginBinding(),
     ),
+    GetPage(name: AppRoutes.bottomNav, page: () => const BottomNav(),),
     GetPage(name: AppRoutes.home, page: () => const HomeScreen()),
     GetPage(name: AppRoutes.touchId, page: () => const TouchIdScreen()),
     GetPage(
@@ -84,7 +87,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.account, 
-      page: () => AccountPage(),
+      page: () => AccountScreen(),
       binding: BindingsBuilder(() {
         Get.put(AccountController());
       }),

@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:mapped_frontend/controller/controller/account_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AccountPage extends StatelessWidget {
-  AccountPage({super.key});
+class AccountScreen extends StatelessWidget {
+  AccountScreen({super.key});
   final AccountController controller = Get.put(AccountController());
 
   @override
