@@ -116,7 +116,7 @@ class BeltProgressScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Updated text layout: percentage above a bordered "WHITE BELT" label
+                        // Updated text layout to match the image exactly
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -124,28 +124,35 @@ class BeltProgressScreen extends StatelessWidget {
                               '${(progress * 100).round()}%',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                fontSize: 24,
+                                fontSize: 24, // Slightly larger for emphasis
                                 fontWeight: FontWeight.w700,
                                 height: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            // Bordered label using Roboto semi-bold 600, size 24, centered
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: const Color(0xFF4D504F), width: 1),
+                            const SizedBox(
+                              height: 8,
+                            ), // Space between percentage and WHITE
+                            Text(
+                              'WHITE',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                                height: 1.2,
                               ),
-                              child: Text(
-                                'WHITE\nBELT',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.roboto(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600, // SemiBold
-                                  height: 1.0, // line-height 100%
-                                  letterSpacing: 0.0,
-                                ),
+                            ),
+                            const SizedBox(
+                              height: 2,
+                            ), // Small space between WHITE and BELT
+                            Text(
+                              'BELT',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                                height: 1.2,
                               ),
                             ),
                           ],
