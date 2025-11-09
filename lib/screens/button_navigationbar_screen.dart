@@ -1,54 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Import your screens and controllers
-import 'home_screen.dart';
-import 'account_screen.dart';
-import '../controller/controller/account_controller.dart';
-import '../global/routes.dart';
-
-class BottomNav extends StatefulWidget {
-  const BottomNav({super.key});
+class bottomNav extends StatefulWidget {
+  const bottomNav({super.key});
 
   @override
-  State<BottomNav> createState() => _BottomNavState();
+  State<bottomNav> createState() => _bottomNavState();
 }
 
-class _BottomNavState extends State<BottomNav> {
+class _bottomNavState extends State<bottomNav> {
   int _selectedIndex = 0;
 
-  // List of pages for bottom navigation
-  final List<Widget> _pages = [const HomeScreen(), AccountScreen()];
-
-  // Change the index when tapped
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      // You can navigate to different pages here if needed.
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0E0E12),
-      body: _pages[_selectedIndex], // Display the current page
-      bottomNavigationBar: Container(
-        height: 70,
-        decoration: const BoxDecoration(
-          color: Color(0xFF1C1C23),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(22),
-            topRight: Radius.circular(22),
-          ),
+    return Container(
+      height: 70,
+      decoration: const BoxDecoration(
+        color: Color(0xFF1C1C23), // slightly lighter than background
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(22),
+          topRight: Radius.circular(22),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.sports_gymnastics_outlined, "Home", 0),
-            _buildNavItem(Icons.account_circle_outlined, "Account", 1),
-          ],
-        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(Icons.sports_gymnastics_outlined, "Home", 0),
+          _buildNavItem(Icons.fitness_center_outlined, "Session", 1),
+          _buildNavItem(Icons.forum_outlined, "Forum", 2),
+          _buildNavItem(Icons.smart_toy_outlined, "Coach Bot", 3),
+          _buildNavItem(Icons.account_circle_outlined, "Account", 4),
+        ],
       ),
     );
   }
@@ -57,8 +46,7 @@ class _BottomNavState extends State<BottomNav> {
     bool isSelected = _selectedIndex == index;
 
     return GestureDetector(
-      onTap: () =>
-          _onItemTapped(index), // Only change index, no GetX navigation
+      onTap: () => _onItemTapped(index),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
