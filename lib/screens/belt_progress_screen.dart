@@ -1,0 +1,419 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+import 'button_navigationbar_screen.dart';
+
+class BeltProgressScreen extends StatelessWidget {
+  const BeltProgressScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeBg = const Color(0xFF0F1114);
+    final double progress = 0.75;
+    // dial sizing
+    final double dialSize = 160; // inner dial square used for painting
+    final double dialStroke =
+        22.0; // reduced thickness of the outer ring (was 28.0)
+    // horizontal bar sizing
+    final double barWidth = 240;
+    final double thumbSize = 24;
+
+    return Scaffold(
+      backgroundColor: themeBg,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          'Dashboard',
+          style: GoogleFonts.inter(
+            color: Colors.white,
+            fontWeight: FontWeight.w400,
+            fontSize: 16,
+          ),
+        ),
+        centerTitle: false,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF141823),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Belt Progress',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+
+                // Circular progress (custom painted to match reference)
+                Center(
+                  child: Container(
+                    width: 220,
+                    height: 220,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFF434343), Color(0xFF1C1C23)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.06),
+                          blurRadius: 24,
+                          spreadRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: dialSize,
+                          height: dialSize,
+                          child: CustomPaint(
+                            painter: _BeltDialPainter(
+                              progress: progress.clamp(0.0, 1.0),
+                              strokeWidth: dialStroke,
+                              thumbSize: thumbSize,
+                            ),
+                          ),
+                        ),
+                        // Updated text layout: percentage above a bordered "WHITE BELT" label
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${(progress * 100).round()}%',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                height: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Bordered label using Roboto semi-bold 600, size 24, centered
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFF4D504F), width: 1),
+                              ),
+                              child: Text(
+                                'WHITE\nBELT',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.roboto(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w600, // SemiBold
+                                  height: 1.0, // line-height 100%
+                                  letterSpacing: 0.0,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Horizontal progress bar
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: barWidth,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(50),
+                          border: Border.all(color: Colors.white24, width: 1),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Stack(
+                            children: [
+                              FractionallySizedBox(
+                                widthFactor: progress.clamp(0.0, 1.0),
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                      colors: [
+                                        Color(0xFFFFFFFF),
+                                        Color(0xFFDDDDDD),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                left:
+                                    ((barWidth * progress).clamp(
+                                      0.0,
+                                      barWidth,
+                                    )) -
+                                    (thumbSize / 2),
+                                top: -4,
+                                child: IgnorePointer(
+                                  child: Container(
+                                    width: thumbSize,
+                                    height: thumbSize,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.white.withOpacity(0.25),
+                                          blurRadius: 8,
+                                          spreadRadius: 3,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Table container without any horizontal lines
+                Container(
+                  padding: const EdgeInsets.all(0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF141823),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 18, 16, 8),
+                        child: Text(
+                          'White Belt',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF141823),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 56),
+                            Expanded(
+                              child: Text(
+                                'Name',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'Progress',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _tableRowWithAvatar('Rayyan Firas', '90%'),
+                      _tableRowWithAvatar('Siti Zaleha', '85%'),
+                      _tableRowWithAvatar('Ahmad Firdaus', '55%'),
+                      _tableRowWithAvatar('Nisa Nuraini', '40%'),
+                      _tableRowWithAvatar('Mohd Faisal', '30%'),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+
+      bottomNavigationBar: const bottomNav(),
+    );
+  }
+
+  Widget _tableRowWithAvatar(String name, String progress) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Row(
+        children: [
+          ClipOval(
+            child: Image.asset(
+              'assets/images/accountLogo.png',
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              name,
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+            ),
+          ),
+          Text(
+            progress,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BeltDialPainter extends CustomPainter {
+  final double progress;
+  final double strokeWidth;
+  final double thumbSize;
+
+  _BeltDialPainter({
+    required this.progress,
+    required this.strokeWidth,
+    required this.thumbSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) - (strokeWidth / 2);
+
+    // outer soft glow
+    final glowPaint = Paint()
+      ..color = const Color(0xFFFFFFFF).withOpacity(0.06)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 24);
+    canvas.drawCircle(center, radius + strokeWidth * 0.4, glowPaint);
+
+    // base ring (non-progress) use requested color #604E5C1A
+    final basePaint = Paint()
+      ..color = const Color.fromARGB(50, 0, 0, 0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawCircle(center, radius, basePaint);
+
+    // inner vignette (dark center)
+    final innerRadius = radius - strokeWidth * 0.6;
+    final innerShader = ui.Gradient.radial(
+      center,
+      innerRadius,
+      [const Color(0x00000000), const Color(0xFF000000).withOpacity(0.4)],
+      [0.0, 1.0],
+    );
+    final innerPaint = Paint()..shader = innerShader;
+    canvas.drawCircle(center, innerRadius, innerPaint);
+
+    // progress arc (clockwise starting at 3 o'clock)
+    final arcRect = Rect.fromCircle(center: center, radius: radius);
+    final sweep = progress * 2 * math.pi;
+    final sweepGradient = SweepGradient(
+      startAngle: 0,
+      endAngle: 2 * math.pi,
+      colors: [Colors.white.withOpacity(0.98), Colors.white70.withOpacity(0.9)],
+    );
+    final arcPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt
+      ..shader = sweepGradient.createShader(arcRect);
+    canvas.drawArc(arcRect, 0, sweep, false, arcPaint);
+
+    // end cap (glowing)
+    final double angle = sweep; // start at 0 (3 o'clock) + sweep clockwise
+    final capCenter = Offset(
+      center.dx + math.cos(angle) * radius,
+      center.dy + math.sin(angle) * radius,
+    );
+
+    final capGlow = Paint()
+      ..color = Colors.white.withOpacity(0.5)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8);
+    canvas.drawCircle(capCenter, thumbSize * 0.8, capGlow);
+
+    final capPaint = Paint()..color = Colors.white;
+    canvas.drawCircle(capCenter, thumbSize * 0.45, capPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BeltDialPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.strokeWidth != strokeWidth;
+  }
+}
