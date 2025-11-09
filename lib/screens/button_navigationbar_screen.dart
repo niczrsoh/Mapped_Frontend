@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class BottomNav extends StatefulWidget {
-  final Function(int) onItemSelected;
-  
-  const BottomNav({super.key, required this.onItemSelected});
+class bottomNav extends StatefulWidget {
+  const bottomNav({super.key});
 
   @override
-  State<BottomNav> createState() => _BottomNavState();
+  State<bottomNav> createState() => _bottomNavState();
 }
 
-class _BottomNavState extends State<BottomNav> {
+class _bottomNavState extends State<bottomNav> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      // You can navigate to different pages here if needed.
     });
-    widget.onItemSelected(index);
   }
 
   @override
@@ -25,7 +23,7 @@ class _BottomNavState extends State<BottomNav> {
     return Container(
       height: 70,
       decoration: const BoxDecoration(
-        color: Color(0xFF1C1C23),
+        color: Color(0xFF1C1C23), // slightly lighter than background
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(22),
           topRight: Radius.circular(22),
