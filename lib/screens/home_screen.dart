@@ -137,16 +137,19 @@ class HomeScreen extends GetView<HomeController> {
                   children: [
                     // Title row with arrows
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Certification Progress',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                        Expanded(
+                          child: Text(
+                            'Certification Progress',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.chevron_left, color: Colors.white),
                             const SizedBox(width: 6),

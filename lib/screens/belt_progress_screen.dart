@@ -215,7 +215,9 @@ class BeltProgressScreen extends StatelessWidget {
                                       color: Colors.white,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.white.withOpacity(0.25),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.25,
+                                          ),
                                           blurRadius: 8,
                                           spreadRadius: 3,
                                         ),
@@ -362,7 +364,7 @@ class _BeltDialPainter extends CustomPainter {
 
     // outer soft glow
     final glowPaint = Paint()
-      ..color = const Color(0xFFFFFFFF).withOpacity(0.06)
+      ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.06)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 24);
     canvas.drawCircle(center, radius + strokeWidth * 0.4, glowPaint);
 

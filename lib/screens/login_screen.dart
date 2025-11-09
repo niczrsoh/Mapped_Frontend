@@ -25,7 +25,7 @@ class LoginScreen extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    void _goToReset() {
+    void goToReset() {
       // Debug print so developer can see the tap in the console
       // and confirm the onPressed handler is firing.
       // This will also perform the navigation using GetX routes.
@@ -60,7 +60,7 @@ class LoginScreen extends GetView<LoginController> {
 
           // dark overlay (slightly stronger so the background image reads more transparent)
           Positioned.fill(
-            child: Container(color: Colors.black.withOpacity(0.60)),
+            child: Container(color: Colors.black.withValues(alpha: 0.60)),
           ),
 
           // Title pinned to specified coordinates per design
@@ -144,7 +144,7 @@ class LoginScreen extends GetView<LoginController> {
                         // Centered Forgot Password
                         Center(
                           child: TextButton(
-                            onPressed: _goToReset,
+                            onPressed: goToReset,
                             child: const Text(
                               'Forgot Password',
                               style: TextStyle(
