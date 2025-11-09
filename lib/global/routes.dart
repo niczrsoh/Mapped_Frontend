@@ -10,6 +10,11 @@ import '../controller/controller/register_controller.dart';
 import 'login_binding.dart';
 import '../screens/splash_screen.dart';
 import '../screens/verification_code_screen.dart';
+import '../screens/account_screen.dart';
+import '../controller/controller/account_controller.dart';
+import '../screens/profile_editor_screen.dart';
+import '../controller/controller/profile_editor_controller.dart';
+import '../screens/notification_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -24,6 +29,9 @@ class AppRoutes {
   static const String verification = '/verification';
   static const String createNewPassword = '/create_new_password';
   static const String home = '/home';
+  static const String account = '/account';
+  static const String editProfile = '/edit-profile';
+  static const String notification = '/notification';
 }
 
 class AppPages {
@@ -73,6 +81,24 @@ class AppPages {
     GetPage(
       name: AppRoutes.createNewPassword,
       page: () => const CreateNewPasswordScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.account, 
+      page: () => AccountPage(),
+      binding: BindingsBuilder(() {
+        Get.put(AccountController());
+      }),
+    ),
+    GetPage(
+      name: AppRoutes.editProfile,
+      page: () => ProfileEditorScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(ProfileEditorController());
+      }),
+    ),
+    GetPage(
+      name: AppRoutes.notification,
+      page: () => NotificationScreen(),
     ),
   ];
 }
