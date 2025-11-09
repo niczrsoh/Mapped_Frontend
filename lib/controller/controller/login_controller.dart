@@ -12,6 +12,6 @@ class LoginController extends GetxController {
     error.value = '';
     await Future.delayed(const Duration(milliseconds: 600));
     loading.value = false;
-    Get.offAllNamed(AppRoutes.home);
+    Get.offAllNamed(AppRoutes.main);
   }
 }

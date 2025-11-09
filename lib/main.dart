@@ -7,7 +7,6 @@ import 'global/routes.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set status bar style
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

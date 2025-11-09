@@ -589,7 +589,6 @@ class HomeScreen extends GetView<HomeController> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNav(),
     );
   }
 

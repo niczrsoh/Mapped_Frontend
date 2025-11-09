@@ -356,7 +356,7 @@ class ProfileEditorScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
-            initialValue: getValue(),
+            value: getValue(),
             dropdownColor: Color(0xFF252836),
             style: GoogleFonts.roboto(
               fontSize: 14,
