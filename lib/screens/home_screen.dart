@@ -51,7 +51,7 @@ class HomeScreen extends GetView<HomeController> {
             children: [
               // Greeting
               Text(
-                'Welcome back, Coach Sir Ramesh',
+                'Welcome back, Coach Lieyza',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 18,
