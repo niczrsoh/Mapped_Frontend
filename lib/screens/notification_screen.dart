@@ -174,7 +174,7 @@ class NotificationScreen extends StatelessWidget {
             child: Switch(
               value: value.value,
               onChanged: onChanged,
-              activeThumbColor: Color.fromARGB(255, 1, 250, 254),
+              activeColor: Color.fromARGB(255, 1, 250, 254),
               activeTrackColor: Color.fromARGB(255, 1, 250, 254).withValues(alpha: .5),
               inactiveThumbColor: Colors.grey[400],
               inactiveTrackColor: Colors.grey[700],

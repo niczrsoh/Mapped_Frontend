@@ -1,4 +1,8 @@
 import 'package:get/get.dart';
+import 'package:mapped_frontend/screens/coachBot_screen.dart';
+import 'package:mapped_frontend/screens/forum_screen.dart';
+import 'package:mapped_frontend/screens/main_navigation.dart';
+import 'package:mapped_frontend/screens/session_scree.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/register_screen.dart';
@@ -37,6 +41,10 @@ class AppRoutes {
   static const String security = '/security';
 
   static const String bottomNav = '/bottom-nav';
+  static const String forum = '/forum';
+  static const String coachBot = '/coach-bot';
+  static const String session = '/session';
+  static const main = '/main';
 }
 
 class AppPages {
@@ -106,6 +114,19 @@ class AppPages {
       name: AppRoutes.notification,
       page: () => NotificationScreen(),
     ),
+    GetPage(
+      name: AppRoutes.forum,
+      page: () => ForumScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.coachBot,
+      page: () => CoachBotScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.session,
+      page: () => SessionScreen(),
+    ),
+    GetPage(name: AppRoutes.main, page: () => const MainNavigation()),
     GetPage(
       name: AppRoutes.security,
       page: () => SecurityScreen(),

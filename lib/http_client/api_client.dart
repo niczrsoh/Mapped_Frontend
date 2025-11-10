@@ -10,4 +10,17 @@ class ApiClient extends GetConnect {
   }
 
   Future<Response> fetchSample() => get('/sample');
+
+  Future<Response> insertSample({
+    required String title,
+    required String content,
+  }) {
+    final body = {
+      'title': title,
+      'content': content,
+    };
+    return post('/sample/insert', body);
+  }
+
+  Future<Response> fetchAllSamples() => get('/sample/all');
 }
