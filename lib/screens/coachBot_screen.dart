@@ -72,30 +72,32 @@ class CoachBotScreen extends StatelessWidget {
                       const SizedBox(height: 40),
 
                       // Greeting
-                      Obx(() => RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Hello, ',
-                              style: GoogleFonts.poppins(
-                                fontSize: 48,
-                                fontWeight: FontWeight.w400,
-                                color: const Color(0xFF09FACA),
-                                height: 1.2,
+                      Obx(
+                        () => RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Hello, ',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF09FACA),
+                                  height: 1.2,
+                                ),
                               ),
-                            ),
-                            TextSpan(
-                              text: controller.userName.value,
-                              style: GoogleFonts.poppins(
-                                fontSize: 48,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                                height: 1.2,
+                              TextSpan(
+                                text: controller.userName.value,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  height: 1.2,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
 
                       const SizedBox(height: 8),
 
@@ -275,11 +277,7 @@ class CoachBotScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: const Color(0xFF09FACA),
-              size: 20,
-            ),
+            Icon(icon, color: const Color(0xFF09FACA), size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -305,7 +303,7 @@ class CoachBotController extends GetxController {
   void bookGymVisit() {
     // Navigate to chat with pre-filled message
     Get.to(() => CoachBotChatScreen());
-    
+
     // Send message after navigation
     Future.delayed(const Duration(milliseconds: 500), () {
       final chatController = Get.find<CoachBotChatController>();
@@ -317,11 +315,12 @@ class CoachBotController extends GetxController {
   void showSportsFacilities() {
     // Navigate to chat with pre-filled message
     Get.to(() => CoachBotChatScreen());
-    
+
     // Send message after navigation
     Future.delayed(const Duration(milliseconds: 500), () {
       final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = 'Show me other sports facilities around';
+      chatController.messageController.text =
+          'Show me other sports facilities around';
       chatController.sendMessage();
     });
   }
@@ -329,7 +328,7 @@ class CoachBotController extends GetxController {
   void showOtherOptions() {
     // Navigate to chat with pre-filled message
     Get.to(() => CoachBotChatScreen());
-    
+
     // Send message after navigation
     Future.delayed(const Duration(milliseconds: 500), () {
       final chatController = Get.find<CoachBotChatController>();
@@ -340,17 +339,17 @@ class CoachBotController extends GetxController {
 
   void sendMessage(String message) {
     if (message.trim().isEmpty) return;
-    
+
     // Navigate to chat screen
     Get.to(() => CoachBotChatScreen());
-    
+
     // Send message after navigation
     Future.delayed(const Duration(milliseconds: 500), () {
       final chatController = Get.find<CoachBotChatController>();
       chatController.messageController.text = message;
       chatController.sendMessage();
     });
-    
+
     messageController.clear();
   }
 
