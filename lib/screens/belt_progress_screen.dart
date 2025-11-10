@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:mapped_frontend/screens/belt_detail_screen.dart';
+
 class BeltProgressScreen extends StatelessWidget {
   const BeltProgressScreen({super.key});
 
@@ -15,6 +17,7 @@ class BeltProgressScreen extends StatelessWidget {
     final double dialSize = 160; // inner dial square used for painting
     final double dialStroke =
         22.0; // reduced thickness of the outer ring (was 28.0)
+    final double dialRadiusOffset = 6.0; // positive moves the ring outward
     // horizontal bar sizing
     final double barWidth = 240;
     final double thumbSize = 24;
@@ -26,7 +29,7 @@ class BeltProgressScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Dashboard',
@@ -86,21 +89,8 @@ class BeltProgressScreen extends StatelessWidget {
                   child: Container(
                     width: 220,
                     height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF434343), Color(0xFF1C1C23)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.06),
-                          blurRadius: 24,
-                          spreadRadius: 8,
-                        ),
-                      ],
-                    ),
+                    // removed outermost circular decoration per request so the painter
+                    // renders without the extra background circle
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -112,6 +102,7 @@ class BeltProgressScreen extends StatelessWidget {
                               progress: progress.clamp(0.0, 1.0),
                               strokeWidth: dialStroke,
                               thumbSize: thumbSize,
+                              ringOffset: dialRadiusOffset,
                             ),
                           ),
                         ),
@@ -237,6 +228,15 @@ class BeltProgressScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Table container without any horizontal lines
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const BeltDetailScreen(),
+                      ),
+                    );
+                  },
+                  child:
                 Container(
                   padding: const EdgeInsets.all(0),
                   decoration: BoxDecoration(
@@ -294,14 +294,35 @@ class BeltProgressScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      _tableRowWithAvatar('Rayyan Firas', '90%'),
-                      _tableRowWithAvatar('Siti Zaleha', '85%'),
-                      _tableRowWithAvatar('Ahmad Firdaus', '55%'),
-                      _tableRowWithAvatar('Nisa Nuraini', '40%'),
-                      _tableRowWithAvatar('Mohd Faisal', '30%'),
+                      _tableRowWithAvatar(
+                        'Rayyan Firas',
+                        '90%',
+                        avatar: 'assets/images/w1.png',
+                      ),
+                      _tableRowWithAvatar(
+                        'Siti Zaleha',
+                        '85%',
+                        avatar: 'assets/images/w2.png',
+                      ),
+                      _tableRowWithAvatar(
+                        'Ahmad Firdaus',
+                        '55%',
+                        avatar: 'assets/images/w3.png',
+                      ),
+                      _tableRowWithAvatar(
+                        'Nisa Nuraini',
+                        '40%',
+                        avatar: 'assets/images/w4.png',
+                      ),
+                      _tableRowWithAvatar(
+                        'Mohd Faisal',
+                        '30%',
+                        avatar: 'assets/images/w5.png',
+                      ),
                     ],
                   ),
                 ),
+              ),
 
                 const SizedBox(height: 40),
               ],
@@ -312,14 +333,14 @@ class BeltProgressScreen extends StatelessWidget {
     );
   }
 
-  Widget _tableRowWithAvatar(String name, String progress) {
+  Widget _tableRowWithAvatar(String name, String progress, {String? avatar}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
           ClipOval(
             child: Image.asset(
-              'assets/images/accountLogo.png',
+              avatar ?? 'assets/images/accountLogo.png',
               width: 36,
               height: 36,
               fit: BoxFit.cover,
@@ -350,17 +371,19 @@ class _BeltDialPainter extends CustomPainter {
   final double progress;
   final double strokeWidth;
   final double thumbSize;
+  final double ringOffset;
 
   _BeltDialPainter({
     required this.progress,
     required this.strokeWidth,
     required this.thumbSize,
+    this.ringOffset = 0.0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width / 2) - (strokeWidth / 2);
+    final radius = (size.width / 2) - (strokeWidth / 2) + ringOffset;
 
     // outer soft glow
     final glowPaint = Paint()
@@ -368,11 +391,16 @@ class _BeltDialPainter extends CustomPainter {
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 24);
     canvas.drawCircle(center, radius + strokeWidth * 0.4, glowPaint);
 
-    // base ring (non-progress) use requested color #604E5C1A
+    // base ring (non-progress) — changed to a neutral grey for clarity
     final basePaint = Paint()
-      ..color = const Color.fromARGB(50, 0, 0, 0)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
+      ..strokeWidth = strokeWidth
+      ..color = const Color.fromARGB(
+        255,
+        52,
+        51,
+        51,
+      ); // grey (Material Grey 400)
     canvas.drawCircle(center, radius, basePaint);
 
     // inner vignette (dark center)
@@ -420,6 +448,7 @@ class _BeltDialPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BeltDialPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.strokeWidth != strokeWidth;
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.ringOffset != ringOffset;
   }
 }
