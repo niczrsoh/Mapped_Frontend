@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:get/get.dart';
 import './belt_progress_screen.dart';
+import './yellow_belt_progress_screen.dart';
+import './session_planner_screen.dart';
+import './session_dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controller/home_controller/controller/home_controller.dart';
 
@@ -343,13 +346,26 @@ class HomeScreen extends GetView<HomeController> {
                                                   ],
                                                 );
 
-                                                // Make the first (white) bar tappable to open Belt Progress
+                                                // Make the first (white) bar tappable to open White Belt
                                                 if (i == 0) {
                                                   return GestureDetector(
                                                     onTap: () {
                                                       Get.to(
                                                         () =>
                                                             const BeltProgressScreen(),
+                                                      );
+                                                    },
+                                                    child: bar,
+                                                  );
+                                                }
+
+                                                // Make the second (yellow) bar tappable to open Yellow Belt
+                                                if (i == 1) {
+                                                  return GestureDetector(
+                                                    onTap: () {
+                                                      Get.to(
+                                                        () =>
+                                                            const YellowBeltProgressScreen(),
                                                       );
                                                     },
                                                     child: bar,
@@ -573,7 +589,9 @@ class HomeScreen extends GetView<HomeController> {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Get.to(() => const SessionPlannerScreen());
+                  },
                   child: Text(
                     'Plan a Session',
                     style: GoogleFonts.poppins(color: Colors.white),
@@ -607,6 +625,10 @@ class _BottomNavState extends State<BottomNav> {
     setState(() {
       _selectedIndex = index;
     });
+    // if Session tab tapped, navigate to Session Dashboard
+    if (index == 1) {
+      Get.to(() => const SessionDashboardScreen());
+    }
   }
 
   @override
