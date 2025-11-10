@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 import 'package:mapped_frontend/screens/notification_screen.dart';
-import 'notification_controller.dart';
+import 'package:mapped_frontend/controller/controller/notification_controller.dart';
 
 class AccountController extends GetxController {
   var notificationsEnabled = true.obs;

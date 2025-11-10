@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ForumDashboard extends StatelessWidget {
-  ForumDashboard({super.key});
-  final controller = Get.put(ForumController());
+class ForumScreen extends StatelessWidget {
+  ForumScreen({super.key});
+  final ForumController controller = Get.put(ForumController());
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +24,9 @@ class ForumDashboard extends StatelessWidget {
                   ),
                   Text(
                     'Home',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                       color: Colors.white,
                     ),
                   ),
@@ -42,7 +42,7 @@ class ForumDashboard extends StatelessWidget {
                   color: const Color(0xFF252836),
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(
-                    color: const Color(0xFF09FACA).withOpacity(0.3),
+                    color: const Color(0xFF09FACA).withValues(alpha: .3),
                     width: 1,
                   ),
                 ),
@@ -52,9 +52,10 @@ class ForumDashboard extends StatelessWidget {
                     hintText: 'Search by name ...',
                     hintStyle: GoogleFonts.roboto(
                       color: Colors.white54,
-                      fontSize: 14,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400
                     ),
-                    prefixIcon: const Icon(
+                    suffixIcon: const Icon(
                       Icons.search,
                       color: Colors.white54,
                     ),
@@ -383,8 +384,8 @@ class ForumController extends GetxController {
           '#UTMDojo'
         ],
         images: [
-          'assets/images/taekwondo1.jpg',
-          'assets/images/taekwondo2.jpg',
+          'assets/images/taekwondopost1.png',
+          'assets/images/taekwondopost2.png',
         ],
         likes: 35,
         comments: 89,

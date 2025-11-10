@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:mapped_frontend/screens/coachBot_screen.dart';
 import 'package:mapped_frontend/screens/forum_screen.dart';
 import 'package:mapped_frontend/screens/main_navigation.dart';
-import 'package:mapped_frontend/screens/session_scree.dart';
+import 'package:mapped_frontend/screens/session_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/register_screen.dart';
