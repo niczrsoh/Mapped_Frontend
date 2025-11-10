@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/screens/main_navigation_screen.dart';
 import 'package:mapped_frontend/screens/session_upcoming_screen.dart';
+import 'package:mapped_frontend/screens/session_upcoming_screen.dart';
 import 'session_current_screen.dart';
 import 'session_history_screen.dart';
 
@@ -166,14 +167,17 @@ class SessionDashboardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: themeBg,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.offAll(() => MainNavigationScreen()),
-        ),
+        // leading: IconButton(
+        //   padding: EdgeInsets.zero,
+        //   constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+        //   icon: const Icon(Icons.chevron_left, color: Colors.white),
+        //   onPressed: () {
+        //     Navigator.pop(context);
+        //   },
+        // ),
         title: Text(
           'Session Dashboard',
           style: GoogleFonts.roboto(
@@ -224,7 +228,7 @@ class SessionDashboardScreen extends StatelessWidget {
               ),
 
               GestureDetector(
-                onTap: () => Get.to(() => const UpcomingSessionsScreen()),
+                onTap: () => Get.to(() => UpcomingSessionsScreen()),
                 child: _sessionCard(
                   title: 'Upcoming',
                   date: 'Wed, Sept 21, 2025',
