@@ -40,7 +40,7 @@ class NotificationScreen extends StatelessWidget {
                         'Notifications',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),

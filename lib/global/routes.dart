@@ -36,6 +36,7 @@ class AppRoutes {
   static const String account = '/account';
   static const String editProfile = '/edit-profile';
   static const String notification = '/notification';
+  static const String security = '/security';
 
   static const String bottomNav = '/bottom-nav';
   static const String forum = '/forum';
@@ -69,7 +70,7 @@ class AppPages {
       page: () => const LoginScreen(),
       binding: LoginBinding(),
     ),
-    GetPage(name: AppRoutes.bottomNav, page: () => const BottomNav(),),
+    GetPage(name: AppRoutes.bottomNav, page: () => const BottomNav()),
     GetPage(name: AppRoutes.home, page: () => const HomeScreen()),
     GetPage(name: AppRoutes.touchId, page: () => const TouchIdScreen()),
     GetPage(
@@ -94,7 +95,7 @@ class AppPages {
       page: () => const CreateNewPasswordScreen(),
     ),
     GetPage(
-      name: AppRoutes.account, 
+      name: AppRoutes.account,
       page: () => AccountScreen(),
       binding: BindingsBuilder(() {
         Get.put(AccountController());
@@ -107,22 +108,10 @@ class AppPages {
         Get.put(ProfileEditorController());
       }),
     ),
-    GetPage(
-      name: AppRoutes.notification,
-      page: () => NotificationScreen(),
-    ),
-    GetPage(
-      name: AppRoutes.forum,
-      page: () => ForumScreen(),
-    ),
-    GetPage(
-      name: AppRoutes.coachBot,
-      page: () => CoachBotScreen(),
-    ),
-    GetPage(
-      name: AppRoutes.session,
-      page: () => SessionDashboardScreen(),
-    ),
+    GetPage(name: AppRoutes.notification, page: () => NotificationScreen()),
+    GetPage(name: AppRoutes.forum, page: () => ForumScreen()),
+    GetPage(name: AppRoutes.coachBot, page: () => CoachBotScreen()),
+    GetPage(name: AppRoutes.session, page: () => SessionDashboardScreen()),
     GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
   ];
 }
