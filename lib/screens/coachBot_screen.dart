@@ -338,19 +338,18 @@ class CoachBotController extends GetxController {
   }
 
   void sendMessage(String message) {
-    if (message.trim().isEmpty) return;
-
-    // Navigate to chat screen
-    Get.to(() => CoachBotChatScreen());
-
-    // Send message after navigation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = message;
-      chatController.sendMessage();
-    });
+    final messageToSend = message.trim(); 
+    if (messageToSend.isEmpty) return;
 
     messageController.clear();
+
+    Get.to(() => CoachBotChatScreen());
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      final chatController = Get.find<CoachBotChatController>();
+      chatController.messageController.text = messageToSend; // Use the trimmed version
+      chatController.sendMessage();
+    });
   }
 
   void startVoiceInput() {
