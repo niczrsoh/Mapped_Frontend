@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/screens/main_navigation_screen.dart';
+import 'package:mapped_frontend/screens/session_upcoming_screen.dart';
 import 'session_current_screen.dart';
 import 'session_history_screen.dart';
-import 'upcoming_sessions_screen.dart';
 
 class SessionDashboardScreen extends StatelessWidget {
   const SessionDashboardScreen({super.key});
@@ -171,7 +172,7 @@ class SessionDashboardScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Get.offAll(() => MainNavigationScreen()),
         ),
         title: Text(
           'Session Dashboard',

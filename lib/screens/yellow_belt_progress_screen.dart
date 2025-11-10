@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'button_navigationbar_screen.dart';
 
 class YellowBeltProgressScreen extends StatelessWidget {
   const YellowBeltProgressScreen({super.key});
@@ -305,8 +304,6 @@ class YellowBeltProgressScreen extends StatelessWidget {
           ),
         ),
       ),
-
-      bottomNavigationBar: const bottomNav(),
     );
   }
 
