@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'button_navigationbar_screen.dart';
+
+import 'package:mapped_frontend/screens/belt_detail_screen.dart';
 
 class BeltProgressScreen extends StatelessWidget {
   const BeltProgressScreen({super.key});
@@ -28,7 +29,7 @@ class BeltProgressScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Dashboard',
@@ -205,7 +206,9 @@ class BeltProgressScreen extends StatelessWidget {
                                       color: Colors.white,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.white.withOpacity(0.25),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.25,
+                                          ),
                                           blurRadius: 8,
                                           spreadRadius: 3,
                                         ),
@@ -225,6 +228,15 @@ class BeltProgressScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Table container without any horizontal lines
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const BeltDetailScreen(),
+                      ),
+                    );
+                  },
+                  child:
                 Container(
                   padding: const EdgeInsets.all(0),
                   decoration: BoxDecoration(
@@ -310,6 +322,7 @@ class BeltProgressScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
 
                 const SizedBox(height: 40),
               ],
@@ -317,8 +330,6 @@ class BeltProgressScreen extends StatelessWidget {
           ),
         ),
       ),
-
-      bottomNavigationBar: const bottomNav(),
     );
   }
 
@@ -376,7 +387,7 @@ class _BeltDialPainter extends CustomPainter {
 
     // outer soft glow
     final glowPaint = Paint()
-      ..color = const Color(0xFFFFFFFF).withOpacity(0.06)
+      ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.06)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 24);
     canvas.drawCircle(center, radius + strokeWidth * 0.4, glowPaint);
 

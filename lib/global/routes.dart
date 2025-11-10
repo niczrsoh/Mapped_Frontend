@@ -1,4 +1,8 @@
 import 'package:get/get.dart';
+import 'package:mapped_frontend/screens/coachBot_screen.dart';
+import 'package:mapped_frontend/screens/forum_screen.dart';
+import 'package:mapped_frontend/screens/main_navigation_screen.dart';
+import 'package:mapped_frontend/screens/session_scree.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/register_screen.dart';
@@ -10,6 +14,11 @@ import '../controller/controller/register_controller.dart';
 import 'login_binding.dart';
 import '../screens/splash_screen.dart';
 import '../screens/verification_code_screen.dart';
+import '../screens/account_screen.dart';
+import '../controller/controller/account_controller.dart';
+import '../screens/profile_editor_screen.dart';
+import '../controller/controller/profile_editor_controller.dart';
+import '../screens/notification_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -24,6 +33,15 @@ class AppRoutes {
   static const String verification = '/verification';
   static const String createNewPassword = '/create_new_password';
   static const String home = '/home';
+  static const String account = '/account';
+  static const String editProfile = '/edit-profile';
+  static const String notification = '/notification';
+
+  static const String bottomNav = '/bottom-nav';
+  static const String forum = '/forum';
+  static const String coachBot = '/coach-bot';
+  static const String session = '/session';
+  static const main = '/main';
 }
 
 class AppPages {
@@ -51,6 +69,7 @@ class AppPages {
       page: () => const LoginScreen(),
       binding: LoginBinding(),
     ),
+    GetPage(name: AppRoutes.bottomNav, page: () => const BottomNav(),),
     GetPage(name: AppRoutes.home, page: () => const HomeScreen()),
     GetPage(name: AppRoutes.touchId, page: () => const TouchIdScreen()),
     GetPage(
@@ -74,5 +93,36 @@ class AppPages {
       name: AppRoutes.createNewPassword,
       page: () => const CreateNewPasswordScreen(),
     ),
+    GetPage(
+      name: AppRoutes.account, 
+      page: () => AccountScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(AccountController());
+      }),
+    ),
+    GetPage(
+      name: AppRoutes.editProfile,
+      page: () => ProfileEditorScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(ProfileEditorController());
+      }),
+    ),
+    GetPage(
+      name: AppRoutes.notification,
+      page: () => NotificationScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.forum,
+      page: () => ForumScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.coachBot,
+      page: () => CoachBotScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.session,
+      page: () => SessionScreen(),
+    ),
+    GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
   ];
 }

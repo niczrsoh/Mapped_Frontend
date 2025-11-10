@@ -7,7 +7,6 @@ import 'global/routes.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set status bar style
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -36,7 +35,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Color(0xFF1a1f2e),
         useMaterial3: true,
       ),
-      initialRoute: AppRoutes.splash, // Start with splash screen!!!!!!
+      initialRoute: AppRoutes.splash,
       getPages: AppPages.routes,
     );
   }
