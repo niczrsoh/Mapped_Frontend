@@ -18,10 +18,6 @@ class ForumScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Get.back(),
-                  ),
                   Text(
                     'Home',
                     style: GoogleFonts.inter(

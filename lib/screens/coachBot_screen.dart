@@ -115,17 +115,25 @@ class CoachBotScreen extends StatelessWidget {
 
                       // Quick Action Buttons
                       _buildQuickActionButton(
-                        icon: Icons.fitness_center,
-                        title: 'Book me a visit in a gym',
-                        onTap: () => controller.bookGymVisit(),
+                        icon: Icons.school_outlined, // Good for history/learning
+                        title: 'Explain Taekwondo History & Philosophy',
+                        onTap: () => controller.explainHistory(),
                       ),
 
                       const SizedBox(height: 12),
 
                       _buildQuickActionButton(
-                        icon: Icons.sports_gymnastics,
-                        title: 'Show me other sports facilities around',
-                        onTap: () => controller.showSportsFacilities(),
+                        icon: Icons.sports_martial_arts, // Perfect for techniques
+                        title: 'Show me Taekwondo Techniques',
+                        onTap: () => controller.showTechniques(),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildQuickActionButton(
+                        icon: Icons.location_on_outlined, // Good for location
+                        title: 'Find a Dojang Nearby',
+                        onTap: () => controller.findDojang(),
                       ),
 
                       const SizedBox(height: 12),
@@ -297,22 +305,10 @@ class CoachBotScreen extends StatelessWidget {
 }
 
 class CoachBotController extends GetxController {
-  var userName = 'Karan'.obs;
+  var userName = 'Lieyza'.obs;
   final messageController = TextEditingController();
 
-  void bookGymVisit() {
-    // Navigate to chat with pre-filled message
-    Get.to(() => CoachBotChatScreen());
-
-    // Send message after navigation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = 'Book me a visit in a gym';
-      chatController.sendMessage();
-    });
-  }
-
-  void showSportsFacilities() {
+void explainHistory() {
     // Navigate to chat with pre-filled message
     Get.to(() => CoachBotChatScreen());
 
@@ -320,7 +316,31 @@ class CoachBotController extends GetxController {
     Future.delayed(const Duration(milliseconds: 500), () {
       final chatController = Get.find<CoachBotChatController>();
       chatController.messageController.text =
-          'Show me other sports facilities around';
+          'Explain Taekwondo History & Philosophy';
+      chatController.sendMessage();
+    });
+  }
+
+  void showTechniques() {
+    // Navigate to chat with pre-filled message
+    Get.to(() => CoachBotChatScreen());
+
+    // Send message after navigation
+    Future.delayed(const Duration(milliseconds: 500), () {
+      final chatController = Get.find<CoachBotChatController>();
+      chatController.messageController.text = 'Show me Taekwondo Techniques';
+      chatController.sendMessage();
+    });
+  }
+
+  void findDojang() {
+    // Navigate to chat with pre-filled message
+    Get.to(() => CoachBotChatScreen());
+
+    // Send message after navigation
+    Future.delayed(const Duration(milliseconds: 500), () {
+      final chatController = Get.find<CoachBotChatController>();
+      chatController.messageController.text = 'Find a Dojang Nearby';
       chatController.sendMessage();
     });
   }
@@ -338,19 +358,18 @@ class CoachBotController extends GetxController {
   }
 
   void sendMessage(String message) {
-    if (message.trim().isEmpty) return;
-
-    // Navigate to chat screen
-    Get.to(() => CoachBotChatScreen());
-
-    // Send message after navigation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = message;
-      chatController.sendMessage();
-    });
+    final messageToSend = message.trim(); 
+    if (messageToSend.isEmpty) return;
 
     messageController.clear();
+
+    Get.to(() => CoachBotChatScreen());
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      final chatController = Get.find<CoachBotChatController>();
+      chatController.messageController.text = messageToSend; // Use the trimmed version
+      chatController.sendMessage();
+    });
   }
 
   void startVoiceInput() {

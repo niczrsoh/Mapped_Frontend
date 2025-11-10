@@ -26,7 +26,7 @@ class CoachBotChatScreen extends StatelessWidget {
                     radius: 20,
                     backgroundColor: const Color(0xFF09FACA),
                     child: const Icon(
-                      Icons.fitness_center,
+                      Icons.sports_martial_arts,
                       color: Colors.white,
                       size: 20,
                     ),
@@ -170,16 +170,20 @@ class CoachBotChatScreen extends StatelessWidget {
   }
 
   Widget _buildTimestamp(DateTime time) {
+    // This will format the time as "HH:MM" (e.g., "14:35")
+    final String formattedTime =
+        "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF252836).withOpacity(0.5),
+          color: const Color(0xFF252836).withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          'Wed 8:21 AM',
+          formattedTime, // <-- CHANGED
           style: GoogleFonts.roboto(
             fontSize: 11,
             color: Colors.white54,
@@ -199,7 +203,7 @@ class CoachBotChatScreen extends StatelessWidget {
             radius: 18,
             backgroundColor: const Color(0xFF09FACA),
             child: const Icon(
-              Icons.fitness_center,
+              Icons.sports_martial_arts,
               color: Colors.white,
               size: 16,
             ),
@@ -283,7 +287,8 @@ class CoachBotChatController extends GetxController {
     super.onInit();
     // Welcome message
     messages.add(ChatMessage(
-      text: "Hello, I'm CoachBot! 👋 I'm your personal coach assistant. How can I help you?",
+      text:
+          "Hello, I'm CoachBot! 🥋 I'm your personal Taekwondo assistant. How can I help you learn about techniques, history, or find a dojang?",
       isUser: false,
       timestamp: DateTime.now(),
     ));
@@ -322,68 +327,40 @@ class CoachBotChatController extends GetxController {
 
     final lowerMessage = userMessage.toLowerCase();
 
-    if (lowerMessage.contains('gym training') || 
-        lowerMessage.contains('workout plan') ||
-        lowerMessage.contains('provide me gym')) {
-      response = '''Day 1: Push (Chest, Triceps, Shoulders):
-• Bench Press (Barbell or Dumbbell)
-• Shoulder Press
-• Dumbbell Flyes or Cable Crossovers
-• Triceps Pushdown or Dips
+    // --- TAEKWONDO LOGIC ---
+    if (lowerMessage.contains('history') || lowerMessage.contains('philosophy')) {
+      response =
+          '''Taekwondo is a Korean martial art that emphasizes high, fast, and spinning kicks. 🇰🇷
 
-Day 2: Pull (Back, Biceps):
-• Pull-ups or Lat Pulldowns
-• Bent-Over Rows or Seated Cable Rows
-• Bicep Curls
-• Face Pulls
+Its philosophy is built upon five tenets:
+• **Courtesy** (Ye Ui)
+• **Integrity** (Yom Chi)
+• **Perseverance** (In Nae)
+• **Self-Control** (Guk Gi)
+• **Indomitable Spirit** (Baekjul Boolgool)''';
+    } else if (lowerMessage.contains('techniques') ||
+        lowerMessage.contains('kicks') ||
+        lowerMessage.contains('poomsae')) {
+      response =
+          '''Taekwondo is known for its dynamic kicks! Key techniques include:
 
-Day 3: Legs:
-• Squats (Barbell or Goblet)
-• Romanian Deadlifts
-• Leg Press
-• Calf Raises
+• **Ap Chagi** (Front Kick)
+• **Dollyeo Chagi** (Roundhouse Kick)
+• **Yeop Chagi** (Side Kick)
+• **Dwi Chagi** (Back Kick)
 
-Day 4: Rest or Active Recovery
-
-Day 5: Upper Body:
-• Incline Bench Press
-• Overhead Press
-• Rows
-• Lateral Raises
-
-Day 6: Lower Body & Core:
-• Deadlifts
-• Lunges
-• Leg Curls
-• Planks & Core Work
-
-Day 7: Rest
-
-Remember to warm up before each session and cool down after! 💪''';
-    } else if (lowerMessage.contains('gym') || lowerMessage.contains('facility')) {
-      response = '''Ok, how about these?
-
-BodyWorks on Nadwislańska 12 street
-250 meters • 30 zł/one entrance all day
-
-Amenities:
-🏋️ Gym 🧖 SPA 🏊 Pool''';
-    } else if (lowerMessage.contains('diet') || lowerMessage.contains('nutrition')) {
-      response = '''Here's a balanced nutrition guide:
-
-🥗 Protein: 1.6-2.2g per kg of body weight
-🍚 Carbs: 3-5g per kg for moderate activity
-🥑 Fats: 0.8-1g per kg
-
-Meal timing:
-• Pre-workout: 1-2 hours before
-• Post-workout: Within 30-60 minutes
-
-Stay hydrated with 2-3 liters of water daily!''';
+We also practice **Poomsae** (forms), which are set patterns of defense and attack used to practice techniques.''';
+    } else if (lowerMessage.contains('dojang') ||
+        lowerMessage.contains('nearby') ||
+        lowerMessage.contains('find')) {
+      response =
+          "To find a *dojang* (Taekwondo school) near you, I'll need your current location or a city name. Would you like me to search for certified dojangs in your area?";
     } else if (lowerMessage.contains('hello') || lowerMessage.contains('hi')) {
-      response = "Hello! How can I assist you with your fitness journey today? I can help with workout plans, gym recommendations, nutrition advice, and more!";
+      response =
+          "Hello! How can I assist you with Taekwondo today? I can help with history, techniques, or finding a school.";
     } else {
-      response = "I can help you with:\n\n• Gym training programs\n• Nearby sports facilities\n• Nutrition advice\n• Workout tips\n\nWhat would you like to know more about?";
+      response =
+          "I can help you with:\n\n• Taekwondo History & Philosophy\n• Kicks and Poomsae (Forms)\n• Finding a local Dojang\n\nWhat would you like to know more about?";
     }
 
     messages.add(ChatMessage(
