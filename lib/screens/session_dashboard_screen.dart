@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/screens/main_navigation_screen.dart';
+import 'package:mapped_frontend/screens/session_upcoming_screen.dart';
 import 'package:mapped_frontend/screens/session_upcoming_screen.dart';
 import 'session_current_screen.dart';
 import 'session_history_screen.dart';

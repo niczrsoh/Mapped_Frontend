@@ -33,14 +33,14 @@ class NotificationScreen extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Get.back(),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                     Expanded(
                       child: Text(
                         'Notifications',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),

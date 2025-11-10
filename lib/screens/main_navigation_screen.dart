@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
+import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/forum_screen.dart';
 import '../screens/coachBot_screen.dart';
@@ -24,8 +25,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   static final List<Widget> _pages = [
     const HomeScreen(),
     const SessionDashboardScreen(),
-    const ForumScreen(),
-    const CoachBotScreen(),
+    ForumScreen(),
+    CoachBotScreen(),
     AccountScreen(),
   ];
 
