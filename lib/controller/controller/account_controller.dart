@@ -30,8 +30,11 @@ class AccountController extends GetxController {
     // Sync the state before navigating
     notificationsEnabled.value = notifController.generalNotification.value;
     
-    // Navigate to notification screen
-    Get.to(() => NotificationScreen());
+     Navigator.of(Get.context!).push(
+      MaterialPageRoute(
+        builder: (context) => NotificationScreen(),
+      ),
+    );
   }
   
   void editProfile() 

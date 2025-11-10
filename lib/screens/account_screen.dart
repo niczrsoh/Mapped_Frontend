@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/controller/controller/account_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/screens/notification_screen.dart';
+import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   AccountScreen({super.key});
@@ -29,16 +31,29 @@ class AccountScreen extends StatelessWidget {
                       _MenuItem(
                         iconPath: 'assets/images/profile.png',
                         text: 'Edit profile information',
-                        onTap: controller.editProfile,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ProfileEditorScreen(),
+                            ),
+                          );
+                        },
                       ),
                       Obx(
                         () => _MenuItem(
-                        iconPath: 'assets/images/notification.png',
-                        text: 'Notifications',
-                        badge: controller.notificationsEnabled.value ? 'ON' : 'OFF',
-                        badgeColor: Color(0xFF09FACA),
-                        onTap: controller.navigateToNotifications,
-                      )),
+                          iconPath: 'assets/images/notification.png',
+                          text: 'Notifications',
+                          badge: controller.notificationsEnabled.value ? 'ON' : 'OFF',
+                          badgeColor: Color(0xFF09FACA),
+                          onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => NotificationScreen(),
+                            ),
+                          );
+                        },
+                        ),
+                      ),
                       _MenuItem(
                         iconPath: 'assets/images/logout.png',
                         text: 'Log Out',
@@ -52,13 +67,14 @@ class AccountScreen extends StatelessWidget {
                     _buildLightSection([
                       Obx(
                         () => _MenuItem(
-                        iconPath: 'assets/images/security.png',
-                        text: 'Security',
-                        badge: controller.securityMethod.value,
-                        badgeColor: Color(0xFF09FACA),
-                        isDark: false,
-                        onTap: controller.navigateToSecurity,
-                      )),
+                          iconPath: 'assets/images/security.png',
+                          text: 'Security',
+                          badge: controller.securityMethod.value,
+                          badgeColor: Color(0xFF09FACA),
+                          isDark: false,
+                          onTap: controller.navigateToSecurity,
+                        ),
+                      ),
                       _MenuItem(
                         iconPath: 'assets/images/language.png',
                         text: 'Language',
