@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
-import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/forum_screen.dart';
 import '../screens/coachBot_screen.dart';
@@ -66,10 +65,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             .maybePop();
 
         if (isFirstRouteInCurrentTab) {
-          // If we're on the first route of the current tab, and there's only one tab,
-          // we might want to exit the app. Or you can handle it differently.
           if (_selectedIndex != 0) {
-            // Switch to home tab if not already there
             setState(() {
               _selectedIndex = 0;
             });
@@ -91,24 +87,28 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildBottomNav() {
-    return Container(
-      height: 70,
-      decoration: const BoxDecoration(
-        color: Color(0xFF1C1C23),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(22),
-          topRight: Radius.circular(22),
+    return SafeArea(
+      // This ensures the bottom navigation bar is above the system UI
+      minimum: const EdgeInsets.only(bottom: 0),
+      child: Container(
+        height: 70,
+        decoration: const BoxDecoration(
+          color: Color(0xFF1C1C23),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(22),
+            topRight: Radius.circular(22),
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.sports_gymnastics_outlined, "Home", 0),
-          _buildNavItem(Icons.fitness_center_outlined, "Session", 1),
-          _buildNavItem(Icons.forum_outlined, "Forum", 2),
-          _buildNavItem(Icons.smart_toy_outlined, "Coach Bot", 3),
-          _buildNavItem(Icons.account_circle_outlined, "Account", 4),
-        ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.sports_gymnastics_outlined, "Home", 0),
+            _buildNavItem(Icons.fitness_center_outlined, "Session", 1),
+            _buildNavItem(Icons.forum_outlined, "Forum", 2),
+            _buildNavItem(Icons.smart_toy_outlined, "Coach Bot", 3),
+            _buildNavItem(Icons.account_circle_outlined, "Account", 4),
+          ],
+        ),
       ),
     );
   }

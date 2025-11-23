@@ -236,7 +236,9 @@ class SessionCurrentScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
         title: Text(
           'Session Dashboard',

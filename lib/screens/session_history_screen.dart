@@ -167,7 +167,9 @@ class SessionHistoryScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
         title: Text(
           'Session Dashboard',
@@ -295,6 +297,51 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 40),
+                            Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [Color(0xFFFFFFFF), Color(0xFF666E6D)],
+                      stops: [0.195, 0.8461],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.all(2), // 2px border thickness
+                  child: SizedBox(
+                    width: 220,
+                    height: 44,
+                    child: ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Icon(
+                          Icons.smart_toy_outlined,
+                          size: 20,
+                          color: Color.fromARGB(255, 255, 255, 255),
+                        ),
+                      ),
+                      label: Text(
+                        'ASK COACHBOT',
+                        style: GoogleFonts.roboto(
+                          color: const Color(0xFF062A20),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00FFA6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 6,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

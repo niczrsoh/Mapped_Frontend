@@ -660,7 +660,10 @@ class HomeScreen extends GetView<HomeController> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: () {
-                    Get.to(() => const SessionPlannerScreen());
+                   Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SessionPlannerScreen()),
+                    );
                   },
                   child: Text(
                     'Plan a Session',

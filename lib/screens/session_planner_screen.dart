@@ -253,7 +253,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           widget.isEditing ? 'Edit Session' : 'Session Planner',

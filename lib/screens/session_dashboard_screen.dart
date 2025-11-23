@@ -216,7 +216,12 @@ class SessionDashboardScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               GestureDetector(
-                onTap: () => Get.to(() => const SessionCurrentScreen()),
+                onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SessionCurrentScreen()),
+                    );
+                  },
                 child: _sessionCard(
                   title: 'Current',
                   date: 'Wed, Sept 21, 2025',
@@ -228,7 +233,12 @@ class SessionDashboardScreen extends StatelessWidget {
               ),
 
               GestureDetector(
-                onTap: () => Get.to(() => UpcomingSessionsScreen()),
+               onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => UpcomingSessionsScreen()),
+                  );
+                },
                 child: _sessionCard(
                   title: 'Upcoming',
                   date: 'Wed, Sept 21, 2025',
@@ -240,7 +250,12 @@ class SessionDashboardScreen extends StatelessWidget {
               ),
 
               GestureDetector(
-                onTap: () => Get.to(() => const SessionHistoryScreen()),
+               onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SessionHistoryScreen()),
+                  );
+                },
                 child: _sessionCard(
                   title: 'History',
                   date: 'Wed, Sept 21, 2025',

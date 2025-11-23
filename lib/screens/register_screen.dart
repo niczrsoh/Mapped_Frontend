@@ -63,34 +63,34 @@ class RegisterScreen extends GetView<RegisterController> {
                   const SizedBox(height: 24),
                   // logo (use asset if provided, otherwise text)
                   Center(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      width: 180,
-                      height: 80,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => ShaderMask(
-                        shaderCallback: (rect) =>
-                            LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFF0A5848), Color(0xFF09FACA)],
-                            ).createShader(
-                              Rect.fromLTWH(0, 0, rect.width, rect.height),
-                            ),
-                        blendMode: BlendMode.srcIn,
-                        child: Text(
-                          'MAPPED',
-                          style: const TextStyle(
-                            fontFamily:
-                                'NicoMoji', // still differrent with the figma?????
-                            color: Colors.white,
-                            fontSize: 48,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 4,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // child: Image.asset(
+                    //   'assets/images/logo.png',
+                    //   width: 180,
+                    //   height: 80,
+                    //   fit: BoxFit.contain,
+                    //   errorBuilder: (context, error, stackTrace) => ShaderMask(
+                    //     shaderCallback: (rect) =>
+                    //         LinearGradient(
+                    //           begin: Alignment.topCenter,
+                    //           end: Alignment.bottomCenter,
+                    //           colors: [Color(0xFF0A5848), Color(0xFF09FACA)],
+                    //         ).createShader(
+                    //           Rect.fromLTWH(0, 0, rect.width, rect.height),
+                    //         ),
+                    //     blendMode: BlendMode.srcIn,
+                    //     child: Text(
+                    //       'MAPPED',
+                    //       style: const TextStyle(
+                    //         fontFamily:
+                    //             'NicoMoji', // still differrent with the figma?????
+                    //         color: Colors.white,
+                    //         fontSize: 48,
+                    //         fontWeight: FontWeight.w700,
+                    //         letterSpacing: 4,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ),
                   const SizedBox(height: 36),
 
