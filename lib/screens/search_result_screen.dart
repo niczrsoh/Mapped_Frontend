@@ -41,25 +41,31 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     required double borderRadius,
     EdgeInsets? margin,
     List<BoxShadow>? shadows,
+    double? minHeight,
   }) {
     return Container(
+      width: double.infinity, // 🔧 FIX: Ensure full width for all cards
       margin: margin,
-      // 1. Outer Container (The Gradient Border)
       decoration: BoxDecoration(
         gradient: customGradient,
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: shadows, // Apply custom shadows if provided
+        boxShadow: shadows,
       ),
-      padding: const EdgeInsets.all(
-        borderThickness,
-      ), // This space is the border
-      // 2. Inner Container (The Actual Card Body)
+      padding: const EdgeInsets.all(borderThickness),
+
+      // INNER CARD
       child: Container(
+        width: double.infinity, // 🔧 FIX: Ensures uniform width
         decoration: BoxDecoration(
-          color: innerCardBackgroundColor, // Solid dark background
+          color: const Color(0xFF141823),
           borderRadius: BorderRadius.circular(borderRadius - borderThickness),
         ),
-        child: child,
+        child: minHeight != null
+            ? ConstrainedBox(
+                constraints: BoxConstraints(minHeight: minHeight),
+                child: child,
+              )
+            : child,
       ),
     );
   }
@@ -67,16 +73,14 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Note: Filtering logic needs to be implemented to correctly hide/show sections
-    // based on `_selectedFilter`. For now, all sections are displayed.
-
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1D2E),
+      backgroundColor: const Color(0xFF0F1114),
       body: SafeArea(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with Back Button
+            // Header
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -108,16 +112,15 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     'Search',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 22,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // --- Search Bar (Now uses Gradient Border Helper) ---
+                  // Search Bar
                   _buildGradientBorderContainer(
                     borderRadius: 30,
-
                     child: TextField(
                       controller: _searchController,
                       style: const TextStyle(color: Colors.white, fontSize: 16),
@@ -127,8 +130,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                           color: Colors.white.withOpacity(0.5),
                           fontSize: 16,
                         ),
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 20, right: 12),
+                        suffixIcon: const Padding(
+                          padding: EdgeInsets.only(right: 20, left: 12),
                           child: Icon(Icons.search, color: accentColor),
                         ),
                         border: InputBorder.none,
@@ -140,23 +143,44 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     ),
                   ),
 
-                  // ----------------------------------------------------
                   const SizedBox(height: 20),
 
                   // Filter Chips
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildFilterChip('All'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Trainees'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Sessions'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Forum'),
-                      ],
-                    ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (constraints.maxWidth >= 480) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildFilterChip('All'),
+                            _buildFilterChip('Trainees'),
+                            _buildFilterChip('Sessions'),
+                            _buildFilterChip('Forum'),
+                            _buildFilterChip('Belt'),
+                            _buildFilterChip('Resource'),
+                          ],
+                        );
+                      }
+
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildFilterChip('All'),
+                            const SizedBox(width: 12),
+                            _buildFilterChip('Trainees'),
+                            const SizedBox(width: 12),
+                            _buildFilterChip('Sessions'),
+                            const SizedBox(width: 12),
+                            _buildFilterChip('Forum'),
+                            const SizedBox(width: 12),
+                            _buildFilterChip('Belt'),
+                            const SizedBox(width: 12),
+                            _buildFilterChip('Resource'),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -175,28 +199,29 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     if (_selectedFilter == 'All' ||
                         _selectedFilter == 'Trainees') ...[
                       _buildSectionTitle('Trainees'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _buildTraineeCard(
                         name: 'Rayyan Firas',
                         belt: 'Green',
                         note: 'Note : Next Blue Belt in 2 criteria',
-                        imageUrl: 'https://i.pravatar.cc/150?img=12',
+                        imageUrl: 'assets/images/searchperson1.png',
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _buildTraineeCard(
                         name: 'Chan Wei Tian',
                         belt: 'Green',
                         note: 'Note : Next Blue Belt in 3 criteria',
-                        imageUrl: 'https://i.pravatar.cc/150?img=47',
+                        imageUrl: 'assets/images/searchperson2.png',
                       ),
                       const SizedBox(height: 32),
                     ],
 
-                    // Sessions Section
+                    // Sessions
                     if (_selectedFilter == 'All' ||
-                        _selectedFilter == 'Sessions') ...[
+                        _selectedFilter == 'Sessions' ||
+                        _selectedFilter == 'Belt') ...[
                       _buildSectionTitle('Sessions'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _buildSessionCard(
                         title: 'School Pulai Jaya',
                         time: 'Thu 7pm - Hall B',
@@ -206,25 +231,24 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                       const SizedBox(height: 32),
                     ],
 
-                    // Forum Section
+                    // Forum
                     if (_selectedFilter == 'All' ||
                         _selectedFilter == 'Forum') ...[
                       _buildSectionTitle('Forum'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _buildForumCard(
                         title: 'How to achieve green belt faster?',
                         replies: '15 replies',
-                        // icon not used when showing forum image asset
                         icon: Icons.sports_martial_arts,
                       ),
                       const SizedBox(height: 32),
                     ],
 
-                    // Resources Section
-                    if (_selectedFilter == 'All') ...[
-                      // Assuming Resources only shows under 'All'
+                    // Resources
+                    if (_selectedFilter == 'All' ||
+                        _selectedFilter == 'Resource') ...[
                       _buildSectionTitle('Resources'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _buildResourceCard(
                         title: 'Green Belt Video Poomsae',
                         subtitle: 'Video Poomsae',
@@ -245,15 +269,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   Widget _buildFilterChip(String label) {
     final isSelected = _selectedFilter == label;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = label;
-        });
-      },
+      onTap: () => setState(() => _selectedFilter = label),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          // No gradient border needed here, maintaining existing chip style
           color: isSelected
               ? accentColor.withOpacity(0.2)
               : innerCardBackgroundColor,
@@ -266,9 +285,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? accentColor : Colors.white.withOpacity(0.7),
-            fontSize: 15,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected ? accentColor : Colors.white,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            height: 1.0,
+            letterSpacing: 0.0,
           ),
         ),
       ),
@@ -280,14 +302,16 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       title,
       style: const TextStyle(
         color: accentColor,
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.5,
+        fontFamily: 'Roboto',
+        fontWeight: FontWeight.w600, // SemiBold
+        fontSize: 16,
+        height: 1.0, // line-height 100%
+        letterSpacing: 0.0,
       ),
     );
   }
 
-  // --- Trainee Card (Now uses Gradient Border Helper) ---
+  // --- Trainee Card ---
   Widget _buildTraineeCard({
     required String name,
     required String belt,
@@ -296,6 +320,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }) {
     return _buildGradientBorderContainer(
       borderRadius: 16,
+      minHeight: 100,
       margin: const EdgeInsets.only(bottom: 12),
 
       child: Padding(
@@ -308,8 +333,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
               height: 60,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                // removed accentColor border per design request; keep transparent border
-                border: Border.all(color: Colors.transparent, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.15),
@@ -319,19 +342,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                 ],
               ),
               child: ClipOval(
-                child: Image.network(
-                  imageUrl,
+                child: Image(
+                  image: imageUrl.startsWith('http')
+                      ? NetworkImage(imageUrl)
+                      : AssetImage(imageUrl) as ImageProvider,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: const Color(0xFF3A3D4E),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    );
-                  },
                 ),
               ),
             ),
@@ -339,6 +354,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
             // Info
             Expanded(
+              flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -346,21 +362,26 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     name,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Roboto',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      height: 1.0,
+                      letterSpacing: 0.0,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 14),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.2),
+                      color: const Color(
+                        0x8A72777A,
+                      ), // #72777A8A interpreted as RRGGBBAA -> 0x8A72777A
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: accentColor.withOpacity(0.5),
+                        color: const Color(0x8A72777A),
                         width: 1,
                       ),
                     ),
@@ -377,15 +398,21 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
               ),
             ),
 
-            // Note
+            // Note (prevents overflow)
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Text(
                 note,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                softWrap: true,
+                overflow: TextOverflow.visible,
+                maxLines: 3, // prevent overflow
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w700,
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  height: 1.0,
+                  letterSpacing: 0.0,
                 ),
                 textAlign: TextAlign.right,
               ),
@@ -395,9 +422,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       ),
     );
   }
-  // ---------------------------------------------------
 
-  // --- Session Card (Now uses Gradient Border Helper) ---
+  // --- Session Card ---
   Widget _buildSessionCard({
     required String title,
     required String time,
@@ -406,62 +432,73 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }) {
     return _buildGradientBorderContainer(
       borderRadius: 16,
+      minHeight: 100,
 
       child: Padding(
-        padding: const EdgeInsets.all(18 - borderThickness),
+        padding: const EdgeInsets.all(16.0 - borderThickness),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w600,
+                fontSize: 16,
+                height: 1.0,
+                letterSpacing: 0.0,
               ),
             ),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 Text(
-                  '$time - ',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
+                  '$time -',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'JejuGothic',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
+                    letterSpacing: 0.0,
                   ),
                 ),
                 Text(
-                  '$date - ',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
+                  '$date -',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'JejuGothic',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
+                    letterSpacing: 0.0,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: accentColor.withOpacity(0.5),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    beltType,
-                    style: const TextStyle(
-                      color: accentColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  beltType,
+                  style: const TextStyle(
+                    color: accentColor,
+                    fontFamily: 'JejuGothic',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
+                    letterSpacing: 0.0,
                   ),
                 ),
                 const Text(
-                  ' Belt Session',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  'Belt Session',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'JejuGothic',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
+                    letterSpacing: 0.0,
+                  ),
                 ),
               ],
             ),
@@ -470,9 +507,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       ),
     );
   }
-  // ----------------------------------------------------
 
-  // --- Forum Card (Now uses Gradient Border Helper) ---
+  // --- Forum Card ---
   Widget _buildForumCard({
     required String title,
     required String replies,
@@ -480,19 +516,16 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }) {
     return _buildGradientBorderContainer(
       borderRadius: 16,
-
+      minHeight: 100,
       child: Padding(
         padding: const EdgeInsets.all(16.0 - borderThickness),
         child: Row(
           children: [
-            // Show forum image (local asset) inside the rectangle. Remove green tint/border.
             Container(
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.transparent, width: 1.0),
                 image: const DecorationImage(
                   image: AssetImage('assets/images/forum1.png'),
                   fit: BoxFit.cover,
@@ -508,16 +541,23 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     title,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontFamily: 'Roboto',
                       fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      height: 1.0,
+                      letterSpacing: 0.0,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Thread - $replies',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 13,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'JejuGothic',
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12,
+                      height: 1.0,
+                      letterSpacing: 0.0,
                     ),
                   ),
                 ],
@@ -528,9 +568,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       ),
     );
   }
-  // ----------------------------------------------------
 
-  // --- Resource Card (Now uses Gradient Border Helper) ---
+  // --- Resource Card ---
   Widget _buildResourceCard({
     required String title,
     required String subtitle,
@@ -538,36 +577,29 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }) {
     return _buildGradientBorderContainer(
       borderRadius: 16,
+      minHeight: 100,
 
       child: Padding(
         padding: const EdgeInsets.all(16.0 - borderThickness),
         child: Row(
           children: [
-            // Thumbnail container: support both network and asset images
-            Builder(
-              builder: (context) {
-                final ImageProvider imageProvider =
-                    thumbnailUrl.startsWith('http')
-                    ? NetworkImage(thumbnailUrl)
-                    : AssetImage(thumbnailUrl);
-
-                return Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1D2E),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: accentColor.withOpacity(0.5),
-                      width: 1.5,
-                    ),
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                );
-              },
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1D2E),
+                borderRadius: BorderRadius.circular(12),
+                //border: Border.all(
+                //  color: accentColor.withOpacity(0.5),
+                //  width: 1.5,
+                // ),
+                image: DecorationImage(
+                  image: thumbnailUrl.startsWith('http')
+                      ? NetworkImage(thumbnailUrl)
+                      : AssetImage(thumbnailUrl) as ImageProvider,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -578,16 +610,23 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     title,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontFamily: 'Roboto',
                       fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      height: 1.0,
+                      letterSpacing: 0.0,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 13,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'JejuGothic',
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12,
+                      height: 1.0,
+                      letterSpacing: 0.0,
                     ),
                   ),
                 ],
@@ -598,6 +637,4 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       ),
     );
   }
-
-  // ------------------------------------------------------
 }
