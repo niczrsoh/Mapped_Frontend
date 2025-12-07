@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -29,7 +30,12 @@ class BeltProgressScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const BeltDashboardScreen(),
+            ),
+            (route) => route.isFirst,
+          ),
         ),
         title: Text(
           'Dashboard',
@@ -39,33 +45,42 @@ class BeltProgressScreen extends StatelessWidget {
             fontSize: 16,
           ),
         ),
+
         centerTitle: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF141823),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+              child: ClipRRect(
+                //belt progress style
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                  ],
-                ),
-                child: Text(
-                  'Belt Progress',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05), // SAME glass color
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1), // SAME shadow
+                          blurRadius: 4,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      "Belt Progress",
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -112,10 +127,10 @@ class BeltProgressScreen extends StatelessWidget {
                           children: [
                             Text(
                               '${(progress * 100).round()}%',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.roboto(
                                 color: Colors.white,
-                                fontSize: 24, // Slightly larger for emphasis
-                                fontWeight: FontWeight.w700,
+                                fontSize: 20, // Slightly larger for emphasis
+                                fontWeight: FontWeight.w600,
                                 height: 1.2,
                               ),
                             ),
@@ -124,11 +139,11 @@ class BeltProgressScreen extends StatelessWidget {
                             ), // Space between percentage and WHITE
                             Text(
                               'WHITE',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.roboto(
                                 color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.0,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0,
                                 height: 1.2,
                               ),
                             ),
@@ -136,12 +151,12 @@ class BeltProgressScreen extends StatelessWidget {
                               height: 2,
                             ), // Small space between WHITE and BELT
                             Text(
-                              'BELT',
-                              style: GoogleFonts.poppins(
+                              ' BELT',
+                              style: GoogleFonts.roboto(
                                 color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.0,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0,
                                 height: 1.2,
                               ),
                             ),
@@ -206,9 +221,7 @@ class BeltProgressScreen extends StatelessWidget {
                                       color: Colors.white,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.25,
-                                          ),
+                                          color: Colors.white.withOpacity(0.25),
                                           blurRadius: 8,
                                           spreadRadius: 3,
                                         ),
@@ -227,102 +240,120 @@ class BeltProgressScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // Table container without any horizontal lines
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const BeltDetailScreen(),
-                      ),
-                    );
-                  },
-                  child:
+                // Outer gradient border (1px) to mimic CSS border-image gradient
                 Container(
-                  padding: const EdgeInsets.all(0),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141823),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.fromRGBO(255, 255, 255, 0.1),
+                        Color(0xFFFFFFFF),
+                      ],
+                    ),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white24),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 18, 16, 8),
-                        child: Text(
-                          'White Belt',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.all(1), // 1px border
+                  child: Container(
+                    padding: EdgeInsets.zero,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141823),
+                      borderRadius: BorderRadius.circular(19),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 18, 16, 8),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'White ',
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'Belt',
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF141823),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 56),
-                            Expanded(
-                              child: Text(
-                                'Name',
-                                style: GoogleFonts.poppins(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF141823),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 56),
+                              Expanded(
+                                child: Text(
+                                  'Name',
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Progress',
+                                style: GoogleFonts.roboto(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w400,
                                   fontSize: 14,
                                 ),
                               ),
-                            ),
-                            Text(
-                              'Progress',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      _tableRowWithAvatar(
-                        'Rayyan Firas',
-                        '90%',
-                        avatar: 'assets/images/w1.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Siti Zaleha',
-                        '85%',
-                        avatar: 'assets/images/w2.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Ahmad Firdaus',
-                        '55%',
-                        avatar: 'assets/images/w3.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Nisa Nuraini',
-                        '40%',
-                        avatar: 'assets/images/w4.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Mohd Faisal',
-                        '30%',
-                        avatar: 'assets/images/w5.png',
-                      ),
-                    ],
+
+                        _tableRowWithAvatar(
+                          'Rayyan Firas',
+                          '90%',
+                          avatar: 'assets/images/w1.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Siti Zaleha',
+                          '85%',
+                          avatar: 'assets/images/w2.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Ahmad Firdaus',
+                          '55%',
+                          avatar: 'assets/images/w3.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Nisa Nuraini',
+                          '40%',
+                          avatar: 'assets/images/w4.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Mohd Faisal',
+                          '30%',
+                          avatar: 'assets/images/w5.png',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
                 const SizedBox(height: 40),
               ],
@@ -350,15 +381,19 @@ class BeltProgressScreen extends StatelessWidget {
           Expanded(
             child: Text(
               name,
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+              style: GoogleFonts.roboto(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
           Text(
             progress,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.roboto(
               color: Colors.white,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],
@@ -387,7 +422,7 @@ class _BeltDialPainter extends CustomPainter {
 
     // outer soft glow
     final glowPaint = Paint()
-      ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.06)
+      ..color = Colors.white.withOpacity(0.06)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 24);
     canvas.drawCircle(center, radius + strokeWidth * 0.4, glowPaint);
 
@@ -408,7 +443,7 @@ class _BeltDialPainter extends CustomPainter {
     final innerShader = ui.Gradient.radial(
       center,
       innerRadius,
-      [const Color(0x00000000), const Color(0xFF000000).withOpacity(0.4)],
+      [Colors.transparent, Colors.black.withOpacity(0.4)],
       [0.0, 1.0],
     );
     final innerPaint = Paint()..shader = innerShader;

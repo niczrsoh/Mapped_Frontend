@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 class YellowBeltProgressScreen extends StatelessWidget {
   const YellowBeltProgressScreen({super.key});
+
+  static const Color yellowPrimary = Color(0xFFF5FB32);
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +20,7 @@ class YellowBeltProgressScreen extends StatelessWidget {
     final double barWidth = 240;
     final double thumbSize = 24;
 
-    // Yellow color used for progress
-    const yellowPrimary = Color(0xFFF5FB32);
+    // local removed; use static `yellowPrimary` above
 
     return Scaffold(
       backgroundColor: themeBg,
@@ -27,7 +29,12 @@ class YellowBeltProgressScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const BeltDashboardScreen(),
+            ),
+            (route) => route.isFirst,
+          ),
         ),
         title: Text(
           'Dashboard',
@@ -43,20 +50,35 @@ class YellowBeltProgressScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF141823),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Belt Progress',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+              child: ClipRRect(
+                //belt progress style
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05), // SAME glass color
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1), // SAME shadow
+                          blurRadius: 4,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      "Belt Progress",
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -64,7 +86,6 @@ class YellowBeltProgressScreen extends StatelessWidget {
           ),
         ),
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -101,30 +122,30 @@ class YellowBeltProgressScreen extends StatelessWidget {
                               '${(progress * 100).round()}%',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
                                 height: 1.2,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'YELLOW',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.roboto(
                                 color: yellowPrimary,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.0,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0,
                                 height: 1.2,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'BELT',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.roboto(
                                 color: yellowPrimary,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.0,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0,
                                 height: 1.2,
                               ),
                             ),
@@ -136,7 +157,6 @@ class YellowBeltProgressScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 12),
-
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -146,12 +166,10 @@ class YellowBeltProgressScreen extends StatelessWidget {
                         width: barWidth,
                         height: 16,
                         decoration: BoxDecoration(
-                          color: const Color(0x33F5FB32),
+                          color: Colors
+                              .white, // non-progress track should be white
                           borderRadius: BorderRadius.circular(50),
-                          border: Border.all(
-                            color: const Color(0x33F5FB32),
-                            width: 1,
-                          ),
+                          border: Border.all(color: Colors.white, width: 1),
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(50),
@@ -167,7 +185,7 @@ class YellowBeltProgressScreen extends StatelessWidget {
                                       end: Alignment.centerRight,
                                       colors: [
                                         Color(0xFFF5FB32),
-                                        Color(0xFFF1C40F),
+                                        Color(0xFFF5FB32),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(50),
@@ -213,88 +231,117 @@ class YellowBeltProgressScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 Container(
-                  padding: const EdgeInsets.all(0),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141823),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.fromRGBO(255, 255, 255, 0.1),
+                        Color(0xFFF5FB32),
+                      ],
+                    ),
+
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0x33F5FB32)),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 18, 16, 8),
-                        child: Text(
-                          'Yellow Belt',
-                          style: GoogleFonts.poppins(
-                            color: yellowPrimary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+
+                  padding: const EdgeInsets.all(1), // 1px border
+                  child: Container(
+                    padding: EdgeInsets.zero,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141823),
+                      borderRadius: BorderRadius.circular(19),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 18, 16, 8),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Yellow ',
+                                  style: GoogleFonts.roboto(
+                                    color: yellowPrimary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'Belt',
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF141823),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 56),
-                            Expanded(
-                              child: Text(
-                                'Name',
-                                style: GoogleFonts.poppins(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF141823),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 56),
+                              Expanded(
+                                child: Text(
+                                  'Name',
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Progress',
+                                style: GoogleFonts.roboto(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w400,
                                   fontSize: 14,
                                 ),
                               ),
-                            ),
-                            Text(
-                              'Progress',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      _tableRowWithAvatar(
-                        'Rayyan Firas',
-                        '90%',
-                        avatar: 'assets/images/y1.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Siti Zaleha',
-                        '85%',
-                        avatar: 'assets/images/y2.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Ahmad Firdaus',
-                        '55%',
-                        avatar: 'assets/images/y3.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Nisa Nuraini',
-                        '40%',
-                        avatar: 'assets/images/y4.png',
-                      ),
-                      _tableRowWithAvatar(
-                        'Mohd Faisal',
-                        '30%',
-                        avatar: 'assets/images/y5.png',
-                      ),
-                    ],
+                        _tableRowWithAvatar(
+                          'Rayyan Firas',
+                          '90%',
+                          avatar: 'assets/images/y1.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Siti Zaleha',
+                          '85%',
+                          avatar: 'assets/images/y2.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Ahmad Firdaus',
+                          '55%',
+                          avatar: 'assets/images/y3.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Nisa Nuraini',
+                          '40%',
+                          avatar: 'assets/images/y4.png',
+                        ),
+                        _tableRowWithAvatar(
+                          'Mohd Faisal',
+                          '30%',
+                          avatar: 'assets/images/y5.png',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -324,15 +371,19 @@ class YellowBeltProgressScreen extends StatelessWidget {
           Expanded(
             child: Text(
               name,
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+              style: GoogleFonts.roboto(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
           Text(
             progress,
-            style: GoogleFonts.poppins(
-              color: Colors.white,
+            style: GoogleFonts.roboto(
+              color: yellowPrimary,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],
