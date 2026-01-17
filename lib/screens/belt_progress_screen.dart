@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/helper/colorConstant.dart';
 import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-
 import 'package:mapped_frontend/screens/belt_detail_screen.dart';
 
 class BeltProgressScreen extends StatelessWidget {
@@ -12,7 +12,7 @@ class BeltProgressScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeBg = const Color(0xFF0F1114);
+    final themeBg = ColorConstant.themeBg;
     final double progress = 0.75;
     // dial sizing
     final double dialSize = 160; // inner dial square used for painting

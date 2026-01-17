@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/forum/forum_controller.dart';
+import 'package:mapped_frontend/forum/forum_model.dart';
+import 'package:mapped_frontend/helper/colorConstant.dart';
 
 class ForumScreen extends StatelessWidget {
   ForumScreen({super.key});
@@ -9,7 +12,7 @@ class ForumScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1D29),
+      backgroundColor: ColorConstant.themeBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -49,12 +52,9 @@ class ForumScreen extends StatelessWidget {
                     hintStyle: GoogleFonts.roboto(
                       color: Colors.white54,
                       fontSize: 12,
-                      fontWeight: FontWeight.w400
+                      fontWeight: FontWeight.w400,
                     ),
-                    suffixIcon: const Icon(
-                      Icons.search,
-                      color: Colors.white54,
-                    ),
+                    suffixIcon: const Icon(Icons.search, color: Colors.white54),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -127,14 +127,16 @@ class ForumScreen extends StatelessWidget {
 
             // Posts List
             Expanded(
-              child: Obx(() => ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: controller.posts.length,
-                itemBuilder: (context, index) {
-                  final post = controller.posts[index];
-                  return _buildPostCard(post);
-                },
-              )),
+              child: Obx(
+                () => ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: controller.posts.length,
+                  itemBuilder: (context, index) {
+                    final post = controller.posts[index];
+                    return _buildPostCard(post);
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -279,16 +281,16 @@ class ForumScreen extends StatelessWidget {
           // Interaction Buttons
           Row(
             children: [
-              Obx(() => _buildInteractionButton(
-                icon: post.isLiked.value
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                count: post.likes.value,
-                color: post.isLiked.value
-                    ? Colors.red
-                    : Colors.white54,
-                onTap: () => controller.toggleLike(post),
-              )),
+              Obx(
+                () => _buildInteractionButton(
+                  icon: post.isLiked.value
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  count: post.likes.value,
+                  color: post.isLiked.value ? Colors.red : Colors.white54,
+                  onTap: () => controller.toggleLike(post),
+                ),
+              ),
               const SizedBox(width: 20),
               _buildInteractionButton(
                 icon: Icons.chat_bubble_outline,
@@ -325,108 +327,6 @@ class ForumScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class ForumPost {
-  final String id;
-  final String authorName;
-  final String? authorImage;
-  final String timeAgo;
-  final String content;
-  final List<String> hashtags;
-  final List<String> images;
-  final RxInt likes;
-  final int comments;
-  final RxBool isLiked;
-
-  ForumPost({
-    required this.id,
-    required this.authorName,
-    this.authorImage,
-    required this.timeAgo,
-    required this.content,
-    required this.hashtags,
-    required this.images,
-    required int likes,
-    required this.comments,
-    bool isLiked = false,
-  })  : likes = likes.obs,
-        isLiked = isLiked.obs;
-}
-
-class ForumController extends GetxController {
-  var posts = <ForumPost>[].obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    loadPosts();
-  }
-
-  void loadPosts() {
-    posts.value = [
-      ForumPost(
-        id: '1',
-        authorName: 'Ahmad Zafri',
-        timeAgo: '3m',
-        content:
-            '"This week\'s Taekwondo training will focus on the roundhouse kick. Please be on time so we can practice together!"',
-        hashtags: [
-          '#TaekwondoTraining',
-          '#RoundhouseKick',
-          '#MartialArts',
-          '#UTMDojo'
-        ],
-        images: [
-          'assets/images/taekwondopost1.png',
-          'assets/images/taekwondopost2.png',
-        ],
-        likes: 35,
-        comments: 89,
-      ),
-      ForumPost(
-        id: '2',
-        authorName: 'Sarah Lee',
-        timeAgo: '1h',
-        content:
-            'Great training session today! Remember to stretch before and after practice to prevent injuries.',
-        hashtags: ['#Training', '#MartialArts', '#Fitness'],
-        images: [],
-        likes: 42,
-        comments: 15,
-      ),
-    ];
-  }
-
-  void toggleLike(ForumPost post) {
-    if (post.isLiked.value) {
-      post.likes.value--;
-      post.isLiked.value = false;
-    } else {
-      post.likes.value++;
-      post.isLiked.value = true;
-    }
-  }
-
-  void openComments(ForumPost post) {
-    Get.snackbar(
-      'Comments',
-      'Opening comments for post by ${post.authorName}',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF09FACA),
-      colorText: Colors.white,
-    );
-  }
-
-  void createPost() {
-    Get.snackbar(
-      'Create Post',
-      'Opening post creation screen',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF09FACA),
-      colorText: Colors.white,
     );
   }
 }
