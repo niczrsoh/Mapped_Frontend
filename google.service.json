@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "202592286119",
+    "project_id": "mapped-fd910",
+    "storage_bucket": "mapped-fd910.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:202592286119:android:4d36e94a9272f431d13282",
+        "android_client_info": {
+          "package_name": "com.mappedproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "202592286119-3keorovlk4o26p90827ca7tvrcfb05nr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSjWghtAS85etAMOHIqjaY21WQF2tBMoY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "202592286119-3keorovlk4o26p90827ca7tvrcfb05nr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
