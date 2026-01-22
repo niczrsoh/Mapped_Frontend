@@ -56,7 +56,7 @@ class RegisterController extends GetxController {
       error.value = '';
       Get.snackbar(
         'Success! 🎉',
-        'Registration successful for ${userEmail}. Redirecting to Login...',
+        'Registration successful for $userEmail. Redirecting to Login...',
         backgroundColor: const Color(0xFF00C7A7), // Match your theme color
         colorText: Colors.white,
       );
