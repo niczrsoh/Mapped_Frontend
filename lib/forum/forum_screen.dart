@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mapped_frontend/forum/forum_controller.dart';
-import 'package:mapped_frontend/forum/forum_model.dart';
-import 'package:mapped_frontend/helper/colorConstant.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../controller/controller/forum_controller.dart';
 import '../screens/forum_searchtags_screen.dart';
@@ -17,7 +14,7 @@ class ForumScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstant.themeBg,
+      backgroundColor: const Color(0xFF1A1D29),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: controller.loadPosts,
@@ -82,116 +79,139 @@ class ForumScreen extends StatelessWidget {
                 ),
               ),
 
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF252836),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    color: const Color(0xFF09FACA).withValues(alpha: .3),
-                    width: 1,
-                  ),
-                ),
-                child: TextField(
-                  style: GoogleFonts.roboto(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search by name ...',
-                    hintStyle: GoogleFonts.roboto(
-                      color: Colors.white54,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400
-                    ),
-                    suffixIcon: const Icon(
-                      Icons.search,
-                      color: Colors.white54,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Create Post Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: controller.createPost,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF252836),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFF09FACA).withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          'What\'s on your mind?',
-                          style: GoogleFonts.roboto(
-                            color: Colors.white54,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.collections,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Posts List
-            Expanded(
-              child: Obx(() => ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: controller.posts.length,
-                itemBuilder: (context, index) {
-                  final post = controller.posts[index];
-                  return _buildPostCard(post);
-                },
-              )),
-            ),
-          ],
+              // 3. The Post List
+              _buildPostsListSliver(),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: () => Get.to(() => ForumSearchtagsScreen()),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF252836),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: const Color(0xFF09FACA).withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Search by name or tags...',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white54,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+              const Icon(Icons.search, color: Colors.white54),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreatePostSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 22,
+            backgroundColor: Colors.grey,
+            child: Icon(Icons.person, color: Colors.white),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => Get.to(() => CreatePostScreen()),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF252836),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF09FACA).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'What\'s on your mind?',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white54,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => Get.to(() => CreatePostScreen()),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.collections, color: Colors.white, size: 22),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostsListSliver() {
+    return Obx(() {
+      if (controller.isLoading.value && controller.posts.isEmpty) {
+        return const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: CircularProgressIndicator(color: Color(0xFF09FACA)),
+          ),
+        );
+      }
+
+      if (controller.posts.isEmpty) {
+        return SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Text(
+              'No posts yet. Be the first to post!',
+              style: GoogleFonts.roboto(color: Colors.white54, fontSize: 16),
+            ),
+          ),
+        );
+      }
+
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final post = controller.posts[index];
+              return _buildPostCard(post);
+            },
+            childCount: controller.posts.length,
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildPostCard(ForumPost post) {
@@ -298,92 +318,86 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-          // Hashtags
-          if (post.hashtags.isNotEmpty)
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: post.hashtags.map((tag) {
-                return Text(
-                  tag,
-                  style: GoogleFonts.roboto(
-                    fontSize: 13,
-                    color: const Color(0xFF09FACA),
-                    fontWeight: FontWeight.w500,
+  Widget _buildHashtags(ForumPost post) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      children: post.hashtags.map((tag) {
+        return Text(
+          tag,
+          style: GoogleFonts.roboto(
+            fontSize: 13,
+            color: const Color(0xFF09FACA),
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // --- FIXED: Vertical Column for "Own Size" ---
+  Widget _buildPostImages(ForumPost post) {
+    return Column(
+      children: post.images.map((imgUrl) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 8.0), // Spacing between images
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              controller.getFullImageUrl(imgUrl),
+              width: double.infinity, // Fill the card width
+              fit: BoxFit.fitWidth,   // Scale height automatically (maintain aspect ratio)
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200, // Fallback height if image fails
+                  width: double.infinity,
+                  color: Colors.grey[800],
+                  child: const Center(
+                    child: Icon(Icons.broken_image, color: Colors.white54),
                   ),
                 );
-              }).toList(),
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  height: 200, // Placeholder height while loading
+                  width: double.infinity,
+                  color: Colors.grey[900],
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF09FACA),
+                    ),
+                  ),
+                );
+              },
             ),
-
-          const SizedBox(height: 12),
-
-          // Post Images
-          if (post.images.isNotEmpty)
-            SizedBox(
-              height: 180,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: post.images.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    width: post.images.length > 1 ? 160 : double.infinity,
-                    margin: EdgeInsets.only(
-                      right: index < post.images.length - 1 ? 8 : 0,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey[800],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        post.images[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[800],
-                            child: const Center(
-                              child: Icon(
-                                Icons.image,
-                                color: Colors.white54,
-                                size: 50,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-          const SizedBox(height: 12),
-
-          // Interaction Buttons
-          Row(
-            children: [
-              Obx(() => _buildInteractionButton(
-                icon: post.isLiked.value
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                count: post.likes.value,
-                color: post.isLiked.value
-                    ? Colors.red
-                    : Colors.white54,
-                onTap: () => controller.toggleLike(post),
-              )),
-              const SizedBox(width: 20),
-              _buildInteractionButton(
-                icon: Icons.chat_bubble_outline,
-                count: post.comments,
-                color: Colors.white54,
-                onTap: () => controller.openComments(post),
-              ),
-            ],
           ),
-        ],
-      ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildInteractionButtons(ForumPost post) {
+    return Row(
+      children: [
+        Obx(() => _buildInteractionButton(
+              icon: post.isLiked.value ? Icons.favorite : Icons.favorite_border,
+              count: post.likes.value,
+              color: post.isLiked.value ? Colors.red : Colors.white54,
+              onTap: () => controller.toggleLike(post),
+            )),
+        const SizedBox(width: 20),
+        _buildInteractionButton(
+          icon: Icons.chat_bubble_outline,
+          count: post.comments,
+          color: Colors.white54,
+          onTap: () => Get.to(() => CommentsScreen(post: post)),
+        ),
+      ],
     );
   }
 
@@ -413,104 +427,74 @@ class ForumScreen extends StatelessWidget {
   }
 }
 
-class ForumPost {
-  final String id;
-  final String authorName;
-  final String? authorImage;
-  final String timeAgo;
-  final String content;
-  final List<String> hashtags;
-  final List<String> images;
-  final RxInt likes;
-  final int comments;
-  final RxBool isLiked;
+class PostVideoPlayer extends StatefulWidget {
+  final String videoUrl;
 
-  ForumPost({
-    required this.id,
-    required this.authorName,
-    this.authorImage,
-    required this.timeAgo,
-    required this.content,
-    required this.hashtags,
-    required this.images,
-    required int likes,
-    required this.comments,
-    bool isLiked = false,
-  })  : likes = likes.obs,
-        isLiked = isLiked.obs;
-}
-
-class ForumController extends GetxController {
-  var posts = <ForumPost>[].obs;
+  const PostVideoPlayer({super.key, required this.videoUrl});
 
   @override
-  void onInit() {
-    super.onInit();
-    loadPosts();
-  }
+  State<PostVideoPlayer> createState() => _PostVideoPlayerState();
+}
 
-  void loadPosts() {
-    posts.value = [
-      ForumPost(
-        id: '1',
-        authorName: 'Ahmad Zafri',
-        timeAgo: '3m',
-        content:
-            '"This week\'s Taekwondo training will focus on the roundhouse kick. Please be on time so we can practice together!"',
-        hashtags: [
-          '#TaekwondoTraining',
-          '#RoundhouseKick',
-          '#MartialArts',
-          '#UTMDojo'
-        ],
-        images: [
-          'assets/images/taekwondopost1.png',
-          'assets/images/taekwondopost2.png',
-        ],
-        likes: 35,
-        comments: 89,
-      ),
-      ForumPost(
-        id: '2',
-        authorName: 'Sarah Lee',
-        timeAgo: '1h',
-        content:
-            'Great training session today! Remember to stretch before and after practice to prevent injuries.',
-        hashtags: ['#Training', '#MartialArts', '#Fitness'],
-        images: [],
-        likes: 42,
-        comments: 15,
-      ),
-    ];
-  }
+class _PostVideoPlayerState extends State<PostVideoPlayer> {
+  late YoutubePlayerController _controller;
+  bool _isReady = false;
 
-  void toggleLike(ForumPost post) {
-    if (post.isLiked.value) {
-      post.likes.value--;
-      post.isLiked.value = false;
-    } else {
-      post.likes.value++;
-      post.isLiked.value = true;
+  @override
+  void initState() {
+    super.initState();
+    // 1. Extract Video ID
+    final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+
+    // 2. Initialize Controller
+    if (videoId != null) {
+      _controller = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false, // Don't play automatically in feed!
+          mute: false,
+          disableDragSeek: false,
+          loop: false,
+          isLive: false,
+          forceHD: false,
+          enableCaption: false,
+        ),
+      )..addListener(() {
+          if (mounted && _controller.value.isReady && !_isReady) {
+            setState(() {
+              _isReady = true;
+            });
+          }
+        });
     }
   }
 
-  void openComments(ForumPost post) {
-    Get.snackbar(
-      'Comments',
-      'Opening comments for post by ${post.authorName}',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF09FACA),
-      colorText: Colors.white,
-    );
+  @override
+  void dispose() {
+    // 3. Dispose Controller to free memory (CRITICAL)
+    _controller.dispose();
+    super.dispose();
   }
 
-  void createPost() {
-    Get.snackbar(
-      'Create Post',
-      'Opening post creation screen',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF09FACA),
-      colorText: Colors.white,
+  @override
+  Widget build(BuildContext context) {
+    // 
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: YoutubePlayer(
+        controller: _controller,
+        showVideoProgressIndicator: true,
+        progressIndicatorColor: const Color(0xFF09FACA),
+        progressColors: const ProgressBarColors(
+          playedColor: Color(0xFF09FACA),
+          handleColor: Color(0xFF09FACA),
+        ),
+        // Optional: Custom Thumbnail if player isn't ready
+        thumbnail: Container(
+          color: Colors.black,
+          child: Center(child: CircularProgressIndicator(color: Color(0xFF09FACA))),
+        ),
+      ),
     );
   }
 }
