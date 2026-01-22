@@ -13,105 +13,115 @@ class AccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF1A1D29),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Gradient Header
-            _buildGradientHeader(),
-            
-            // Main Content
-            Transform.translate(
-              offset: Offset(0, -48),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    // First Section - Dark
-                    _buildDarkSection([
-                      _MenuItem(
-                        iconPath: 'assets/images/profile.png',
-                        text: 'Edit profile information',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => ProfileEditorScreen(),
+      body: Obx(() => Stack(
+        children: [
+          // Main Content
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                // Gradient Header with Dynamic Data
+                _buildGradientHeader(),
+                
+                // Main Content
+                Transform.translate(
+                  offset: Offset(0, -48),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        // First Section - Dark
+                        _buildDarkSection([
+                          _MenuItem(
+                            iconPath: 'assets/images/profile.png',
+                            text: 'Edit profile information',
+                            onTap: controller.editProfile, // Updated to use controller method
+                          ),
+                          Obx(
+                            () => _MenuItem(
+                              iconPath: 'assets/images/notification.png',
+                              text: 'Notifications',
+                              badge: controller.notificationsEnabled.value ? 'ON' : 'OFF',
+                              badgeColor: Color(0xFF09FACA),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => NotificationScreen(),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
-                      Obx(
-                        () => _MenuItem(
-                          iconPath: 'assets/images/notification.png',
-                          text: 'Notifications',
-                          badge: controller.notificationsEnabled.value ? 'ON' : 'OFF',
-                          badgeColor: Color(0xFF09FACA),
-                          onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => NotificationScreen(),
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/logout.png',
+                            text: 'Log Out',
+                            onTap: controller.logout,
+                          ),
+                        ]),
+                        
+                        SizedBox(height: 16),
+                        
+                        // Second Section - Light
+                        _buildLightSection([
+                          Obx(
+                            () => _MenuItem(
+                              iconPath: 'assets/images/security.png',
+                              text: 'Security',
+                              badge: controller.securityMethod.value,
+                              badgeColor: Color(0xFF09FACA),
+                              isDark: false,
+                              onTap: controller.navigateToSecurity,
                             ),
-                          );
-                        },
-                        ),
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/logout.png',
-                        text: 'Log Out',
-                        onTap: controller.logout,
-                      ),
-                    ]),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Second Section - Light
-                    _buildLightSection([
-                      Obx(
-                        () => _MenuItem(
-                          iconPath: 'assets/images/security.png',
-                          text: 'Security',
-                          badge: controller.securityMethod.value,
-                          badgeColor: Color(0xFF09FACA),
-                          isDark: false,
-                          onTap: controller.navigateToSecurity,
-                        ),
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/language.png',
-                        text: 'Language',
-                        isDark: false,
-                        onTap: controller.navigateToLanguage,
-                      ),
-                    ]),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Third Section - Dark
-                    _buildDarkSection([
-                      _MenuItem(
-                        iconPath: 'assets/images/help.png',
-                        text: 'Help & Support',
-                        onTap: controller.navigateToHelp,
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/privacy.png',
-                        text: 'Privacy policy',
-                        onTap: controller.navigateToPrivacy,
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/about.png',
-                        text: 'About Us',
-                        onTap: controller.navigateToAbout,
-                      ),
-                    ]),
-                    
-                    SizedBox(height: 32),
-                  ],
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/language.png',
+                            text: 'Language',
+                            isDark: false,
+                            onTap: controller.navigateToLanguage,
+                          ),
+                        ]),
+                        
+                        SizedBox(height: 16),
+                        
+                        // Third Section - Dark
+                        _buildDarkSection([
+                          _MenuItem(
+                            iconPath: 'assets/images/help.png',
+                            text: 'Help & Support',
+                            onTap: controller.navigateToHelp,
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/privacy.png',
+                            text: 'Privacy policy',
+                            onTap: controller.navigateToPrivacy,
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/about.png',
+                            text: 'About Us',
+                            onTap: controller.navigateToAbout,
+                          ),
+                        ]),
+                        
+                        SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Loading Overlay
+          if (controller.isLoading.value)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF09FACA),
                 ),
               ),
             ),
-          ],
-        ),
-      ),
+        ],
+      )),
     );
   }
 
@@ -146,41 +156,72 @@ class AccountScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/profilepic.png',
-                fit: BoxFit.cover,
-              ),
-            ),
+            child: Obx(() {
+              if (controller.profileImageUrl.value.isEmpty) {
+                // Default Asset Image
+                return ClipOval(
+                  child: Image.asset(
+                    'assets/images/profilepic.png',
+                    fit: BoxFit.cover,
+                  ),
+                );
+              } else {
+                // Network Image from Backend
+                return ClipOval(
+                  child: Image.network(
+                    controller.profileImageUrl.value,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to default image if network image fails
+                      return Image.asset(
+                        'assets/images/profilepic.png',
+                        fit: BoxFit.cover,
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: Color(0xFF09FACA),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+            }),
           ),
           
           SizedBox(height: 16),
           
           // Username
-          Text(
-            'Lieyza',
+          Obx(() => Text(
+            controller.displayName.value,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w600,
               fontSize: 22,
-              height: 20 / 14,
-              letterSpacing: 0.25,
-              color: Colors.white,
+              height: 28 / 22,
+              color: Color(0xFF1A1D29),
             ),    
-          ),
+          )),
           
           SizedBox(height: 8),
           
           // Email & Phone
-          Text(
-            'youremail@domain.com | +01 234 567 89',
+          Obx(() => Text(
+            '${controller.displayEmail.value} | ${controller.displayPhone.value}',
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.w400,
               fontSize: 14,
               height: 20 / 14,
               letterSpacing: 0.25,
-              color: Colors.white,
+              color: Color(0xFF1A1D29),
             ),
-          ),
+          )),
         ],
       ),
     );
