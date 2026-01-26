@@ -27,7 +27,8 @@ class HomeScreen extends GetView<HomeController> {
     final cardBorder = const Color(0xFF00C7A7);
     
     // Get UserController for user data
-    final userController = Get.find<UserController>();
+    final UserController userController = Get.find<UserController>();
+    final HomeController homeController = Get.find<HomeController>();
     
     // Height used for the drawing area of bars (not including labels)
     final chartDrawHeight = min(

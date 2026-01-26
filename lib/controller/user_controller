@@ -1,5 +1,3 @@
-// controller/controller/user_controller.dart
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mapped_frontend/services/api_service.dart';
@@ -9,6 +7,10 @@ class UserController extends GetxController {
   var isLoading = false.obs;
   var userId = ''.obs;
   var isInitialized = false.obs;
+
+  String get userName => userData['name']?.toString() ?? 'User';
+  String get userEmail => userData['email']?.toString() ?? '';
+  String get userAvatar => userData['avatar']?.toString() ?? '';
   
   final ApiService _apiService = ApiService();
   
@@ -69,6 +71,7 @@ class UserController extends GetxController {
     try {
       isLoading.value = true;
       print('🌐 Fetching profile for user: ${userId.value}');
+      userData.value = {};
       
       final result = await _apiService.getUserProfile(userId.value);
       
@@ -132,8 +135,4 @@ class UserController extends GetxController {
       print('Error during logout: $e');
     }
   }
-  
-  String get userName => userData['name']?.toString() ?? 'User';
-  String get userEmail => userData['email']?.toString() ?? '';
-  String get userAvatar => userData['avatar']?.toString() ?? '';
 }

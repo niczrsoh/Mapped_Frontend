@@ -251,7 +251,6 @@ class __EmailTextFieldState extends State<_EmailTextField> {
   
   @override
   void dispose() {
-    _textController.dispose();
     super.dispose();
   }
   
@@ -338,7 +337,6 @@ class __PasswordTextFieldState extends State<_PasswordTextField> {
   
   @override
   void dispose() {
-    _textController.dispose();
     super.dispose();
   }
   

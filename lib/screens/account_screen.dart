@@ -9,8 +9,8 @@ import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 class AccountScreen extends StatelessWidget {
   AccountScreen({super.key});
   
-  final AccountController controller = Get.put(AccountController());
-  final UserController userController = Get.put(UserController());
+  final AccountController controller = Get.find<AccountController>();
+  final UserController userController = Get.find<UserController>();
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +158,7 @@ class AccountScreen extends StatelessWidget {
   Widget _buildGradientHeader() {
     return Obx(() {
       final user = userController.userData.value;
-      final name = user['name'] ?? 'User';
+      final name = userController.userName;
       final email = user['email'] ?? 'No email';
       final avatar = user['avatar'] ?? '';
       
@@ -226,7 +226,7 @@ class AccountScreen extends StatelessWidget {
             
             // Username
             Text(
-              name,
+              userController.userName,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w600,
                 fontSize: 22,

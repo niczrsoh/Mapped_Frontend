@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/global/routes.dart';
 import 'package:mapped_frontend/services/api_service.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -255,8 +256,8 @@ class RegisterController extends GetxController {
                       ),
                     ),
                     onPressed: () {
-                      Get.back(); // Close dialog
-                      Get.offAllNamed(AppRoutes.login); // Navigate to login
+                      Get.back();
+                      Get.offAllNamed(AppRoutes.login);
                     },
                     child: Text(
                       'OK',
@@ -339,6 +340,16 @@ class RegisterController extends GetxController {
             responseData['avatar'] ?? firebaseUser.photoURL ?? '');
           await prefs.setString('user_role', 
             responseData['role'] ?? 'trainee');
+
+          final userController = Get.find<UserController>();
+          
+          // Force clear and reload user data
+          userController.userData.value = {};
+          if (responseData['user'] != null && responseData['user']['id'] != null) {
+            userController.userId.value = responseData['user']['id'];
+          }
+
+          await userController.fetchUserProfile();
 
           Get.snackbar(
             'Success! 🎉',

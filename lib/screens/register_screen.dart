@@ -269,7 +269,6 @@ class __FullNameTextFieldState extends State<_FullNameTextField> {
   
   @override
   void dispose() {
-    _textController.dispose();
     super.dispose();
   }
   

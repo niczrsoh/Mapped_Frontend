@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mapped_frontend/controller/controller/account_controller.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'global/app_binding.dart';
 import 'global/routes.dart';
 
@@ -26,6 +28,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(UserController());
+    Get.put(AccountController());
     return GetMaterialApp(
       title: 'MAPPED',
       debugShowCheckedModeBanner: false,

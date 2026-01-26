@@ -4,6 +4,7 @@ import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 import 'package:mapped_frontend/screens/notification_screen.dart';
 import 'package:mapped_frontend/controller/controller/notification_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountController extends GetxController {
   var notificationsEnabled = true.obs;
@@ -66,6 +67,14 @@ class AccountController extends GetxController {
       textConfirm: 'Yes',
       textCancel: 'No',
       onConfirm: () async {
+        // Clear user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('user_name');
+      await prefs.remove('user_email');
+      await prefs.remove('user_avatar');
+      await prefs.remove('user_role');
+          
         // Navigate to login
         Get.back();
         Get.offAllNamed('/login');

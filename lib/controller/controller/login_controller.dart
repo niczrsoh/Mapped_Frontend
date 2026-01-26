@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../global/routes.dart';
@@ -113,6 +114,15 @@ class LoginController extends GetxController {
         await prefs.setString('user_email', responseData['email'] ?? '');
         await prefs.setString('user_avatar', responseData['avatar'] ?? '');
         await prefs.setString('user_role', responseData['role'] ?? 'trainee');
+
+        final userController = Get.find<UserController>();
+        
+        // Force clear and reload user data
+        userController.userData.value = {}; // Clear current data
+        userController.userId.value = responseData['user']['id'] ?? '';
+        
+        // Fetch fresh user data
+        await userController.fetchUserProfile();
         
         // Clear fields on success
         email.value = '';
