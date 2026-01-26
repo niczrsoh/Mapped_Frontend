@@ -3,30 +3,32 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mapped_frontend/global/routes.dart';
-import '../../services/api_service.dart'; 
+import 'package:mapped_frontend/services/api_service.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterController extends GetxController {
-  // Data fields linked to TextFields
+  // Data fields
   final fullName = ''.obs;
   final email = ''.obs;
   final password = ''.obs;
   final passwordConfirmation = ''.obs;
   
+  // Error fields for validation
+  final RxString fullNameError = ''.obs;
+  final RxString emailError = ''.obs;
+  final RxString passwordError = ''.obs;
+  final RxString passwordConfirmationError = ''.obs;
+  final RxString error = ''.obs;
+  
   // State management
   final loading = false.obs;
-  final error = ''.obs;
   final googleLoading = false.obs;
   
   final ApiService _apiService = ApiService();
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
-   // Google SignIn with proper constructor
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'profile',
-    ],
-   );
+    scopes: ['email', 'profile'],
+  );
 
   @override
   void onInit() {
@@ -34,19 +36,117 @@ class RegisterController extends GetxController {
     super.onInit();
   }
 
-  void register() async {
-    // 1. Client-side Validation
-    if (email.isEmpty || password.isEmpty || fullName.isEmpty || passwordConfirmation.isEmpty) {
-      error.value = 'Please fill in all fields.';
-      return;
+  // Validation methods
+  bool validateFullName() {
+    fullNameError.value = '';
+    
+    if (fullName.value.isEmpty) {
+      fullNameError.value = 'Full name is required';
+      return false;
+    }
+    
+    if (fullName.value.trim().length < 2) {
+      fullNameError.value = 'Full name must be at least 2 characters';
+      return false;
+    }
+    
+    return true;
+  }
+  
+  bool validateEmail() {
+    emailError.value = '';
+    
+    if (email.value.isEmpty) {
+      emailError.value = 'Email is required';
+      return false;
+    }
+    
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+      caseSensitive: false,
+      multiLine: false,
+    );
+    
+    if (!emailRegex.hasMatch(email.value)) {
+      emailError.value = 'Please enter a valid email address';
+      return false;
+    }
+    
+    return true;
+  }
+  
+  bool validatePassword() {
+    passwordError.value = '';
+    
+    if (password.value.isEmpty) {
+      passwordError.value = 'Password is required';
+      return false;
+    }
+    
+    if (password.value.length < 6) {
+      passwordError.value = 'Password must be at least 6 characters';
+      return false;
+    }
+    
+    return true;
+  }
+  
+  bool validatePasswordConfirmation() {
+    passwordConfirmationError.value = '';
+    
+    if (passwordConfirmation.value.isEmpty) {
+      passwordConfirmationError.value = 'Please confirm your password';
+      return false;
     }
     
     if (password.value != passwordConfirmation.value) {
-      error.value = 'Passwords do not match.';
-      return;
+      passwordConfirmationError.value = 'Passwords do not match';
+      return false;
     }
     
-    // 2. Prepare and Set Loading State
+    return true;
+  }
+  
+  bool validateForm() {
+    error.value = '';
+    
+    final isFullNameValid = validateFullName();
+    final isEmailValid = validateEmail();
+    final isPasswordValid = validatePassword();
+    final isPasswordConfirmationValid = validatePasswordConfirmation();
+    
+    if (!isFullNameValid && fullNameError.value.isNotEmpty) {
+      error.value = fullNameError.value;
+      return false;
+    }
+    
+    if (!isEmailValid && emailError.value.isNotEmpty) {
+      error.value = emailError.value;
+      return false;
+    }
+    
+    if (!isPasswordValid && passwordError.value.isNotEmpty) {
+      error.value = passwordError.value;
+      return false;
+    }
+    
+    if (!isPasswordConfirmationValid && passwordConfirmationError.value.isNotEmpty) {
+      error.value = passwordConfirmationError.value;
+      return false;
+    }
+    
+    return isFullNameValid && isEmailValid && isPasswordValid && isPasswordConfirmationValid;
+  }
+
+  void register() async {
+    // Clear all errors first
+    fullNameError.value = '';
+    emailError.value = '';
+    passwordError.value = '';
+    passwordConfirmationError.value = '';
+    error.value = '';
+  
+    
     loading.value = true;
     error.value = '';
 
@@ -54,59 +154,152 @@ class RegisterController extends GetxController {
     final String userEmail = email.value.trim();
     final String userPassword = password.value;
 
-    // 3. Call API Service
+    // Call API Service
     final result = await _apiService.registerUser(
       fullName: userFullName,
       email: userEmail,
       password: userPassword,
     );
 
-    // 4. Handle Result and Update UI
     loading.value = false;
     
     if (result['success']) {
       error.value = '';
-      Get.snackbar(
-        'Success! 🎉',
-        'Registration successful for $userEmail. Redirecting to Login...',
-        backgroundColor: const Color(0xFF00C7A7), // Match your theme color
-        colorText: Colors.white,
+      
+      // Show success dialog
+      Get.dialog(
+        AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          backgroundColor: Color(0xFF1a1f2e),
+          content: Container(
+            padding: EdgeInsets.all(0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFF00C7A7).withOpacity(0.2),
+                  ),
+                  child: Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF00C7A7),
+                    size: 40,
+                  ),
+                ),
+                SizedBox(height: 20),
+                
+                Text(
+                  'Congrats!',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 8),
+                
+                Text(
+                  'Your account has been',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 4),
+                
+                Text(
+                  'successfully created.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                
+                Text(
+                  'You can now login with your',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white54,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 4),
+                
+                Text(
+                  'registered email and password',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white54,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 30),
+                
+                // OK Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF00C7A7),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Get.back(); // Close dialog
+                      Get.offAllNamed(AppRoutes.login); // Navigate to login
+                    },
+                    child: Text(
+                      'OK',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false,
       );
       
-      // Assuming you have a route named 'login' defined in AppRoutes
-      Get.offAllNamed(AppRoutes.login); 
-      
     } else {
-      // Display the error message from the backend or network
+      // Display the error message from the backend
       error.value = result['error'] ?? 'An unknown error occurred.';
     }
   }
 
-   // NEW: Google Sign-Up Method
   Future<void> registerWithGoogle() async {
     try {
       googleLoading.value = true;
       error.value = '';
 
-      // Trigger Google Sign-In flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
       if (googleUser == null) {
-        // User cancelled the sign-in
         googleLoading.value = false;
         return;
       }
 
-      // Obtain auth details from Google
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // Create Firebase credential
+      
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Sign in to Firebase with Google credentials
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       final User? firebaseUser = userCredential.user;
 
@@ -122,6 +315,31 @@ class RegisterController extends GetxController {
         googleLoading.value = false;
 
         if (result['success']) {
+          // Store user data in SharedPreferences
+          final responseData = result['data'] ?? {};
+          
+          final prefs = await SharedPreferences.getInstance();
+          
+          // Store user ID
+          if (responseData['user'] != null && responseData['user']['id'] != null) {
+            await prefs.setString('user_id', responseData['user']['id']);
+          } else if (responseData['id'] != null) {
+            await prefs.setString('user_id', responseData['id']);
+          } else {
+            // Fallback to Firebase UID
+            await prefs.setString('user_id', firebaseUser.uid);
+          }
+          
+          // Store other user data
+          await prefs.setString('user_name', 
+            responseData['name'] ?? firebaseUser.displayName ?? '');
+          await prefs.setString('user_email', 
+            responseData['email'] ?? firebaseUser.email ?? '');
+          await prefs.setString('user_avatar', 
+            responseData['avatar'] ?? firebaseUser.photoURL ?? '');
+          await prefs.setString('user_role', 
+            responseData['role'] ?? 'trainee');
+
           Get.snackbar(
             'Success! 🎉',
             'Google Sign-Up successful!',
@@ -130,8 +348,8 @@ class RegisterController extends GetxController {
             duration: Duration(seconds: 2),
           );
           
-          // Navigate to home screen or dashboard
-          Get.offAllNamed(AppRoutes.login);
+          // Navigate to home screen
+          Get.offAllNamed(AppRoutes.main);
         } else {
           error.value = result['error'] ?? 'Failed to register with Google.';
         }
@@ -144,5 +362,19 @@ class RegisterController extends GetxController {
       error.value = 'Google Sign-Up failed: ${e.toString()}';
       print('Google Sign-Up Error: $e');
     }
+  }
+
+  // Clear all fields and errors
+  void clearAll() {
+    fullName.value = '';
+    email.value = '';
+    password.value = '';
+    passwordConfirmation.value = '';
+    
+    fullNameError.value = '';
+    emailError.value = '';
+    passwordError.value = '';
+    passwordConfirmationError.value = '';
+    error.value = '';
   }
 }

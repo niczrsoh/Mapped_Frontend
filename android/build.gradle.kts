@@ -1,3 +1,7 @@
+plugins {
+    id("com.google.gms.google-services") version "4.4.4" apply false
+}
+
 allprojects {
     repositories {
         google()
@@ -14,6 +18,18 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+subprojects {
+    project.configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "androidx.activity" &&
+                    requested.name == "activity") {
+                // Force a stable version that works with your current Gradle
+                useVersion("1.9.3")
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {

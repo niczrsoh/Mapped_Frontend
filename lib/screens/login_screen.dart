@@ -7,29 +7,35 @@ import 'package:google_fonts/google_fonts.dart';
 class LoginScreen extends GetView<LoginController> {
   const LoginScreen({super.key});
 
-  InputDecoration _inputDecoration(String hint) => InputDecoration(
-    hintText: hint,
-    hintStyle: const TextStyle(color: Colors.white70),
-    filled: true,
-    fillColor: Colors.white10,
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF00C7A7)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1),
-    ),
-    // Red border when validation fails
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.redAccent),
-    ),
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.redAccent, width: 1),
-    ),
-  );
+  // Make this method static so it can be accessed from state classes
+  static InputDecoration _inputDecoration({
+    required String hint,
+    bool hasError = false,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white70),
+      filled: true,
+      fillColor: Colors.white10,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+          width: 1,
+        ),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,25 +71,6 @@ class LoginScreen extends GetView<LoginController> {
             child: Container(color: Colors.black.withOpacity(0.60)),
           ),
 
-          // Title
-          Positioned(
-            top: 142.0,
-            left: 0,   // Pin to left edge
-            right: 0,  // Pin to right edge
-            child: Center(
-              child: Text(
-                'Welcome Back!',
-                maxLines: 1, 
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
-              ),
-            ),
-          ),
-
           // Content
           SafeArea(
             child: SingleChildScrollView(
@@ -98,36 +85,16 @@ class LoginScreen extends GetView<LoginController> {
                   children: [
                     const SizedBox(height: 24),
 
-                    // Middle: email & password (this block stays centered vertically)
+                    // Middle: email & password
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        TextField(
-                          style: GoogleFonts.openSans(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            letterSpacing: -0.41,
-                          ),
-                          cursorColor: const Color(0xFF00C7A7),
-                          decoration: _inputDecoration('Email'),
-                          keyboardType: TextInputType.emailAddress,
-                          onChanged: (v) => controller.email.value = v,
-                        ),
+                        // Email Field with Validation
+                        _EmailTextField(controller: controller),
                         const SizedBox(height: 12),
-                        TextField(
-                          style: GoogleFonts.openSans(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            letterSpacing: -0.41,
-                          ),
-                          cursorColor: const Color(0xFF00C7A7),
-                          decoration: _inputDecoration('Password'),
-                          obscureText: true,
-                          onChanged: (v) => controller.password.value = v,
-                        ),
-                        const SizedBox(height: 12),
+                        
+                        // Password Field with Validation
+                        _PasswordTextField(controller: controller),
 
                         // Forgot Password
                         Center(
@@ -145,10 +112,10 @@ class LoginScreen extends GetView<LoginController> {
 
                         const SizedBox(height: 6),
 
-                        // Login Button
+                        // Login Button - Using MediaQuery for responsive width
                         Obx(() => Center(
                           child: SizedBox(
-                            width: size.width * 0.68,
+                            width: MediaQuery.of(context).size.width * 0.68,
                             height: 52,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
@@ -158,12 +125,24 @@ class LoginScreen extends GetView<LoginController> {
                                   borderRadius: BorderRadius.circular(28),
                                 ),
                               ),
-                              onPressed: controller.loading.value ? null : controller.login,
+                              onPressed: controller.loading.value ? null : () {
+                                // Clear any previous errors
+                                controller.emailError.value = '';
+                                controller.passwordError.value = '';
+                                
+                                // Validate form first
+                                if (controller.validateForm()) {
+                                  controller.login();
+                                }
+                              },
                               child: controller.loading.value
                                   ? const SizedBox(
                                       height: 18,
                                       width: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.black,
+                                      ),
                                     )
                                   : Text(
                                       'Login',
@@ -179,10 +158,10 @@ class LoginScreen extends GetView<LoginController> {
 
                         const SizedBox(height: 6),
 
-                        // Fingerprint Button
+                        // Fingerprint Button - Using MediaQuery for responsive width
                         Center(
                           child: SizedBox(
-                            width: size.width * 0.68,
+                            width: MediaQuery.of(context).size.width * 0.68,
                             height: 52,
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
@@ -240,6 +219,209 @@ class LoginScreen extends GetView<LoginController> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Email TextField as a StatefulWidget
+class _EmailTextField extends StatefulWidget {
+  final LoginController controller;
+  
+  const _EmailTextField({required this.controller});
+  
+  @override
+  __EmailTextFieldState createState() => __EmailTextFieldState();
+}
+
+class __EmailTextFieldState extends State<_EmailTextField> {
+  late TextEditingController _textController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.email.value);
+    
+    // Listen to controller email changes
+    ever(widget.controller.email, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.emailError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontWeight: FontWeight.w400,
+              fontSize: 14,
+              letterSpacing: -0.41,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: LoginScreen._inputDecoration(
+              hint: 'Email',
+              hasError: hasError,
+            ),
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (value) {
+              widget.controller.onEmailChanged(value);
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.emailError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.emailError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.emailError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
+    );
+  }
+}
+
+// Password TextField as a StatefulWidget
+class _PasswordTextField extends StatefulWidget {
+  final LoginController controller;
+  
+  const _PasswordTextField({required this.controller});
+  
+  @override
+  __PasswordTextFieldState createState() => __PasswordTextFieldState();
+}
+
+class __PasswordTextFieldState extends State<_PasswordTextField> {
+  late TextEditingController _textController;
+  bool _obscureText = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.password.value);
+    
+    // Listen to controller password changes
+    ever(widget.controller.password, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.passwordError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontWeight: FontWeight.w400,
+              fontSize: 14,
+              letterSpacing: -0.41,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: InputDecoration(
+              hintText: 'Password',
+              hintStyle: const TextStyle(color: Colors.white70),
+              filled: true,
+              fillColor: Colors.white10,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                  width: 1,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white70,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              ),
+            ),
+            obscureText: _obscureText,
+            onChanged: (value) {
+              widget.controller.onPasswordChanged(value);
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.passwordError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.passwordError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.passwordError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
     );
   }
 }
