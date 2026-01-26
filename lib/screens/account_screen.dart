@@ -1,130 +1,129 @@
+// screens/account_screen.dart - UPDATED
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mapped_frontend/controller/controller/account_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mapped_frontend/screens/notification_screen.dart';
-import 'package:mapped_frontend/screens/profile_editor_screen.dart';
+import 'package:mapped_frontend/controller/controller/account_controller.dart';
 
 class AccountScreen extends StatelessWidget {
   AccountScreen({super.key});
+  
   final AccountController controller = Get.put(AccountController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1D29),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Gradient Header
-            _buildGradientHeader(),
-            
-            // Main Content
-            Transform.translate(
-              offset: Offset(0, -48),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    // First Section - Dark
-                    _buildDarkSection([
-                      _MenuItem(
-                        iconPath: 'assets/images/profile.png',
-                        text: 'Edit profile information',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => ProfileEditorScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      Obx(
-                        () => _MenuItem(
-                          iconPath: 'assets/images/notification.png',
-                          text: 'Notifications',
-                          badge: controller.notificationsEnabled.value ? 'ON' : 'OFF',
-                          badgeColor: Color(0xFF09FACA),
-                          onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => NotificationScreen(),
-                            ),
-                          );
-                        },
-                        ),
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/logout.png',
-                        text: 'Log Out',
-                        onTap: controller.logout,
-                      ),
-                    ]),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Second Section - Light
-                    _buildLightSection([
-                      Obx(
-                        () => _MenuItem(
-                          iconPath: 'assets/images/security.png',
-                          text: 'Security',
-                          badge: controller.securityMethod.value,
-                          badgeColor: Color(0xFF09FACA),
-                          isDark: false,
-                          onTap: controller.navigateToSecurity,
-                        ),
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/language.png',
-                        text: 'Language',
-                        isDark: false,
-                        onTap: controller.navigateToLanguage,
-                      ),
-                    ]),
-                    
-                    SizedBox(height: 16),
-                    
-                    // Third Section - Dark
-                    _buildDarkSection([
-                      _MenuItem(
-                        iconPath: 'assets/images/help.png',
-                        text: 'Help & Support',
-                        onTap: controller.navigateToHelp,
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/privacy.png',
-                        text: 'Privacy policy',
-                        onTap: controller.navigateToPrivacy,
-                      ),
-                      _MenuItem(
-                        iconPath: 'assets/images/about.png',
-                        text: 'About Us',
-                        onTap: controller.navigateToAbout,
-                      ),
-                    ]),
-                    
-                    SizedBox(height: 32),
-                  ],
+      backgroundColor: const Color(0xFF1A1D29),
+      body: Obx(() {
+        // Show loading indicator while fetching data
+        return RefreshIndicator(
+          onRefresh: controller.fetchUserProfile,
+          backgroundColor: Color(0xFF1A1D29),
+          color: Color(0xFF09FACA),
+          child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                _buildGradientHeader(),
+                Transform.translate(
+                  offset: Offset(0, -48),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        _buildDarkSection([
+                          _MenuItem(
+                            iconPath: 'assets/images/profile.png',
+                            text: 'Edit profile information',
+                            onTap: () {
+                              // Make sure this route is defined in your GetMaterialApp
+                              Get.toNamed('/profile-edit');
+                            },
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/notification.png',
+                            text: 'Notifications',
+                            badge: 'ON',
+                            badgeColor: Color(0xFF09FACA),
+                            onTap: () {
+                              Get.toNamed('/notifications');
+                            },
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/logout.png',
+                            text: 'Log Out',
+                            onTap: () {
+                              // Show confirmation dialog before logout
+                              Get.defaultDialog(
+                                title: "Logout",
+                                middleText: "Are you sure you want to logout?",
+                                textConfirm: "Yes",
+                                textCancel: "No",
+                                confirmTextColor: Colors.white,
+                                cancelTextColor: Color(0xFF09FACA),
+                                buttonColor: Color(0xFF09FACA),
+                                onConfirm: controller.logout,
+                              );
+                            },
+                          ),
+                        ]),
+                        SizedBox(height: 16),
+                        _buildLightSection([
+                          _MenuItem(
+                            iconPath: 'assets/images/security.png',
+                            text: 'Security',
+                            badge: 'Fingerprint',
+                            badgeColor: Color(0xFF09FACA),
+                            isDark: false,
+                            onTap: () => Get.toNamed('/security'),
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/language.png',
+                            text: 'Language',
+                            isDark: false,
+                            onTap: () => Get.toNamed('/language'),
+                          ),
+                        ]),
+                        SizedBox(height: 16),
+                        _buildDarkSection([
+                          _MenuItem(
+                            iconPath: 'assets/images/help.png',
+                            text: 'Help & Support',
+                            onTap: () => Get.toNamed('/help'),
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/privacy.png',
+                            text: 'Privacy policy',
+                            onTap: () => Get.toNamed('/privacy'),
+                          ),
+                          _MenuItem(
+                            iconPath: 'assets/images/about.png',
+                            text: 'About Us',
+                            onTap: () => Get.toNamed('/about'),
+                          ),
+                        ]),
+                        SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 
   Widget _buildGradientHeader() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(top: 50, bottom: 80),
+      padding: EdgeInsets.only(top: 60, bottom: 80),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF09FACA).withValues(alpha: 0.6),
+            Color(0xFF09FACA).withOpacity(0.6),
             Color(0xFF09FACA),
           ],
         ),
@@ -140,47 +139,74 @@ class AccountScreen extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                  color: Colors.black26, 
+                  blurRadius: 10, 
+                  offset: Offset(0, 4)
                 ),
               ],
             ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/profilepic.png',
-                fit: BoxFit.cover,
-              ),
-            ),
+            child: Obx(() {
+              if (controller.userAvatar.value.isEmpty) {
+                return ClipOval(
+                  child: Image.asset(
+                    'assets/images/profilepic.png',
+                    fit: BoxFit.cover,
+                  ),
+                );
+              }
+              return ClipOval(
+                child: Image.network(
+                  controller.userAvatar.value,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF09FACA)),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/profilepic.png',
+                      fit: BoxFit.cover,
+                    );
+                  },
+                ),
+              );
+            }),
           ),
-          
           SizedBox(height: 16),
-          
-          // Username
-          Text(
-            'Lieyza',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              fontSize: 22,
-              height: 20 / 14,
-              letterSpacing: 0.25,
-              color: Colors.white,
-            ),    
-          ),
-          
+          Obx(() => Text(
+                controller.userName.value.isEmpty 
+                    ? 'User' 
+                    : controller.userName.value,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 22,
+                  color: Colors.white,
+                ),
+              )),
           SizedBox(height: 8),
-          
-          // Email & Phone
-          Text(
-            'youremail@domain.com | +01 234 567 89',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-              height: 20 / 14,
-              letterSpacing: 0.25,
-              color: Colors.white,
-            ),
-          ),
+          Obx(() {
+            String email = controller.userEmail.value.isEmpty 
+                ? 'Email not set' 
+                : controller.userEmail.value;
+            String phone = controller.userPhone.value.isEmpty 
+                ? '' 
+                : controller.userPhone.value;
+            
+            return Text(
+              phone.isNotEmpty ? '$email | $phone' : email,
+              style: GoogleFonts.roboto(
+                fontWeight: FontWeight.w400,
+                fontSize: 14,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            );
+          }),
+          SizedBox(height: 16),
         ],
       ),
     );
@@ -192,9 +218,7 @@ class AccountScreen extends StatelessWidget {
         color: Color(0xFF252836),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        children: items,
-      ),
+      child: Column(children: items),
     );
   }
 
@@ -204,9 +228,7 @@ class AccountScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        children: items,
-      ),
+      child: Column(children: items),
     );
   }
 }
@@ -231,9 +253,12 @@ class _MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = isDark ? Colors.white : Color(0xFF1A1D29);
+    final iconColor = isDark ? Colors.white : Color(0xFF1A1D29);
 
     return InkWell(
       onTap: onTap,
+      splashColor: Color(0xFF09FACA).withOpacity(0.3),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
@@ -246,11 +271,15 @@ class _MenuItem extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // Using network image for icons
             Image.asset(
               iconPath,
               width: 20,
               height: 20,
-              color: textColor,
+              color: iconColor,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.circle, size: 20, color: iconColor);
+              },
             ),
             SizedBox(width: 12),
             Expanded(
@@ -259,21 +288,36 @@ class _MenuItem extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.w400,
                   fontSize: 14,
-                  height: 20 / 14,
-                  letterSpacing: 0.25,
                   color: textColor,
                 ),
               ),
             ),
             if (badge != null)
-              Text(
-                badge!,
-                style: GoogleFonts.roboto(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                  color: badgeColor ?? textColor,
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: badgeColor?.withOpacity(0.1) ?? Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: badgeColor ?? textColor,
+                    width: 0.5,
+                  ),
+                ),
+                child: Text(
+                  badge!,
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    color: badgeColor ?? textColor,
+                  ),
                 ),
               ),
+            SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right,
+              color: textColor.withOpacity(0.5),
+              size: 20,
+            ),
           ],
         ),
       ),

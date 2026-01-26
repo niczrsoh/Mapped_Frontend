@@ -124,7 +124,7 @@ class LoginScreen extends GetView<LoginController> {
                           cursorColor: const Color(0xFF00C7A7),
                           decoration: _inputDecoration('Email'),
                           keyboardType: TextInputType.emailAddress,
-                          onChanged: (v) => controller.username.value = v,
+                          onChanged: (v) => controller.email.value = v,
                         ),
                         const SizedBox(height: 12),
                         TextField(

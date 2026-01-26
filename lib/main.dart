@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:firebase_core/firebase_core.dart'; // Add this
 import 'global/app_binding.dart';
 import 'global/routes.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase without options (for testing)
+  await Firebase.initializeApp();
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
@@ -27,12 +31,12 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialBinding: AppBinding(),
       theme: ThemeData(
-        primaryColor: Color(0xFF00D9B5),
+        primaryColor: const Color(0xFF00D9B5),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFF00D9B5),
+          seedColor: const Color(0xFF00D9B5),
           brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor: Color(0xFF1a1f2e),
+        scaffoldBackgroundColor: const Color(0xFF1a1f2e),
         useMaterial3: true,
       ),
       initialRoute: AppRoutes.splash,

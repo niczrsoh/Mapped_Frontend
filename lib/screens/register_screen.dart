@@ -232,7 +232,7 @@ class RegisterScreen extends GetView<RegisterController> {
                           ),
                         ),
                         onPressed: () {
-                          // TODO: implement google sign up
+                          controller.registerWithGoogle();
                         },
                         child: Text(
                           'Register via Google',
