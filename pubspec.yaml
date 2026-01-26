@@ -36,6 +36,9 @@ dependencies:
   flutter_localization: ^0.3.3
   get: ^4.7.2
   google_fonts: ^6.3.2
+  http: ^1.2.0
+  image_picker: ^1.0.7
+  youtube_player_flutter: ^9.0.1
   google_sign_in: ^6.2.0
 dev_dependencies:
 

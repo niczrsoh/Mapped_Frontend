@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 // Assuming 'create_resource_post_scren.dart' exists and is correct
-import 'package:mapped_frontend/screens/create_resource_post_scren.dart';
+import 'package:mapped_frontend/screens/create_resource_post_screen.dart';
 
 class ResourcesScreen extends StatefulWidget {
   const ResourcesScreen({Key? key}) : super(key: key);
