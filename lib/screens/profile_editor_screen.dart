@@ -4,11 +4,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/controller/profile_editor_controller.dart';
 
 class ProfileEditorScreen extends StatelessWidget {
-  ProfileEditorScreen({super.key});
-  final controller = Get.put(ProfileEditorController());
+  final Map<dynamic, dynamic>? userData;
+  
+  ProfileEditorScreen({super.key, this.userData});
 
   @override
   Widget build(BuildContext context) {
+    // Initialize the controller with user data
+    final controller = Get.put(
+      ProfileEditorController(userData: userData),
+      tag: 'profile_editor_${userData?['_id'] ?? 'default'}',
+    );
+
     return Scaffold(
       backgroundColor: Color(0xFF1A1D29),
       body: SingleChildScrollView(
@@ -125,93 +132,115 @@ class ProfileEditorScreen extends StatelessWidget {
   }
 
   Widget _buildGradientHeader(ProfileEditorController controller) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(top: 50, bottom: 40),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF09FACA).withValues(alpha: 0.6),
-            Color(0xFF09FACA),
-          ],
+    return Obx(() {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.only(top: 50, bottom: 40),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF09FACA).withOpacity(0.6),
+              Color(0xFF09FACA),
+            ],
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          // Profile Avatar with Edit Button
-          Stack(
-            children: [
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
+        child: Column(
+          children: [
+            // Profile Avatar with Edit Button
+            Stack(
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: controller.profileImage.value.isNotEmpty 
+                      ? controller.profileImage.value.startsWith('http')
+                        ? ClipOval(
+                            child: Image.network(
+                              controller.profileImage.value,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.person, size: 50, color: Colors.grey);
+                              },
+                            ),
+                          )
+                        : ClipOval(
+                            child: Image.asset(
+                              controller.profileImage.value,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.person, size: 50, color: Colors.grey);
+                              },
+                            ),
+                          )
+                      : Icon(Icons.person, size: 50, color: Colors.grey),
                 ),
-                child: Icon(Icons.person, size: 50, color: Colors.grey),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: controller.changeProfilePicture,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Color(0xFF1A1D29),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: Icon(
-                      Icons.edit,
-                      color: Colors.white,
-                      size: 16,
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: controller.changeProfilePicture,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF1A1D29),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ),
+              ],
+            ),
+            SizedBox(height: 16),
+            
+            // Username
+            Obx(() => Text(
+              controller.displayName.value.isNotEmpty 
+                  ? controller.displayName.value 
+                  : 'User',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 22,
+                height: 28 / 22,
+                color: Color(0xFF1A1D29),
               ),
-            ],
-          ),
-          SizedBox(height: 16),
-          
-          // Username
-          Obx(() => Text(
-            controller.displayName.value.isNotEmpty 
-                ? controller.displayName.value 
-                : 'Lieyza',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              fontSize: 22,
-              height: 28 / 22,
-              color: Color(0xFF1A1D29),
-            ),
-          )),
-          SizedBox(height: 8),
-          
-          // Email & Phone
-          Obx(() => Text(
-            '${controller.displayEmail.value} | ${controller.displayPhone.value}',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-              height: 20 / 14,
-              letterSpacing: 0.25,
-              color: Color(0xFF1A1D29),
-            ),
-          )),
-        ],
-      ),
-    );
+            )),
+            SizedBox(height: 8),
+            
+            // Email & Phone
+            Obx(() => Text(
+              '${controller.displayEmail.value} | ${controller.displayPhone.value}',
+              style: GoogleFonts.roboto(
+                fontWeight: FontWeight.w400,
+                fontSize: 14,
+                height: 20 / 14,
+                letterSpacing: 0.25,
+                color: Color(0xFF1A1D29),
+              ),
+            )),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildTextField({

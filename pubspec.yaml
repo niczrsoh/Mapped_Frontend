@@ -1,3 +1,4 @@
+
 name: mapped_frontend
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
@@ -29,11 +30,17 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cupertino_icons: ^1.0.8
+  firebase_auth: ^6.1.4
+  firebase_core: ^4.4.0
   flutter:
     sdk: flutter
   flutter_localization: ^0.3.3
   get: ^4.7.2
   google_fonts: ^6.3.2
+  http: ^1.2.0
+  image_picker: ^1.0.7
+  youtube_player_flutter: ^9.0.1
+  google_sign_in: ^6.2.0
 dev_dependencies:
 
   # The "flutter_lints" package below contains a set of recommended lints to

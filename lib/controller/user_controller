@@ -1,0 +1,139 @@
+// controller/controller/user_controller.dart
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mapped_frontend/services/api_service.dart';
+
+class UserController extends GetxController {
+  var userData = {}.obs;
+  var isLoading = false.obs;
+  var userId = ''.obs;
+  var isInitialized = false.obs;
+  
+  final ApiService _apiService = ApiService();
+  
+  @override
+  void onInit() {
+    super.onInit();
+    print('🔄 UserController initialized');
+    initializeUserData();
+  }
+  
+  Future<void> initializeUserData() async {
+    if (isInitialized.value) return;
+    
+    try {
+      print('📱 Initializing user data...');
+      final prefs = await SharedPreferences.getInstance();
+      final storedId = prefs.getString('user_id');
+      
+      if (storedId != null && storedId.isNotEmpty) {
+        userId.value = storedId;
+        print('✅ User ID found in storage: $storedId');
+        
+        // Load data from storage immediately
+        await _loadFromStorage(prefs);
+        
+        // Fetch fresh data from API
+        await fetchUserProfile();
+      } else {
+        print('⚠️ No user ID found in storage');
+      }
+      
+      isInitialized.value = true;
+    } catch (e) {
+      print('❌ Error initializing user data: $e');
+    }
+  }
+  
+  Future<void> _loadFromStorage(SharedPreferences prefs) async {
+    try {
+      userData.value = {
+        'name': prefs.getString('user_name') ?? 'User',
+        'email': prefs.getString('user_email') ?? '',
+        'avatar': prefs.getString('user_avatar') ?? '',
+        'role': prefs.getString('user_role') ?? 'trainee',
+      };
+      print('💾 Loaded from storage: ${userData.value}');
+    } catch (e) {
+      print('Error loading from storage: $e');
+    }
+  }
+  
+  Future<void> fetchUserProfile() async {
+    if (userId.value.isEmpty) {
+      print('⚠️ Cannot fetch profile: No user ID');
+      return;
+    }
+    
+    try {
+      isLoading.value = true;
+      print('🌐 Fetching profile for user: ${userId.value}');
+      
+      final result = await _apiService.getUserProfile(userId.value);
+      
+      if (result['success'] == true) {
+        final data = result['data'];
+        
+        // Handle different response structures
+        if (data is Map) {
+          if (data.containsKey('user')) {
+            userData.value = data['user'];
+            print('✅ Data from nested "user" key');
+          } else if (data.containsKey('data')) {
+            userData.value = data['data'];
+            print('✅ Data from nested "data" key');
+          } else {
+            userData.value = data;
+            print('✅ Data from direct response');
+          }
+          
+          print('👤 Updated user data: ${userData.value}');
+          
+          // Save to storage
+          await _saveToStorage();
+        }
+      } else {
+        print('❌ API error: ${result['error']}');
+      }
+    } catch (e) {
+      print('🌐 Network error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      await prefs.setString('user_name', userData['name']?.toString() ?? '');
+      await prefs.setString('user_email', userData['email']?.toString() ?? '');
+      await prefs.setString('user_avatar', userData['avatar']?.toString() ?? '');
+      await prefs.setString('user_role', userData['role']?.toString() ?? '');
+      
+      print('💾 Saved to storage');
+    } catch (e) {
+      print('Error saving to storage: $e');
+    }
+  }
+  
+  Future<void> logout() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      
+      userData.value = {};
+      userId.value = '';
+      isInitialized.value = false;
+      
+      print('🚪 User logged out');
+    } catch (e) {
+      print('Error during logout: $e');
+    }
+  }
+  
+  String get userName => userData['name']?.toString() ?? 'User';
+  String get userEmail => userData['email']?.toString() ?? '';
+  String get userAvatar => userData['avatar']?.toString() ?? '';
+}
