@@ -206,7 +206,7 @@ class AccountScreen extends StatelessWidget {
               child: ClipOval(
                 child: avatar.isNotEmpty
                     ? Image.network(
-                        'http://10.0.2.2:5000/$avatar', // Update with your base URL
+                        'https://mapped-backend-node-js.onrender.com/$avatar', // Update with your base URL
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(

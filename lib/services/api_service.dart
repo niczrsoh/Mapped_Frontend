@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Use the correct URL: http://10.0.2.2:5000 (Android) or http://localhost:5000 (iOS/Local)
-  final String baseUrl = "http://10.0.2.2:5000/api";
+  // Use the correct URL: https://mapped-backend-node-js.onrender.com (Android) or http://localhost:5000 (iOS/Local)
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api";
 
   Future<Map<String, dynamic>> registerUser({
     required String fullName, 
