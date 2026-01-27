@@ -17,123 +17,117 @@ class ProfileEditorScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1D29),
-      // Stack allows us to put the Loading Indicator ON TOP of the form
-      body: Obx(() => Stack(
-        children: [
-          // 1. The Main Form Content
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildGradientHeader(controller),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: controller.formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Color(0xFF1A1D29),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Gradient Header
+            _buildGradientHeader(controller),
+            
+            // Form Content
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Form(
+                key: controller.formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Profile Editor',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    
+                    // Full Name
+                    _buildTextField(
+                      controller: controller.nameController,
+                      label: 'Full name',
+                      hint: 'Enter your full name',
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Nickname
+                    _buildTextField(
+                      controller: controller.nicknameController,
+                      label: 'Nick name',
+                      hint: 'Enter your nickname',
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Email
+                    _buildTextField(
+                      controller: controller.emailController,
+                      label: 'Email',
+                      hint: 'Enter your email',
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Phone Number with Country Flag
+                    _buildPhoneField(controller),
+                    SizedBox(height: 16),
+                    
+                    // Country and Gender Row
+                    Row(
                       children: [
-                        Text(
-                          'Profile Editor',
-                          style: GoogleFonts.poppins(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                        Expanded(
+                          child: _buildDropdown(
+                            label: 'Country',
+                            controller: controller,
+                            getValue: () => controller.selectedCountry.value,
+                            items: controller.countries,
+                            onChanged: (value) => controller.selectedCountry.value = value!,
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        
-                        _buildTextField(
-                          controller: controller.nameController,
-                          label: 'Full name',
-                          hint: 'Enter your full name',
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: _buildDropdown(
+                            label: 'Gender',
+                            controller: controller,
+                            getValue: () => controller.selectedGender.value,
+                            items: controller.genders,
+                            onChanged: (value) => controller.selectedGender.value = value!,
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        
-                        _buildTextField(
-                          controller: controller.nicknameController,
-                          label: 'Nick name',
-                          hint: 'Enter your nickname',
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        _buildTextField(
-                          controller: controller.emailController,
-                          label: 'Email',
-                          hint: 'Enter your email',
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        _buildPhoneField(controller),
-                        const SizedBox(height: 16),
-                        
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildDropdown(
-                                label: 'Country',
-                                controller: controller,
-                                getValue: () => controller.selectedCountry.value,
-                                items: controller.countries,
-                                onChanged: (value) => controller.selectedCountry.value = value!,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildDropdown(
-                                label: 'Gender',
-                                controller: controller,
-                                getValue: () => controller.selectedGender.value,
-                                items: controller.genders,
-                                onChanged: (value) => controller.selectedGender.value = value!,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        _buildTextField(
-                          controller: controller.addressController,
-                          label: 'Address',
-                          hint: 'Enter your address',
-                          maxLines: 2,
-                        ),
-                        const SizedBox(height: 32),
-                        
-                        _buildButton(
-                          text: 'CANCEL',
-                          onPressed: controller.cancel,
-                          isPrimary: false,
-                        ),
-                        const SizedBox(height: 12),
-                        
-                        _buildButton(
-                          text: 'SAVE',
-                          onPressed: controller.saveProfile,
-                          isPrimary: true,
-                        ),
-                        const SizedBox(height: 32),
                       ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 2. The Loading Overlay (Shows when isLoading is true)
-          if (controller.isLoading.value)
-            Container(
-              color: Colors.black54, // Semi-transparent black
-              child: const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFF09FACA),
+                    SizedBox(height: 16),
+                    
+                    // Address
+                    _buildTextField(
+                      controller: controller.addressController,
+                      label: 'Address',
+                      hint: 'Enter your address',
+                      maxLines: 2,
+                    ),
+                    SizedBox(height: 32),
+                    
+                    // Cancel Button
+                    _buildButton(
+                      text: 'CANCEL',
+                      onPressed: controller.cancel,
+                      isPrimary: false,
+                    ),
+                    SizedBox(height: 12),
+                    
+                    // Save Button
+                    _buildButton(
+                      text: 'SAVE',
+                      onPressed: controller.saveProfile,
+                      isPrimary: true,
+                    ),
+                    SizedBox(height: 32),
+                  ],
                 ),
               ),
             ),
-        ],
-      )),
+          ],
+        ),
+      ),
     );
   }
 
@@ -248,7 +242,7 @@ class ProfileEditorScreen extends StatelessWidget {
       );
     });
   }
-  
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -268,7 +262,7 @@ class ProfileEditorScreen extends StatelessWidget {
             letterSpacing: 0.25,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -286,12 +280,12 @@ class ProfileEditorScreen extends StatelessWidget {
               color: Colors.white38,
             ),
             filled: true,
-            fillColor: const Color(0xFF252836),
+            fillColor: Color(0xFF252836),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -317,7 +311,7 @@ class ProfileEditorScreen extends StatelessWidget {
             letterSpacing: 0.25,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         TextFormField(
           controller: controller.phoneController,
           keyboardType: TextInputType.phone,
@@ -328,7 +322,7 @@ class ProfileEditorScreen extends StatelessWidget {
             letterSpacing: 0.25,
           ),
           decoration: InputDecoration(
-            prefixIcon: const Padding(
+            prefixIcon: Padding(
               padding: EdgeInsets.only(left: 12, right: 8),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -347,12 +341,12 @@ class ProfileEditorScreen extends StatelessWidget {
               color: Colors.white38,
             ),
             filled: true,
-            fillColor: const Color(0xFF252836),
+            fillColor: Color(0xFF252836),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -384,15 +378,15 @@ class ProfileEditorScreen extends StatelessWidget {
             letterSpacing: 0.25,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Obx(() => Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF252836),
+            color: Color(0xFF252836),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
             value: getValue(),
-            dropdownColor: const Color(0xFF252836),
+            dropdownColor: Color(0xFF252836),
             style: GoogleFonts.roboto(
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -404,9 +398,9 @@ class ProfileEditorScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
-            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+            icon: Icon(Icons.keyboard_arrow_down, color: Colors.white),
             items: items.map((String item) {
               return DropdownMenuItem<String>(
                 value: item,
@@ -431,9 +425,9 @@ class ProfileEditorScreen extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? const Color(0xFF09FACA) : Colors.transparent,
-          foregroundColor: isPrimary ? const Color(0xFF1A1D29) : const Color(0xFF09FACA),
-          side: const BorderSide(
+          backgroundColor: isPrimary ? Color(0xFF09FACA) : Colors.transparent,
+          foregroundColor: isPrimary ? Color(0xFF1A1D29) : Color(0xFF09FACA),
+          side: BorderSide(
             color: Color(0xFF09FACA),
             width: 2,
           ),
