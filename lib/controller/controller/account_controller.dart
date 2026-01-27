@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 import 'package:mapped_frontend/screens/notification_screen.dart';
 import 'package:mapped_frontend/controller/controller/notification_controller.dart';
-import 'package:mapped_frontend/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountController extends GetxController {
   final String baseUrl = kIsWeb
@@ -24,19 +24,9 @@ class AccountController extends GetxController {
 
   var notificationsEnabled = true.obs;
   var securityMethod = 'Fingerprint'.obs;
-
-   // User profile observables
-  var userName = ''.obs;
-  var userEmail = ''.obs;
-  var userPhone = ''.obs;
-  var userCountry = ''.obs;
-  var userGender = ''.obs;
-  var userAddress = ''.obs;
-  var userAvatar = ''.obs;
-  var userId = ''.obs;
-  var isLoading = true.obs;
   
-  final ApiService _apiService = ApiService();
+  // Get the UserController instance
+  UserController get userController => Get.find<UserController>();
 
   @override
   void onInit() {
@@ -45,42 +35,13 @@ class AccountController extends GetxController {
     fetchUserProfile();
     // Listen to changes from NotificationController if it exists
     ever(notificationsEnabled, (_) => _syncNotificationState());
-  }
-
-  // Fetch user profile from backend
-  Future<void> fetchUserProfile() async {
-    isLoading.value = true;
-    try {
-      final url = Uri.parse('$baseUrl/api/profile/$userId');
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // Update reactive variables
-        displayName.value = data['name'] ?? 'User';
-        displayEmail.value = data['email'] ?? 'email@domain.com';
-        displayPhone.value = data['phone'] ?? '000-000-0000';
-        
-        // Update Profile Image URL
-        if (data['avatar'] != null && data['avatar'] != "") {
-          profileImageUrl.value = "$baseUrl/${data['avatar']}";
-        }
-
-        debugPrint("✅ Profile loaded: ${data['name']}");
-      } else {
-        debugPrint("❌ Failed to load profile: ${response.statusCode}");
+    
+    // Fetch user data on initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (userController.userData.isEmpty) {
+        userController.fetchUserProfile();
       }
-    } catch (e) {
-      debugPrint("💥 Error fetching profile: $e");
-    } finally {
-      isLoading.value = false;
-    }
-  }
-  
-  // Refresh profile after editing
-  Future<void> refreshProfile() async {
-    await fetchUserProfile();
+    });
   }
   
   void _syncNotificationState() {
@@ -98,17 +59,20 @@ class AccountController extends GetxController {
     // Sync the state before navigating
     notificationsEnabled.value = notifController.generalNotification.value;
     
-     Navigator.of(Get.context!).push(
+    Navigator.of(Get.context!).push(
       MaterialPageRoute(
         builder: (context) => NotificationScreen(),
       ),
     );
   }
   
-  void editProfile() async {
-    final result = await Navigator.of(Get.context!).push(
+  void editProfile() {
+    // Pass user data to profile editor
+    Navigator.of(Get.context!).push(
       MaterialPageRoute(
-        builder: (context) => ProfileEditorScreen(),
+        builder: (context) => ProfileEditorScreen(
+          userData: userController.userData.value,
+        ),
       ),
     );
     
@@ -119,15 +83,22 @@ class AccountController extends GetxController {
     }
   }
   
-  void logout() {
-    // Handle logout logic
+  Future<void> logout() async {
     Get.defaultDialog(
       title: 'Log Out',
       middleText: 'Are you sure you want to log out?',
       textConfirm: 'Yes',
       textCancel: 'No',
-      onConfirm: () {
-        // Perform logout
+      onConfirm: () async {
+        // Clear user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('user_name');
+      await prefs.remove('user_email');
+      await prefs.remove('user_avatar');
+      await prefs.remove('user_role');
+          
+        // Navigate to login
         Get.back();
         Get.offAllNamed('/login');
       },

@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../global/routes.dart';
 
 class LoginController extends GetxController {
@@ -97,6 +99,30 @@ class LoginController extends GetxController {
       
       if (result['success']) {
         final responseData = result['data'];
+        
+        // Store user data including _id in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        
+        // Store user ID (from your MongoDB document - _id)
+        if (responseData['user']['id'] != null) {
+          await prefs.setString('user_id', responseData['user']['id']);
+          print('User ID stored: ${responseData['user']['id']}');
+        }
+        
+        // Store other user data
+        await prefs.setString('user_name', responseData['name'] ?? '');
+        await prefs.setString('user_email', responseData['email'] ?? '');
+        await prefs.setString('user_avatar', responseData['avatar'] ?? '');
+        await prefs.setString('user_role', responseData['role'] ?? 'trainee');
+
+        final userController = Get.find<UserController>();
+        
+        // Force clear and reload user data
+        userController.userData.value = {}; // Clear current data
+        userController.userId.value = responseData['user']['id'] ?? '';
+        
+        // Fetch fresh user data
+        await userController.fetchUserProfile();
         
         // Clear fields on success
         email.value = '';
@@ -197,5 +223,11 @@ class LoginController extends GetxController {
     emailError.value = '';
     passwordError.value = '';
     formError.value = '';
+  }
+  
+  // Get stored user ID
+  Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_id');
   }
 }

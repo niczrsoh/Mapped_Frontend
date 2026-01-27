@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/screens/coaching_screen.dart';
 import 'package:mapped_frontend/screens/resource_screen.dart';
@@ -24,8 +25,11 @@ class HomeScreen extends GetView<HomeController> {
   Widget build(BuildContext context) {
     final themeBg = const Color(0xFF0F1114);
     final cardBorder = const Color(0xFF00C7A7);
-    // final width not needed currently
-
+    
+    // Get UserController for user data
+    final UserController userController = Get.find<UserController>();
+    final HomeController homeController = Get.find<HomeController>();
+    
     // Height used for the drawing area of bars (not including labels)
     final chartDrawHeight = min(
       140.0,
@@ -53,21 +57,27 @@ class HomeScreen extends GetView<HomeController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Greeting
-              Text(
-                'Welcome back, Coach Lieyza',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              // Greeting - Using actual user name
+              Obx(() {
+                final userName = userController.userName;
+                print('👤 HomeScreen - User name: $userName');
+                
+                return Text(
+                  'Welcome back, Coach $userName',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                );
+              }),
               const SizedBox(height: 8),
 
               Row(
                 children: [
+                  // Display current date
                   Text(
-                    'Wed, Sept 2025',
+                    _getCurrentDate(),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 12,
@@ -378,11 +388,11 @@ class HomeScreen extends GetView<HomeController> {
                                                               const BorderRadius.only(
                                                                 topLeft:
                                                                     Radius.circular(
-                                                                      6,
+                                                                        6,
                                                                     ),
                                                                 topRight:
                                                                     Radius.circular(
-                                                                      6,
+                                                                        6,
                                                                     ),
                                                               ),
                                                         ),
@@ -738,8 +748,15 @@ class HomeScreen extends GetView<HomeController> {
       ),
     );
   }
-
-  // (labels are rendered inside the LayoutBuilder so they align to the computed barWidth)
+  
+  // Helper method to get current date
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day} ${now.year}';
+  }
 }
 
 class BottomNav extends StatefulWidget {
