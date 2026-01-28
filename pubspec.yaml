@@ -31,11 +31,24 @@ dependencies:
   flutter:
     sdk: flutter
   google_fonts: ^6.3.2
+  camera: ^0.10.5
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+  http: ^1.2.0
+  photo_manager: ^3.0.0 # or latest version
+  image_picker: ^1.0.4 #
+ # youtube_player_iframe: ^5.1.2  # Add this for Web/Mobile support
+  youtube_player_flutter: ^9.0.1
+
+
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   get: ^4.7.2
+ # image_picker: ^0.8.7+4
   # google_fonts already specified above (keep the newer ^6.3.2). Removed duplicate entry.
 dev_dependencies:
   flutter_test:
@@ -94,3 +107,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  # Add this block at the end of your pubspec.yaml file, 
+# ensuring dependency_overrides is flush with the left margin.

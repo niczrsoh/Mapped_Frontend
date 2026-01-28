@@ -15,10 +15,7 @@ class ApiClient extends GetConnect {
     required String title,
     required String content,
   }) {
-    final body = {
-      'title': title,
-      'content': content,
-    };
+    final body = {'title': title, 'content': content};
     return post('/sample/insert', body);
   }
 

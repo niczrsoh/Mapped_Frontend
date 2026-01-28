@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import 'session_planner_screen.dart';
+import '../controller/controller/session_controller.dart';
+import 'edit_session.dart';
 
 class UpcomingSessionsScreen extends StatelessWidget {
   const UpcomingSessionsScreen({super.key});
 
   Widget _upcomingRow({
+    required String id,
     required String date,
     required String time,
     required String venue,
@@ -18,11 +20,11 @@ class UpcomingSessionsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 22),
+              const Icon(Icons.calendar_today, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   date,
@@ -35,13 +37,12 @@ class UpcomingSessionsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Time
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 22),
+              const Icon(Icons.access_time, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   time,
@@ -54,18 +55,16 @@ class UpcomingSessionsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Venue with icon
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(
-                Icons.fitness_center_outlined,
+                Icons.location_on_outlined,
                 color: Colors.white,
-                size: 16,
+                size: 14,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   venue,
@@ -78,13 +77,12 @@ class UpcomingSessionsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Trainees
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 22),
+              const Icon(Icons.group_outlined, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   trainees,
@@ -97,13 +95,12 @@ class UpcomingSessionsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Trainer
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 22),
+              const Icon(Icons.person_outline, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Trainer : $trainer',
@@ -116,25 +113,24 @@ class UpcomingSessionsScreen extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 4),
           Align(
             alignment: Alignment.bottomRight,
             child: TextButton(
               onPressed: () async {
                 final sessionData = {
+                  'id': id,
                   'trainer': trainer,
                   'date': date,
                   'time': time,
                   'venue': venue,
                   'number': trainees.split(' ').first,
                 };
+                // ... sent to the next screen invisibly
+                Get.to(() => EditSessionScreen(sessionData: sessionData));
 
                 final result = await Get.to(
-                  () => SessionPlannerScreen(
-                    initialSession: sessionData,
-                    isEditing: true,
-                  ),
+                  () => EditSessionScreen(sessionData: sessionData),
                 );
                 if (result != null) {
                   Get.snackbar(
@@ -177,7 +173,9 @@ class UpcomingSessionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeBg = const Color(0xFF0F1114);
+    final SessionController controller = Get.find<SessionController>();
+    final themeBg = const Color(0xFF141823);
+
     return Scaffold(
       backgroundColor: themeBg,
       appBar: AppBar(
@@ -228,23 +226,20 @@ class UpcomingSessionsScreen extends StatelessWidget {
 
               const SizedBox(height: 18),
 
-              // ✅ Only the fixed-size scrollable box remains
+              // ✅ RESPONSIVE WIDTH FIX
               Center(
                 child: Container(
-                  width: 299,
-                  height: 486,
+                  // 'double.infinity' makes it stretch to fill the width (minus padding)
+                  width: double.infinity,
+                  height: 486, // Fixed height kept as requested
                   padding: const EdgeInsets.all(1),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
-                    ),
                   ),
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
@@ -264,42 +259,55 @@ class UpcomingSessionsScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        // 🔹 Scrollable session list inside fixed box
                         Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                _upcomingRow(
-                                  date: 'Wed, Sept 21, 2025',
-                                  time: '6:00 - 7:00 PM',
-                                  venue:
-                                      'Dewan Sekolah Rendah Sri Gading, Main Hall',
-                                  trainees: '25 Trainees',
-                                  trainer: 'Sir Ramesh',
+                          child: Obx(() {
+                            if (controller.upcomingList.isEmpty) {
+                              return Center(
+                                child: Text(
+                                  "No Upcoming Sessions Available",
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white54,
+                                  ),
                                 ),
-                                const Divider(color: Colors.white),
-
-                                _upcomingRow(
-                                  date: 'Thu, Nov 23, 2025',
-                                  time: '6:00 - 7:00 PM',
-                                  venue: 'Dewan Sekolah Men Rantau, Main Hall',
-                                  trainees: '19 Trainees',
-                                  trainer: 'Sir Ramesh',
-                                ),
-                                const Divider(color: Colors.white),
-
-                                _upcomingRow(
-                                  date: 'Tue, Dec 11, 2025',
-                                  time: '7:00 - 9:00 PM',
-                                  venue:
-                                      'Dewan Sekolah Rendah Putri, Main Hall',
-                                  trainees: '22 Trainees',
-                                  trainer: 'Sir Ramesh',
-                                ),
-                              ],
-                            ),
-                          ),
+                              );
+                            }
+                            return SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  for (
+                                    var i = 0;
+                                    i < controller.upcomingList.length;
+                                    i++
+                                  ) ...[
+                                    _upcomingRow(
+                                      // 3. Pass the ID from the list here
+                                      id:
+                                          controller.upcomingList[i]['_id'] ??
+                                          '',
+                                      date:
+                                          controller
+                                              .upcomingList[i]['uiDate'] ??
+                                          '-',
+                                      time:
+                                          controller.upcomingList[i]['time'] ??
+                                          '-',
+                                      venue:
+                                          controller.upcomingList[i]['venue'] ??
+                                          '-',
+                                      trainees:
+                                          '${controller.upcomingList[i]['totalTrainees']} Trainees',
+                                      trainer:
+                                          controller
+                                              .upcomingList[i]['trainer'] ??
+                                          '-',
+                                    ),
+                                    if (i < controller.upcomingList.length - 1)
+                                      const Divider(color: Colors.white),
+                                  ],
+                                ],
+                              ),
+                            );
+                          }),
                         ),
                       ],
                     ),
@@ -307,9 +315,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(
-                height: 28,
-              ), // 🟩 Added space between box and button
+              const SizedBox(height: 28),
 
               Center(
                 child: Container(
@@ -322,7 +328,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  padding: const EdgeInsets.all(2), // 2px border thickness
+                  padding: const EdgeInsets.all(2),
                   child: SizedBox(
                     width: 220,
                     height: 44,

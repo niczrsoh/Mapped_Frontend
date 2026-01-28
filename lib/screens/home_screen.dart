@@ -6,25 +6,32 @@ import 'package:mapped_frontend/screens/coaching_screen.dart';
 import 'package:mapped_frontend/screens/resource_screen.dart';
 import 'package:mapped_frontend/screens/search_result_screen.dart';
 import 'package:mapped_frontend/screens/trainee_screen.dart';
+// 1. Import the Unified Progress Screen
 import './belt_progress_screen.dart';
-import './yellow_belt_progress_screen.dart';
-import './green_belt_progress.dart';
-import './blue_belt_progress.dart';
-import './red_belt_progress.dart';
-import './black_belt_progress.dart';
 import './session_planner_screen.dart';
 import './session_dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controller/home_controller/controller/home_controller.dart';
+
+// 2. Import TraineeController
+import '../controller/controller/trainee_controller.dart';
 
 class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final themeBg = const Color(0xFF0F1114);
+    // 3. Inject TraineeController to get access to data
+    final TraineeController traineeController = Get.put(TraineeController());
+
+    final themeBg = const Color(0xFF141823);
     final cardBorder = const Color(0xFF00C7A7);
-    // final width not needed currently
+
+    final LinearGradient customGradient = const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
+    );
 
     // Height used for the drawing area of bars (not including labels)
     final chartDrawHeight = min(
@@ -32,16 +39,25 @@ class HomeScreen extends GetView<HomeController> {
       max(100.0, MediaQuery.of(context).size.height * 0.20),
     );
 
-    Widget _sectionCard({required Widget child, double radius = 18}) {
+    Widget sectionCard({required Widget child, double radius = 18}) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        // The padding here creates the "Border Width" (1.0)
+        padding: const EdgeInsets.all(1.0),
         decoration: BoxDecoration(
-          color: const Color(0xFF141823),
+          gradient: customGradient, // The border gradient
           borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: cardBorder.withOpacity(0.35)),
         ),
-        child: child,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16), // Original content padding
+          decoration: BoxDecoration(
+            color: const Color(0xFF141823), // Original Card Background
+            // Inner radius must be slightly less than outer to prevent corners bleeding
+            borderRadius: BorderRadius.circular(radius - 1),
+          ),
+          child: child,
+        ),
       );
     }
 
@@ -96,38 +112,54 @@ class HomeScreen extends GetView<HomeController> {
                     ),
                   );
                 },
+
                 child: Container(
                   height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(1.0), // Border Width
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0E1517),
+                    gradient: customGradient,
                     borderRadius: BorderRadius.circular(40),
-                    border: Border.all(
-                      color: cardBorder.withOpacity(0.7),
-                      width: 1.0,
-                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                          decoration: InputDecoration(
-                            isCollapsed: true,
-                            hintText: 'Search Students, Sessions, Forums ...',
-                            hintStyle: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
-                              fontSize: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0E1517),
+                      borderRadius: BorderRadius.circular(39), // 40 - 1
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
                             ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 18,
+                            decoration: InputDecoration(
+                              isCollapsed: true,
+                              hintText: 'Search Students, Sessions, Forums ...',
+                              hintStyle: TextStyle(
+                                // Fixed: withOpacity deprecated -> withValues
+                                color: Colors.white.withValues(alpha: 0.95),
+                                fontSize: 14,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 18,
+                              ),
                             ),
+                            readOnly: true,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SearchResultsScreen(),
+                                ),
+                              );
+                            },
                           ),
-                          readOnly: true, // Make TextField non-editable
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
@@ -136,30 +168,20 @@ class HomeScreen extends GetView<HomeController> {
                               ),
                             );
                           },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const SearchResultsScreen(),
-                            ),
-                          );
-                        },
-                        child: SizedBox(
-                          height: 40,
-                          width: 40,
-                          child: const Center(
-                            child: Icon(
-                              Icons.search,
-                              color: Colors.white,
-                              size: 20,
+                          child: SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: const Center(
+                              child: Icon(
+                                Icons.search,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -174,7 +196,7 @@ class HomeScreen extends GetView<HomeController> {
                     ),
                   );
                 },
-                child: _sectionCard(
+                child: sectionCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -225,9 +247,8 @@ class HomeScreen extends GetView<HomeController> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Chart area: left Y labels + drawing area (grid lines + bars) + bottom category labels
+                      // Chart area
                       SizedBox(
-                        // total area includes drawing area + bottom labels row
                         height: chartDrawHeight + 36,
                         child: Column(
                           children: [
@@ -279,11 +300,10 @@ class HomeScreen extends GetView<HomeController> {
                                   const SizedBox(width: 8),
 
                                   // Drawing area (grid lines + bars)
-                                  // Drawing area (grid lines + bars)
                                   Expanded(
                                     child: Stack(
                                       children: [
-                                        // Grid lines: four lines at 15,10,5,0 mapped to spaceBetween
+                                        // Grid lines
                                         Positioned.fill(
                                           child: Column(
                                             mainAxisAlignment:
@@ -298,7 +318,7 @@ class HomeScreen extends GetView<HomeController> {
                                           ),
                                         ),
 
-                                        // Bars area: align bottom to the bottom grid line (0) - REMOVED BOTTOM PADDING
+                                        // Bars area
                                         Align(
                                           alignment: Alignment.bottomCenter,
                                           child: LayoutBuilder(
@@ -310,171 +330,218 @@ class HomeScreen extends GetView<HomeController> {
                                                 (availableWidth - 50) / 6,
                                               );
 
-                                              return Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.end,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: List.generate(6, (i) {
-                                                  final values = [
-                                                    6.0,
-                                                    2.5,
-                                                    4.5,
-                                                    10.0,
-                                                    4.0,
-                                                    5.0,
-                                                  ];
-                                                  final maxScale = 15.0;
-                                                  final normalizedHeight =
-                                                      (values[i] / maxScale) *
-                                                      chartDrawHeight;
+                                              // 4. Wrap Chart in Obx for Real-time Updates
+                                              return Obx(() {
+                                                // Helper function to count trainees by belt
+                                                int getCount(String belt) {
+                                                  return traineeController
+                                                      .traineeList
+                                                      .where(
+                                                        (t) =>
+                                                            t['belt']
+                                                                .toString()
+                                                                .toLowerCase() ==
+                                                            belt.toLowerCase(),
+                                                      )
+                                                      .length;
+                                                }
 
-                                                  final barGradients = [
-                                                    [
-                                                      Color(0xFFF1E1E4),
-                                                      Colors.white,
-                                                    ],
-                                                    [
-                                                      Color(0xFFF1E1E4),
-                                                      Color(0xFFF5FB32),
-                                                    ],
-                                                    [
-                                                      Color(0xFFF1E1E4),
-                                                      Color(0xFF00FFA6),
-                                                    ],
-                                                    [
-                                                      Color(0xFFF1E1E4),
-                                                      Color(0xFF1DC4F3),
-                                                    ],
-                                                    [
-                                                      Colors.white,
-                                                      Color(0xFFFF0004),
-                                                    ],
-                                                    [
-                                                      Colors.white,
-                                                      Color(0xFF000000),
-                                                    ],
-                                                  ];
+                                                // Real data values
+                                                final values = [
+                                                  getCount('White').toDouble(),
+                                                  getCount('Yellow').toDouble(),
+                                                  getCount('Green').toDouble(),
+                                                  getCount('Blue').toDouble(),
+                                                  getCount('Brown').toDouble(),
+                                                  getCount('Black').toDouble(),
+                                                ];
 
-                                                  Widget bar = Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.end,
-                                                    children: [
-                                                      Container(
-                                                        width: barWidth,
-                                                        height:
-                                                            normalizedHeight,
-                                                        decoration: BoxDecoration(
-                                                          gradient: LinearGradient(
-                                                            begin: Alignment
-                                                                .topCenter,
-                                                            end: Alignment
-                                                                .bottomCenter,
-                                                            colors:
-                                                                barGradients[i],
+                                                // Dynamic Scale: Ensure bars don't overflow if count > 15
+                                                // Default maxScale is 15.0 to match labels
+                                                double maxDataValue = values
+                                                    .reduce(max);
+                                                final maxScale =
+                                                    maxDataValue > 15.0
+                                                    ? maxDataValue
+                                                    : 15.0;
+
+                                                return Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.end,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: List.generate(6, (
+                                                    i,
+                                                  ) {
+                                                    final normalizedHeight =
+                                                        (values[i] / maxScale) *
+                                                        chartDrawHeight;
+
+                                                    final barGradients = [
+                                                      [
+                                                        Color(0xFFF1E1E4),
+                                                        Colors.white,
+                                                      ],
+                                                      [
+                                                        Color(0xFFF1E1E4),
+                                                        Color(0xFFF5FB32),
+                                                      ],
+                                                      [
+                                                        Color(0xFFF1E1E4),
+                                                        Color(0xFF00FFA6),
+                                                      ],
+                                                      [
+                                                        Color(0xFFF1E1E4),
+                                                        Color(0xFF1DC4F3),
+                                                      ],
+                                                      [
+                                                        Colors.white,
+                                                        Color(0xFFFF0004),
+                                                      ],
+                                                      [
+                                                        Colors.white,
+                                                        Color(0xFF000000),
+                                                      ],
+                                                    ];
+
+                                                    Widget bar = Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        Container(
+                                                          width: barWidth,
+                                                          height:
+                                                              normalizedHeight,
+                                                          decoration: BoxDecoration(
+                                                            gradient: LinearGradient(
+                                                              begin: Alignment
+                                                                  .topCenter,
+                                                              end: Alignment
+                                                                  .bottomCenter,
+                                                              colors:
+                                                                  barGradients[i],
+                                                            ),
+                                                            borderRadius:
+                                                                const BorderRadius.only(
+                                                                  topLeft:
+                                                                      Radius.circular(
+                                                                        6,
+                                                                      ),
+                                                                  topRight:
+                                                                      Radius.circular(
+                                                                        6,
+                                                                      ),
+                                                                ),
                                                           ),
-                                                          borderRadius:
-                                                              const BorderRadius.only(
-                                                                topLeft:
-                                                                    Radius.circular(
-                                                                      6,
-                                                                    ),
-                                                                topRight:
-                                                                    Radius.circular(
-                                                                      6,
-                                                                    ),
-                                                              ),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  );
-
-                                                  // Make the first (white) bar tappable to open White Belt
-                                                  if (i == 0) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Navigator.of(
-                                                          context,
-                                                        ).push(
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                const BeltProgressScreen(),
-                                                          ),
-                                                        );
-                                                      },
-                                                      child: bar,
+                                                      ],
                                                     );
-                                                  }
 
-                                                  // Make the second (yellow) bar tappable to open Yellow Belt
-                                                  if (i == 1) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Get.to(
-                                                          () =>
-                                                              const YellowBeltProgressScreen(),
-                                                        );
-                                                      },
-                                                      child: bar,
-                                                    );
-                                                  }
-
-                                                  // Make the third (green) bar tappable to open Green Belt
-                                                  if (i == 2) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Get.to(
-                                                          () =>
-                                                              const GreenBeltProgressScreen(),
-                                                        );
-                                                      },
-                                                      child: bar,
-                                                    );
-                                                  }
-
-                                                  // Make the fourth (blue) bar tappable to open Blue Belt
-                                                  if (i == 3) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Get.to(
-                                                          () =>
-                                                              const BlueBeltProgressScreen(),
-                                                        );
-                                                      },
-                                                      child: bar,
-                                                    );
-                                                  }
-
-                                                  // Make the fifth (red) bar tappable to open Red Belt
-                                                  if (i == 4) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Get.to(
-                                                          () =>
-                                                              const RedBeltProgressScreen(),
-                                                        );
-                                                      },
-                                                      child: bar,
-                                                    );
-                                                  }
-
-                                                  // Make the sixth (black) bar tappable to open Black Belt
-                                                  if (i == 5) {
-                                                    return GestureDetector(
-                                                      onTap: () {
-                                                        Get.to(
-                                                          () =>
-                                                              const BlackBeltProgressScreen(),
-                                                        );
-                                                      },
-                                                      child: bar,
-                                                    );
-                                                  }
-
-                                                  return bar;
-                                                }),
-                                              );
+                                                    // --- NAVIGATION LOGIC ---
+                                                    if (i == 0) {
+                                                      // White
+                                                      return GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(
+                                                            () =>
+                                                                const BeltProgressScreen(
+                                                                  beltName:
+                                                                      'White',
+                                                                  beltColor:
+                                                                      Colors
+                                                                          .white,
+                                                                ),
+                                                          );
+                                                        },
+                                                        child: bar,
+                                                      );
+                                                    }
+                                                    if (i == 1) {
+                                                      // Yellow
+                                                      return GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(
+                                                            () => const BeltProgressScreen(
+                                                              beltName:
+                                                                  'Yellow',
+                                                              beltColor: Color(
+                                                                0xFFF5FB32,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: bar,
+                                                      );
+                                                    }
+                                                    if (i == 2) {
+                                                      // Green
+                                                      return GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(
+                                                            () => const BeltProgressScreen(
+                                                              beltName: 'Green',
+                                                              beltColor: Color(
+                                                                0xFF00FFA6,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: bar,
+                                                      );
+                                                    }
+                                                    if (i == 3) {
+                                                      // Blue
+                                                      return GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(
+                                                            () => const BeltProgressScreen(
+                                                              beltName: 'Blue',
+                                                              beltColor: Color(
+                                                                0xFF2196F3,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: bar,
+                                                      );
+                                                    }
+                                                    if (i == 4) {
+                                                      // Brown
+                                                      return GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(
+                                                            () => const BeltProgressScreen(
+                                                              beltName: 'Brown',
+                                                              beltColor: Color(
+                                                                0xFFA52A2A,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: bar,
+                                                      );
+                                                    }
+                                                    if (i == 5) {
+                                                      // Black
+                                                      return GestureDetector(
+                                                        onTap: () {
+                                                          Get.to(
+                                                            () => const BeltProgressScreen(
+                                                              beltName: 'Black',
+                                                              beltColor: Color(
+                                                                0xFF000000,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: bar,
+                                                      );
+                                                    }
+                                                    return bar;
+                                                  }),
+                                                );
+                                              });
                                             },
                                           ),
                                         ),
@@ -488,7 +555,7 @@ class HomeScreen extends GetView<HomeController> {
 
                             const SizedBox(height: 10),
 
-                            // Labels row aligned to the same drawing area as the bars.
+                            // Labels row
                             Row(
                               children: [
                                 const SizedBox(width: 40),
@@ -512,7 +579,7 @@ class HomeScreen extends GetView<HomeController> {
                                             'Yellow',
                                             'Green',
                                             'Blue',
-                                            'Red',
+                                            'Brown',
                                             'Black',
                                           ])
                                             SizedBox(
@@ -555,7 +622,7 @@ class HomeScreen extends GetView<HomeController> {
                     ),
                   );
                 },
-                child: _sectionCard(
+                child: sectionCard(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -603,7 +670,7 @@ class HomeScreen extends GetView<HomeController> {
                     ),
                   );
                 },
-                child: _sectionCard(
+                child: sectionCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -635,7 +702,7 @@ class HomeScreen extends GetView<HomeController> {
                     ),
                   );
                 },
-                child: _sectionCard(
+                child: sectionCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -706,27 +773,44 @@ class HomeScreen extends GetView<HomeController> {
 
               const SizedBox(height: 12),
 
-              // Plan a Session button
-              SizedBox(
+              Container(
                 width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    side: BorderSide(color: cardBorder.withOpacity(0.8)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                // 1. Outer Container: The Gradient Border
+                padding: const EdgeInsets.all(1.0), // Border Width
+                decoration: BoxDecoration(
+                  gradient: customGradient, // Uses the variable defined at top
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                // 2. Inner Container: The Background Color
+                child: Container(
+                  decoration: BoxDecoration(
+                    color:
+                        themeBg, // Match your screen background (Color(0xFF0F1114))
+                    borderRadius: BorderRadius.circular(15), // 16 - 1
                   ),
-                  onPressed: () {
-                   Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SessionPlannerScreen()),
-                    );
-                  },
-                  child: Text(
-                    'Plan a Session',
-                    style: GoogleFonts.poppins(color: Colors.white),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors
+                          .transparent, // Button is transparent so inner container color shows
+                      shadowColor: Colors.transparent, // Remove default shadow
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SessionPlannerScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Plan a Session',
+                      style: GoogleFonts.poppins(color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -738,8 +822,6 @@ class HomeScreen extends GetView<HomeController> {
       ),
     );
   }
-
-  // (labels are rendered inside the LayoutBuilder so they align to the computed barWidth)
 }
 
 class BottomNav extends StatefulWidget {

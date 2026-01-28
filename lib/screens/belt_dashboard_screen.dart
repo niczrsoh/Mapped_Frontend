@@ -1,15 +1,12 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:get/get.dart';
 import 'package:mapped_frontend/screens/belt_progress_screen.dart';
-import './yellow_belt_progress_screen.dart';
-import './green_belt_progress.dart';
-import './blue_belt_progress.dart';
-import './red_belt_progress.dart';
-import './black_belt_progress.dart';
+import '../../controller/controller/belt_progress_ring_controller.dart';
+import '../../controller/controller/trainee_controller.dart';
+import 'belt_detail_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,6 +32,22 @@ class BeltDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Inject Controller
+    final TraineeController controller = Get.put(TraineeController());
+    // === NEW CONTROLLER INJECTION ===
+    final BeltProgressRingController ringController = Get.put(
+      BeltProgressRingController(),
+    );
+    // Helper to get count
+    int _getTraineeCount(String beltName) {
+      
+      String cleanName = beltName.replaceAll(' Belt', '');
+
+      return controller.traineeList.where((t) {
+        return t['belt'].toString().toLowerCase() == cleanName.toLowerCase();
+      }).length;
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F1114),
       appBar: AppBar(
@@ -59,7 +72,6 @@ class BeltDashboardScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Center(
               child: ClipRRect(
-                //dashboard style
                 borderRadius: BorderRadius.circular(20),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
@@ -69,11 +81,11 @@ class BeltDashboardScreen extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05), // SAME glass color
+                      color: Colors.white.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1), // SAME shadow
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 4),
                         ),
@@ -94,78 +106,81 @@ class BeltDashboardScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            // Belt Cards
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _buildBeltCard(
-                    context: context,
-                    beltName: 'White Belt',
-                    percentage: 75,
-                    trainees: 8,
-                    color: Colors.white,
-                    runTime: '4h',
-                    exerciseTime: '30min',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildBeltCard(
-                    context: context,
-                    beltName: 'Yellow Belt',
-                    percentage: 30,
-                    trainees: 3,
-                    color: Color(0xFFFFD700),
-                    runTime: '4h',
-                    exerciseTime: '30min',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildBeltCard(
-                    context: context,
-                    beltName: 'Green Belt',
-                    percentage: 55,
-                    trainees: 6,
-                    color: Color(0xFF4CAF50),
-                    runTime: '4h',
-                    exerciseTime: '30min',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildBeltCard(
-                    context: context,
-                    beltName: 'Blue Belt',
-                    percentage: 85,
-                    trainees: 12,
-                    color: Color(0xFF2196F3),
-                    runTime: '4h',
-                    exerciseTime: '30min',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildBeltCard(
-                    context: context,
-                    beltName: 'Red Belt',
-                    percentage: 45,
-                    trainees: 4,
-                    color: Color(0xFFE53935),
-                    runTime: '4h',
-                    exerciseTime: '30min',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildBeltCard(
-                    context: context,
-                    beltName: 'Black Belt',
-                    percentage: 46,
-                    trainees: 5,
-                    color: Color(0xFF000000),
-                    runTime: '4h',
-                    exerciseTime: '30min',
-                  ),
-                ],
+      // Wrap body in Obx to listen to controller changes
+      body: Obx(
+        () => SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildBeltCard(
+                      context: context,
+                      beltName: 'White Belt',
+                      // === USE CONTROLLER DATA ===
+                      percentage: ringController.getPercentage('White'),
+                      trainees: _getTraineeCount('White'), // Dynamic Count
+                      color: Colors.white,
+                      runTime: '4h',
+                      exerciseTime: '30min',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildBeltCard(
+                      context: context,
+                      beltName: 'Yellow Belt',
+                      percentage: ringController.getPercentage('Yellow'),
+                      trainees: _getTraineeCount('Yellow'), // Dynamic Count
+                      color: const Color(0xFFFFD700),
+                      runTime: '4h',
+                      exerciseTime: '30min',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildBeltCard(
+                      context: context,
+                      beltName: 'Green Belt',
+                      percentage: ringController.getPercentage('Green'),
+                      trainees: _getTraineeCount('Green'), // Dynamic Count
+                      color: const Color(0xFF4CAF50),
+                      runTime: '4h',
+                      exerciseTime: '30min',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildBeltCard(
+                      context: context,
+                      beltName: 'Blue Belt',
+                      percentage: ringController.getPercentage('Blue'),
+                      trainees: _getTraineeCount('Blue'), // Dynamic Count
+                      color: const Color(0xFF2196F3),
+                      runTime: '4h',
+                      exerciseTime: '30min',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildBeltCard(
+                      context: context,
+                      beltName: 'Brown Belt',
+                      percentage: ringController.getPercentage('Brown'),
+                      trainees: _getTraineeCount('Brown'), // Dynamic Count
+                      color: const Color(0xFFA52A2A),
+                      runTime: '4h',
+                      exerciseTime: '30min',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildBeltCard(
+                      context: context,
+                      beltName: 'Black Belt',
+                      percentage: ringController.getPercentage('Black'),
+                      trainees: _getTraineeCount('Black'), // Dynamic Count
+                      color: const Color(0xFF000000),
+                      runTime: '4h',
+                      exerciseTime: '30min',
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -173,6 +188,7 @@ class BeltDashboardScreen extends StatelessWidget {
 
   Widget _buildBeltCard({
     required BuildContext context,
+    // required BeltProgressRingController ringController, <--- REMOVED THIS LINE (Cause of error)
     required String beltName,
     required int percentage,
     required int trainees,
@@ -180,59 +196,12 @@ class BeltDashboardScreen extends StatelessWidget {
     required String runTime,
     required String exerciseTime,
   }) {
+    // Helper to get clean name for navigation params
+    String cleanName = beltName.replaceAll(' Belt', '');
+
     return GestureDetector(
       onTap: () {
-        // Navigate to the appropriate belt progress screen based on beltName
-        switch (beltName) {
-          case 'White Belt':
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const BeltProgressScreen(),
-              ),
-            );
-            break;
-          case 'Yellow Belt':
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const YellowBeltProgressScreen(),
-              ),
-            );
-            break;
-          case 'Green Belt':
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const GreenBeltProgressScreen(),
-              ),
-            );
-            break;
-          case 'Blue Belt':
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const BlueBeltProgressScreen(),
-              ),
-            );
-            break;
-          case 'Red Belt':
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const RedBeltProgressScreen(),
-              ),
-            );
-            break;
-          case 'Black Belt':
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const BlackBeltProgressScreen(),
-              ),
-            );
-            break;
-          default:
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const BeltProgressScreen(),
-              ),
-            );
-        }
+        Get.to(() => BeltProgressScreen(beltName: cleanName, beltColor: color));
       },
       child: BeltCard(
         beltName: beltName,
@@ -350,21 +319,18 @@ class BeltCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: 30,
-                        sigmaY: 30,
-                      ), // blur(30px)
+                      filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05), // glass effect
+                          color: Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1), // #0000001A
+                              color: Colors.black.withOpacity(0.1),
                               blurRadius: 4,
                               offset: const Offset(0, 4),
                             ),
@@ -401,7 +367,7 @@ class BeltCard extends StatelessWidget {
                       Text(
                         runTime,
                         style: GoogleFonts.roboto(
-                          color: Color(0xFF00FFA6),
+                          color: const Color(0xFF00FFA6),
                           fontWeight: FontWeight.w400,
                           fontSize: 12,
                           height: 1.0,
@@ -430,7 +396,7 @@ class BeltCard extends StatelessWidget {
                       Text(
                         exerciseTime,
                         style: GoogleFonts.roboto(
-                          color: Color(0xFF00FFA6),
+                          color: const Color(0xFF00FFA6),
                           fontWeight: FontWeight.w400,
                           fontSize: 12,
                           height: 1.0,
@@ -460,16 +426,12 @@ class CircularProgressPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // --- Base circle (larger solid filled circle behind everything) ---
     final basePaint = Paint()
-      ..color = Colors.grey.shade800
-          .withOpacity(0.4) // More visible base
+      ..color = Colors.grey.shade800.withOpacity(0.4)
       ..style = PaintingStyle.fill;
 
-    // Make the base circle extend to the full size
     canvas.drawCircle(center, radius, basePaint);
 
-    // --- Background ring ---
     final backgroundPaint = Paint()
       ..color = Colors.grey.shade700
       ..style = PaintingStyle.stroke
@@ -478,7 +440,6 @@ class CircularProgressPainter extends CustomPainter {
 
     canvas.drawCircle(center, radius - 10 / 2, backgroundPaint);
 
-    // --- Progress arc ---
     final progressPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -487,10 +448,9 @@ class CircularProgressPainter extends CustomPainter {
 
     final sweepAngle = 2 * math.pi * (percentage / 100);
 
-    // Start at 3pm (0 radians) and go clockwise
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius - 10 / 2),
-      0, // Start at 3pm (0 radians)
+      0,
       sweepAngle,
       false,
       progressPaint,

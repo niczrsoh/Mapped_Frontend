@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import '../controller/controller/session_controller.dart';
 
 class SessionHistoryScreen extends StatelessWidget {
   const SessionHistoryScreen({super.key});
@@ -17,13 +18,11 @@ class SessionHistoryScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date - with empty space for alignment
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                width: 22, // Same width as icon (16) + spacing (6)
-              ),
+              const Icon(Icons.calendar_today, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   date,
@@ -36,13 +35,12 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Time - with empty space for alignment
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 22),
+              const Icon(Icons.access_time, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   time,
@@ -55,18 +53,16 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Venue with icon
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(
-                Icons.fitness_center_outlined,
+                Icons.location_on_outlined,
                 color: Colors.white,
-                size: 16,
+                size: 14,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   venue,
@@ -79,13 +75,12 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Trainees - with empty space for alignment
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 22),
+              const Icon(Icons.group_outlined, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   trainees,
@@ -98,13 +93,12 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-
-          // Trainer - with empty space for alignment
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(width: 22),
+              const Icon(Icons.person_outline, size: 14, color: Colors.white),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Trainer : $trainer',
@@ -117,8 +111,6 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
             ],
           ),
-
-          // tighter spacing for the button
           const SizedBox(height: 4),
           Align(
             alignment: Alignment.bottomRight,
@@ -157,7 +149,9 @@ class SessionHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeBg = const Color(0xFF0F1114);
+    final SessionController controller = Get.find<SessionController>();
+    final themeBg = const Color(0xFF141823);
+
     return Scaffold(
       backgroundColor: themeBg,
       appBar: AppBar(
@@ -208,23 +202,19 @@ class SessionHistoryScreen extends StatelessWidget {
 
               const SizedBox(height: 18),
 
-              // Big rounded history card with gradient border + inner content
+              // ✅ RESPONSIVE WIDTH FIX
               Center(
                 child: Container(
-                  width: 299,
-                  height: 486,
+                  width: double.infinity, // Resizes with screen width
+                  height: 486, // Fixed height preserved
                   padding: const EdgeInsets.all(1),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
-                    ),
                   ),
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
@@ -244,51 +234,50 @@ class SessionHistoryScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        // 🔹 Scrollable session list inside fixed box
                         Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                _historyRow(
-                                  date: 'Wed, Sept 21, 2025',
-                                  time: '6:00 - 7:00 PM',
-                                  venue:
-                                      'Dewan Sekolah Rendah Sri Gading, Main Hall',
-                                  trainees: '25 Trainees',
-                                  trainer: 'Sir Ramesh',
+                          child: Obx(() {
+                            if (controller.historyList.isEmpty) {
+                              return Center(
+                                child: Text(
+                                  "No History Sessions Available",
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white54,
+                                  ),
                                 ),
-                                const Divider(color: Colors.white),
-                                _historyRow(
-                                  date: 'Wed, Sept 21, 2025',
-                                  time: '6:00 - 7:00 PM',
-                                  venue:
-                                      'Dewan Sekolah Rendah Sri Gading, Main Hall',
-                                  trainees: '25 Trainees',
-                                  trainer: 'Sir Ramesh',
-                                ),
-                                const Divider(color: Colors.white),
-
-                                _historyRow(
-                                  date: 'Thu, Nov 23, 2025',
-                                  time: '6:00 - 7:00 PM',
-                                  venue: 'Dewan Sekolah Men Rantau, Main Hall',
-                                  trainees: '19 Trainees',
-                                  trainer: 'Sir Ramesh',
-                                ),
-                                const Divider(color: Colors.white),
-
-                                _historyRow(
-                                  date: 'Tue, Dec 11, 2025',
-                                  time: '7:00 - 9:00 PM',
-                                  venue:
-                                      'Dewan Sekolah Rendah Putri, Main Hall',
-                                  trainees: '22 Trainees',
-                                  trainer: 'Sir Ramesh',
-                                ),
-                              ],
-                            ),
-                          ),
+                              );
+                            }
+                            return SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  for (
+                                    var i = 0;
+                                    i < controller.historyList.length;
+                                    i++
+                                  ) ...[
+                                    _historyRow(
+                                      date:
+                                          controller.historyList[i]['uiDate'] ??
+                                          '-',
+                                      time:
+                                          controller.historyList[i]['time'] ??
+                                          '-',
+                                      venue:
+                                          controller.historyList[i]['venue'] ??
+                                          '-',
+                                      trainees:
+                                          '${controller.historyList[i]['totalTrainees']} Trainees',
+                                      trainer:
+                                          controller
+                                              .historyList[i]['trainer'] ??
+                                          '-',
+                                    ),
+                                    if (i < controller.historyList.length - 1)
+                                      const Divider(color: Colors.white),
+                                  ],
+                                ],
+                              ),
+                            );
+                          }),
                         ),
                       ],
                     ),
@@ -297,7 +286,9 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 40),
-                            Center(
+
+              // [KEEP BUTTON CODE]
+              Center(
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -308,7 +299,7 @@ class SessionHistoryScreen extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  padding: const EdgeInsets.all(2), // 2px border thickness
+                  padding: const EdgeInsets.all(2),
                   child: SizedBox(
                     width: 220,
                     height: 44,
