@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/screens/coaching_screen.dart';
 import 'package:mapped_frontend/screens/resource_screen.dart';
@@ -26,13 +27,11 @@ class HomeScreen extends GetView<HomeController> {
 
     final themeBg = const Color(0xFF141823);
     final cardBorder = const Color(0xFF00C7A7);
-
-    final LinearGradient customGradient = const LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
-    );
-
+    
+    // Get UserController for user data
+    final UserController userController = Get.find<UserController>();
+    final HomeController homeController = Get.find<HomeController>();
+    
     // Height used for the drawing area of bars (not including labels)
     final chartDrawHeight = min(
       140.0,
@@ -69,21 +68,27 @@ class HomeScreen extends GetView<HomeController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Greeting
-              Text(
-                'Welcome back, Coach Lieyza',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              // Greeting - Using actual user name
+              Obx(() {
+                final userName = userController.userName;
+                print('👤 HomeScreen - User name: $userName');
+                
+                return Text(
+                  'Welcome back, Coach $userName',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                );
+              }),
               const SizedBox(height: 8),
 
               Row(
                 children: [
+                  // Display current date
                   Text(
-                    'Wed, Sept 2025',
+                    _getCurrentDate(),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 12,
@@ -405,38 +410,38 @@ class HomeScreen extends GetView<HomeController> {
                                                       ],
                                                     ];
 
-                                                    Widget bar = Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment.end,
-                                                      children: [
-                                                        Container(
-                                                          width: barWidth,
-                                                          height:
-                                                              normalizedHeight,
-                                                          decoration: BoxDecoration(
-                                                            gradient: LinearGradient(
-                                                              begin: Alignment
-                                                                  .topCenter,
-                                                              end: Alignment
-                                                                  .bottomCenter,
-                                                              colors:
-                                                                  barGradients[i],
-                                                            ),
-                                                            borderRadius:
-                                                                const BorderRadius.only(
-                                                                  topLeft:
-                                                                      Radius.circular(
-                                                                        6,
-                                                                      ),
-                                                                  topRight:
-                                                                      Radius.circular(
-                                                                        6,
-                                                                      ),
-                                                                ),
+                                                  Widget bar = Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    children: [
+                                                      Container(
+                                                        width: barWidth,
+                                                        height:
+                                                            normalizedHeight,
+                                                        decoration: BoxDecoration(
+                                                          gradient: LinearGradient(
+                                                            begin: Alignment
+                                                                .topCenter,
+                                                            end: Alignment
+                                                                .bottomCenter,
+                                                            colors:
+                                                                barGradients[i],
                                                           ),
+                                                          borderRadius:
+                                                              const BorderRadius.only(
+                                                                topLeft:
+                                                                    Radius.circular(
+                                                                        6,
+                                                                    ),
+                                                                topRight:
+                                                                    Radius.circular(
+                                                                        6,
+                                                                    ),
+                                                              ),
                                                         ),
-                                                      ],
-                                                    );
+                                                      ),
+                                                    ],
+                                                  );
 
                                                     // --- NAVIGATION LOGIC ---
                                                     if (i == 0) {
@@ -821,6 +826,15 @@ class HomeScreen extends GetView<HomeController> {
         ),
       ),
     );
+  }
+  
+  // Helper method to get current date
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day} ${now.year}';
   }
 }
 

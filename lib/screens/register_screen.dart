@@ -7,21 +7,35 @@ import '../global/routes.dart';
 class RegisterScreen extends GetView<RegisterController> {
   const RegisterScreen({super.key});
 
-  InputDecoration _inputDecoration(String label) => InputDecoration(
-    hintText: label,
-    hintStyle: const TextStyle(color: Colors.white),
-    filled: true,
-    fillColor: Colors.white10,
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF00C7A7)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      // keep same width/color as enabledBorder to avoid the animated thickness change
-      borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1),
-    ),
-  );
+  // Make this method static so it can be accessed from state classes
+  static InputDecoration _inputDecoration({
+    required String label,
+    bool hasError = false,
+  }) {
+    return InputDecoration(
+      hintText: label,
+      hintStyle: const TextStyle(color: Colors.white),
+      filled: true,
+      fillColor: Colors.white10,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+          width: 1,
+        ),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +43,11 @@ class RegisterScreen extends GetView<RegisterController> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // background image (falls back to gradient if asset missing)
+          // background image
           Positioned.fill(
             child: Image.asset(
-              // use the project asset named registerBg (png preferred).
-              // Place the image at assets/images/registerBg.png in the project.
               'assets/images/registerBg.jpg',
               fit: BoxFit.cover,
-              // apply a subtle dark blend so the image appears dimmer under the overlay
               color: Colors.black.withOpacity(0.35),
               colorBlendMode: BlendMode.darken,
               errorBuilder: (context, error, stackTrace) => Container(
@@ -50,7 +61,7 @@ class RegisterScreen extends GetView<RegisterController> {
               ),
             ),
           ),
-          // dark overlay to increase contrast for fields (darker per design)
+          // dark overlay
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.65)),
           ),
@@ -61,7 +72,7 @@ class RegisterScreen extends GetView<RegisterController> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 24),
-                  // logo (use asset if provided, otherwise text)
+                  // logo
                   Center(
                     child: Image.asset(
                       'assets/images/logo.png',
@@ -81,8 +92,7 @@ class RegisterScreen extends GetView<RegisterController> {
                         child: Text(
                           'MAPPED',
                           style: const TextStyle(
-                            fontFamily:
-                                'NicoMoji', // still differrent with the figma?????
+                            fontFamily: 'NicoMoji',
                             color: Colors.white,
                             fontSize: 48,
                             fontWeight: FontWeight.w700,
@@ -94,60 +104,27 @@ class RegisterScreen extends GetView<RegisterController> {
                   ),
                   const SizedBox(height: 36),
 
-                  TextField(
-                    style: GoogleFonts.openSans(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    cursorColor: const Color(0xFF00C7A7),
-                    decoration: _inputDecoration('Full Name'),
-                    onChanged: (v) => controller.fullName.value = v,
-                  ),
+                  // Full Name Field
+                  _FullNameTextField(controller: controller),
                   const SizedBox(height: 12),
-                  TextField(
-                    style: GoogleFonts.openSans(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    cursorColor: const Color(0xFF00C7A7),
-                    decoration: _inputDecoration('Email'),
-                    keyboardType: TextInputType.emailAddress,
-                    onChanged: (v) => controller.email.value = v,
-                  ),
+                  
+                  // Email Field
+                  _EmailTextField(controller: controller),
                   const SizedBox(height: 12),
-                  TextField(
-                    style: GoogleFonts.openSans(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    cursorColor: const Color(0xFF00C7A7),
-                    decoration: _inputDecoration('Password'),
-                    obscureText: true,
-                    onChanged: (v) => controller.password.value = v,
-                  ),
+                  
+                  // Password Field
+                  _PasswordTextField(controller: controller),
                   const SizedBox(height: 12),
-                  TextField(
-                    style: GoogleFonts.openSans(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    cursorColor: const Color(0xFF00C7A7),
-                    decoration: _inputDecoration('Password Confirmation'),
-                    obscureText: true,
-                    onChanged: (v) => controller.passwordConfirmation.value = v,
-                  ),
+                  
+                  // Password Confirmation Field
+                  _PasswordConfirmationTextField(controller: controller),
 
                   const SizedBox(height: 20),
                   Obx(
                     () => Center(
                       child: SizedBox(
-                        // make the button narrower to match the design
                         width: MediaQuery.of(context).size.width * 0.7,
-                        height: 50, //button height
+                        height: 50,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
@@ -157,9 +134,18 @@ class RegisterScreen extends GetView<RegisterController> {
                               borderRadius: BorderRadius.circular(28),
                             ),
                           ),
-                          onPressed: controller.loading.value
-                              ? null
-                              : controller.register,
+                          onPressed: controller.loading.value ? null : () {
+                            // Clear previous errors
+                            controller.fullNameError.value = '';
+                            controller.emailError.value = '';
+                            controller.passwordError.value = '';
+                            controller.passwordConfirmationError.value = '';
+                            
+                            // Validate form before registering
+                            if (controller.validateForm()) {
+                              controller.register();
+                            }
+                          },
                           child: controller.loading.value
                               ? const SizedBox(
                                   height: 16,
@@ -183,16 +169,8 @@ class RegisterScreen extends GetView<RegisterController> {
                   ),
 
                   const SizedBox(height: 12),
-                  Center(
-                    child: Obx(
-                      () => Text(
-                        controller.error.value,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ),
 
-                  const SizedBox(height: 12),
+                  // Already have an account
                   Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -205,7 +183,7 @@ class RegisterScreen extends GetView<RegisterController> {
                           ),
                         ),
                         InkWell(
-                          onTap: () => Get.toNamed(AppRoutes.touchId),
+                          onTap: () => Get.toNamed(AppRoutes.login),
                           child: Text(
                             'Login',
                             style: GoogleFonts.poppins(
@@ -222,7 +200,7 @@ class RegisterScreen extends GetView<RegisterController> {
                   Center(
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width * 0.5,
-                      height: 50, //button height
+                      height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFDB4437),
@@ -232,16 +210,25 @@ class RegisterScreen extends GetView<RegisterController> {
                           ),
                         ),
                         onPressed: () {
-                          // TODO: implement google sign up
+                          controller.registerWithGoogle();
                         },
-                        child: Text(
-                          'Register via Google',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: Obx(() => controller.googleLoading.value
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Register via Google',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              )),
                       ),
                     ),
                   ),
@@ -251,6 +238,406 @@ class RegisterScreen extends GetView<RegisterController> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Full Name TextField
+class _FullNameTextField extends StatefulWidget {
+  final RegisterController controller;
+  
+  const _FullNameTextField({required this.controller});
+  
+  @override
+  __FullNameTextFieldState createState() => __FullNameTextFieldState();
+}
+
+class __FullNameTextFieldState extends State<_FullNameTextField> {
+  late TextEditingController _textController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.fullName.value);
+    
+    ever(widget.controller.fullName, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.fullNameError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: RegisterScreen._inputDecoration(
+              label: 'Full Name',
+              hasError: hasError,
+            ),
+            onChanged: (value) {
+              widget.controller.fullName.value = value;
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.fullNameError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.fullNameError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.fullNameError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
+    );
+  }
+}
+
+// Email TextField
+class _EmailTextField extends StatefulWidget {
+  final RegisterController controller;
+  
+  const _EmailTextField({required this.controller});
+  
+  @override
+  __EmailTextFieldState createState() => __EmailTextFieldState();
+}
+
+class __EmailTextFieldState extends State<_EmailTextField> {
+  late TextEditingController _textController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.email.value);
+    
+    ever(widget.controller.email, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.emailError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: RegisterScreen._inputDecoration(
+              label: 'Email',
+              hasError: hasError,
+            ),
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (value) {
+              widget.controller.email.value = value;
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.emailError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.emailError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.emailError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
+    );
+  }
+}
+
+// Password TextField
+class _PasswordTextField extends StatefulWidget {
+  final RegisterController controller;
+  
+  const _PasswordTextField({required this.controller});
+  
+  @override
+  __PasswordTextFieldState createState() => __PasswordTextFieldState();
+}
+
+class __PasswordTextFieldState extends State<_PasswordTextField> {
+  late TextEditingController _textController;
+  bool _obscureText = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.password.value);
+    
+    ever(widget.controller.password, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.passwordError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: InputDecoration(
+              hintText: 'Password',
+              hintStyle: const TextStyle(color: Colors.white),
+              filled: true,
+              fillColor: Colors.white10,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                  width: 1,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white70,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              ),
+            ),
+            obscureText: _obscureText,
+            onChanged: (value) {
+              widget.controller.password.value = value;
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.passwordError.value = '';
+              }
+              // Also clear confirmation error if password changes
+              if (widget.controller.passwordConfirmationError.value.isNotEmpty) {
+                widget.controller.passwordConfirmationError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.passwordError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.passwordError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
+    );
+  }
+}
+
+// Password Confirmation TextField
+class _PasswordConfirmationTextField extends StatefulWidget {
+  final RegisterController controller;
+  
+  const _PasswordConfirmationTextField({required this.controller});
+  
+  @override
+  __PasswordConfirmationTextFieldState createState() => __PasswordConfirmationTextFieldState();
+}
+
+class __PasswordConfirmationTextFieldState extends State<_PasswordConfirmationTextField> {
+  late TextEditingController _textController;
+  bool _obscureText = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.passwordConfirmation.value);
+    
+    ever(widget.controller.passwordConfirmation, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.passwordConfirmationError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: InputDecoration(
+              hintText: 'Password Confirmation',
+              hintStyle: const TextStyle(color: Colors.white),
+              filled: true,
+              fillColor: Colors.white10,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                  width: 1,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white70,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              ),
+            ),
+            obscureText: _obscureText,
+            onChanged: (value) {
+              widget.controller.passwordConfirmation.value = value;
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.passwordConfirmationError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.passwordConfirmationError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.passwordConfirmationError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
     );
   }
 }

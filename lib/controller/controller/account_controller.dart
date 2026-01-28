@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 import 'package:mapped_frontend/screens/notification_screen.dart';
 import 'package:mapped_frontend/controller/controller/notification_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountController extends GetxController {
   var notificationsEnabled = true.obs;
   var securityMethod = 'Fingerprint'.obs;
+  
+  // Get the UserController instance
+  UserController get userController => Get.find<UserController>();
 
   @override
   void onInit() {
     super.onInit();
     // Listen to changes from NotificationController if it exists
     ever(notificationsEnabled, (_) => _syncNotificationState());
+    
+    // Fetch user data on initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (userController.userData.isEmpty) {
+        userController.fetchUserProfile();
+      }
+    });
   }
   
   void _syncNotificationState() {
@@ -30,31 +42,40 @@ class AccountController extends GetxController {
     // Sync the state before navigating
     notificationsEnabled.value = notifController.generalNotification.value;
     
-     Navigator.of(Get.context!).push(
+    Navigator.of(Get.context!).push(
       MaterialPageRoute(
         builder: (context) => NotificationScreen(),
       ),
     );
   }
   
-  void editProfile() 
-  {
+  void editProfile() {
+    // Pass user data to profile editor
     Navigator.of(Get.context!).push(
       MaterialPageRoute(
-        builder: (context) => ProfileEditorScreen(),
+        builder: (context) => ProfileEditorScreen(
+          userData: userController.userData.value,
+        ),
       ),
     );
   }
   
-  void logout() {
-    // Handle logout logic
+  Future<void> logout() async {
     Get.defaultDialog(
       title: 'Log Out',
       middleText: 'Are you sure you want to log out?',
       textConfirm: 'Yes',
       textCancel: 'No',
-      onConfirm: () {
-        // Perform logout
+      onConfirm: () async {
+        // Clear user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('user_name');
+      await prefs.remove('user_email');
+      await prefs.remove('user_avatar');
+      await prefs.remove('user_role');
+          
+        // Navigate to login
         Get.back();
         Get.offAllNamed('/login');
       },

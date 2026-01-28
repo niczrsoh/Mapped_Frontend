@@ -7,33 +7,41 @@ import 'package:google_fonts/google_fonts.dart';
 class LoginScreen extends GetView<LoginController> {
   const LoginScreen({super.key});
 
-  InputDecoration _inputDecoration(String hint) => InputDecoration(
-    hintText: hint,
-    hintStyle: const TextStyle(color: Colors.white70),
-    filled: true,
-    fillColor: Colors.white10,
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF00C7A7)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1),
-    ),
-  );
+  // Make this method static so it can be accessed from state classes
+  static InputDecoration _inputDecoration({
+    required String hint,
+    bool hasError = false,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white70),
+      filled: true,
+      fillColor: Colors.white10,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+          width: 1,
+        ),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 14,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    
     void goToReset() {
-      // Debug print so developer can see the tap in the console
-      // and confirm the onPressed handler is firing.
-      // This will also perform the navigation using GetX routes.
-      // If this doesn't run, the issue is that the button isn't receiving taps.
-      // Use `flutter run` to view the output.
-      // Example log: "Navigating to reset password"
-      // ignore: avoid_print
-      print('Navigating to reset password');
       Get.toNamed(AppRoutes.resetPassword);
     }
 
@@ -41,7 +49,7 @@ class LoginScreen extends GetView<LoginController> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // background image or fallback gradient
+          // Background Image
           Positioned.fill(
             child: Image.asset(
               'assets/images/loginBg.jpg',
@@ -58,90 +66,37 @@ class LoginScreen extends GetView<LoginController> {
             ),
           ),
 
-          // dark overlay (slightly stronger so the background image reads more transparent)
+          // Dark Overlay
           Positioned.fill(
-            child: Container(color: Colors.black.withValues(alpha: 0.60)),
+            child: Container(color: Colors.black.withOpacity(0.60)),
           ),
 
-          // Title pinned to specified coordinates per design
-          Positioned(
-            top: 142.0,
-            left: (size.width - 196.0) / 2,
-            child: SizedBox(
-              width: 196.0,
-              height: 36.0,
-              child: Opacity(
-                opacity: 1.0,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Welcome Back!',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      height: 1.0,
-                      letterSpacing: 0.0,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // content: top / middle / bottom sections so the middle (fields) is centered
+          // Content
           SafeArea(
             child: SingleChildScrollView(
-              // reduce top/bottom padding so the title sits slightly higher
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight:
-                      size.height -
-                      MediaQuery.of(context).padding.vertical -
-                      48,
+                  minHeight: size.height - MediaQuery.of(context).padding.vertical - 48,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // (Title moved to top overlay; kept spacing and form positions unchanged)
-
-                    // extra gap between title and form
                     const SizedBox(height: 24),
 
-                    // Middle: email & password (this block stays centered vertically)
+                    // Middle: email & password
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        TextField(
-                          style: GoogleFonts.openSans(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            letterSpacing: -0.41,
-                          ),
-                          cursorColor: const Color(0xFF00C7A7),
-                          decoration: _inputDecoration('Email'),
-                          keyboardType: TextInputType.emailAddress,
-                          onChanged: (v) => controller.username.value = v,
-                        ),
+                        // Email Field with Validation
+                        _EmailTextField(controller: controller),
                         const SizedBox(height: 12),
-                        TextField(
-                          style: GoogleFonts.openSans(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            letterSpacing: -0.41,
-                          ),
-                          cursorColor: const Color(0xFF00C7A7),
-                          decoration: _inputDecoration('Password'),
-                          obscureText: true,
-                          onChanged: (v) => controller.password.value = v,
-                        ),
-                        const SizedBox(height: 12),
+                        
+                        // Password Field with Validation
+                        _PasswordTextField(controller: controller),
 
-                        // Centered Forgot Password
+                        // Forgot Password
                         Center(
                           child: TextButton(
                             onPressed: goToReset,
@@ -155,55 +110,58 @@ class LoginScreen extends GetView<LoginController> {
                           ),
                         ),
 
-                        // Buttons immediately below the forgot-password (reduced spacing)
                         const SizedBox(height: 6),
 
-                        Obx(
-                          () => Center(
-                            child: SizedBox(
-                              // match fingerprint button width/height for consistent sizing
-                              width: size.width * 0.68,
-                              height: 52,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(28),
-                                  ),
+                        // Login Button - Using MediaQuery for responsive width
+                        Obx(() => Center(
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.68,
+                            height: 52,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(28),
                                 ),
-                                onPressed: controller.loading.value
-                                    ? null
-                                    : controller.login,
-                                child: controller.loading.value
-                                    ? const SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Text(
-                                        'Login',
-                                        style: GoogleFonts.poppins(
-                                          color: Colors.black,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          height: 1.0,
-                                          letterSpacing: 0.0,
-                                        ),
-                                      ),
                               ),
+                              onPressed: controller.loading.value ? null : () {
+                                // Clear any previous errors
+                                controller.emailError.value = '';
+                                controller.passwordError.value = '';
+                                
+                                // Validate form first
+                                if (controller.validateForm()) {
+                                  controller.login();
+                                }
+                              },
+                              child: controller.loading.value
+                                  ? const SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.black,
+                                      ),
+                                    )
+                                  : Text(
+                                      'Login',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                             ),
                           ),
-                        ),
+                        )),
 
-                        const SizedBox(height: 6),
+                    const SizedBox(height: 6),
 
+                        // Fingerprint Button - Using MediaQuery for responsive width
                         Center(
                           child: SizedBox(
-                            // slightly wider/taller so the full label fits on one line
-                            width: size.width * 0.68,
+                            width: MediaQuery.of(context).size.width * 0.68,
                             height: 52,
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
@@ -211,33 +169,25 @@ class LoginScreen extends GetView<LoginController> {
                                 foregroundColor: Colors.black,
                                 side: const BorderSide(color: Colors.black26),
                                 shape: RoundedRectangleBorder(
-                                  // match the login button's larger radius for consistent visuals
                                   borderRadius: BorderRadius.circular(28),
                                 ),
                               ),
                               onPressed: () => Get.toNamed(AppRoutes.touchId),
-                              child: Center(
-                                child: Text(
-                                  'Login with Fingerprint',
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  softWrap: false,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.black,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    // let the system choose line height so multi-line text centers better
-                                    letterSpacing: 0.0,
-                                  ),
+                              child: Text(
+                                'Login with Fingerprint',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
                           ),
                         ),
 
-                        // Small register row directly under fingerprint button
                         const SizedBox(height: 6),
+
+                        // Register Link
                         Center(
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -269,6 +219,207 @@ class LoginScreen extends GetView<LoginController> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Email TextField as a StatefulWidget
+class _EmailTextField extends StatefulWidget {
+  final LoginController controller;
+  
+  const _EmailTextField({required this.controller});
+  
+  @override
+  __EmailTextFieldState createState() => __EmailTextFieldState();
+}
+
+class __EmailTextFieldState extends State<_EmailTextField> {
+  late TextEditingController _textController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.email.value);
+    
+    // Listen to controller email changes
+    ever(widget.controller.email, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.emailError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontWeight: FontWeight.w400,
+              fontSize: 14,
+              letterSpacing: -0.41,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: LoginScreen._inputDecoration(
+              hint: 'Email',
+              hasError: hasError,
+            ),
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (value) {
+              widget.controller.onEmailChanged(value);
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.emailError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.emailError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.emailError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
+    );
+  }
+}
+
+// Password TextField as a StatefulWidget
+class _PasswordTextField extends StatefulWidget {
+  final LoginController controller;
+  
+  const _PasswordTextField({required this.controller});
+  
+  @override
+  __PasswordTextFieldState createState() => __PasswordTextFieldState();
+}
+
+class __PasswordTextFieldState extends State<_PasswordTextField> {
+  late TextEditingController _textController;
+  bool _obscureText = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.password.value);
+    
+    // Listen to controller password changes
+    ever(widget.controller.password, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() {
+          final hasError = widget.controller.passwordError.value.isNotEmpty;
+          
+          return TextField(
+            controller: _textController,
+            style: GoogleFonts.openSans(
+              color: Colors.white,
+              fontWeight: FontWeight.w400,
+              fontSize: 14,
+              letterSpacing: -0.41,
+            ),
+            cursorColor: const Color(0xFF00C7A7),
+            decoration: InputDecoration(
+              hintText: 'Password',
+              hintStyle: const TextStyle(color: Colors.white70),
+              filled: true,
+              fillColor: Colors.white10,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: hasError ? Colors.redAccent : const Color(0xFF00C7A7),
+                  width: 1,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white70,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              ),
+            ),
+            obscureText: _obscureText,
+            onChanged: (value) {
+              widget.controller.onPasswordChanged(value);
+              _textController.text = value;
+              // Clear error when user starts typing
+              if (hasError) {
+                widget.controller.passwordError.value = '';
+              }
+            },
+          );
+        }),
+        // Error message below the field
+        Obx(() {
+          if (widget.controller.passwordError.value.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.passwordError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+      ],
     );
   }
 }

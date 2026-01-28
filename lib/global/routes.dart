@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:mapped_frontend/screens/coachBot_screen.dart';
-import 'package:mapped_frontend/screens/forum_screen.dart';
+import 'package:mapped_frontend/forum/forum_screen.dart';
 import 'package:mapped_frontend/screens/main_navigation_screen.dart';
 import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
 import '../screens/login_screen.dart';
@@ -19,6 +19,9 @@ import '../controller/controller/account_controller.dart';
 import '../screens/profile_editor_screen.dart';
 import '../controller/controller/profile_editor_controller.dart';
 import '../screens/notification_screen.dart';
+import '../screens/forum_searchtags_screen.dart';
+import '../controller/controller/forum_controller.dart';
+import '../screens/create_post_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -40,6 +43,8 @@ class AppRoutes {
 
   static const String bottomNav = '/bottom-nav';
   static const String forum = '/forum';
+  static const String forumSearchTags = '/forum-search-tags';
+  static const String createPost = '/create-post';
   static const String coachBot = '/coach-bot';
   static const String session = '/session';
   static const main = '/main';
@@ -109,9 +114,17 @@ class AppPages {
       }),
     ),
     GetPage(name: AppRoutes.notification, page: () => NotificationScreen()),
-    GetPage(name: AppRoutes.forum, page: () => ForumScreen()),
+    GetPage(
+      name: AppRoutes.forum, 
+      page: () => ForumScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(ForumController());
+      }),
+    ),
     GetPage(name: AppRoutes.coachBot, page: () => CoachBotScreen()),
     GetPage(name: AppRoutes.session, page: () => SessionDashboardScreen()),
     GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
+    GetPage(name: AppRoutes.forumSearchTags, page: () => ForumSearchtagsScreen()),
+    GetPage(name: AppRoutes.createPost, page: () => CreatePostScreen()),
   ];
 }

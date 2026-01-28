@@ -1,11 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/helper/colorConstant.dart';
+import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'dart:io';
-
-import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/screens/belt_detail_screen.dart';
 import '../../controller/controller/trainee_controller.dart';
 import '../../controller/controller/belt_progress_ring_controller.dart';
@@ -66,12 +67,14 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeBg = const Color(0xFF0F1114);
-
-    // Sizing constants
-    final double dialSize = 160;
-    final double dialStroke = 22.0;
-    final double dialRadiusOffset = 6.0;
+    final themeBg = ColorConstant.themeBg;
+    final double progress = 0.75;
+    // dial sizing
+    final double dialSize = 160; // inner dial square used for painting
+    final double dialStroke =
+        22.0; // reduced thickness of the outer ring (was 28.0)
+    final double dialRadiusOffset = 6.0; // positive moves the ring outward
+    // horizontal bar sizing
     final double barWidth = 240;
     final double thumbSize = 24;
     final bool isBlackBelt = widget.beltName == 'Black';
