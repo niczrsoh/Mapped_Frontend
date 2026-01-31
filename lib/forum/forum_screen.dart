@@ -23,10 +23,7 @@ class ForumScreen extends StatelessWidget {
           color: const Color(0xFF09FACA),
           child: CustomScrollView(
             slivers: [
-              // 1. Sticky Header
               _buildSliverAppBar(),
-
-              // 2. Create Post Section
               SliverToBoxAdapter(
                 child: Column(
                   children: [
@@ -36,8 +33,6 @@ class ForumScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // 3. Posts List
               _buildPostsListSliver(),
             ],
           ),
@@ -46,7 +41,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== SLIVER APP BAR ==========
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       backgroundColor: const Color(0xFF1A1D29),
@@ -62,30 +56,6 @@ class ForumScreen extends StatelessWidget {
           color: Colors.white,
         ),
       ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Obx(
-            () => controller.isLoading.value
-                ? const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF09FACA),
-                      ),
-                    ),
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white),
-                    onPressed: controller.loadPosts,
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
-                  ),
-          ),
-        ),
-      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(70.0),
         child: Container(
@@ -97,7 +67,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== SEARCH BAR ==========
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -133,7 +102,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== CREATE POST SECTION ==========
   Widget _buildCreatePostSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -194,7 +162,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== POSTS LIST SLIVER ==========
   Widget _buildPostsListSliver() {
     return Obx(() {
       if (controller.isLoading.value && controller.posts.isEmpty) {
@@ -230,7 +197,6 @@ class ForumScreen extends StatelessWidget {
     });
   }
 
-  // ========== POST CARD ==========
   Widget _buildPostCard(ForumPost post) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -270,7 +236,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== POST HEADER ==========
   Widget _buildPostHeader(ForumPost post) {
     return Row(
       children: [
@@ -304,14 +269,10 @@ class ForumScreen extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
-                    // Pinned Badge
                     if (post.isPinned.value) ...[
                       const SizedBox(width: 8),
                       _buildPinnedBadge(),
                     ],
-
-                    // Reported Badge
                     if (post.isReported.value) ...[
                       const SizedBox(width: 8),
                       _buildReportedBadge(),
@@ -326,13 +287,11 @@ class ForumScreen extends StatelessWidget {
             ],
           ),
         ),
-
         _buildPostMenu(post),
       ],
     );
   }
 
-  // ========== BADGES ==========
   Widget _buildPinnedBadge() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -376,7 +335,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== POST MENU ==========
   Widget _buildPostMenu(ForumPost post) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_horiz, color: Colors.white54),
@@ -398,7 +356,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== POST CONTENT ==========
   Widget _buildPostContent(ForumPost post) {
     return Text(
       post.content,
@@ -406,7 +363,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== HASHTAGS ==========
   Widget _buildHashtags(ForumPost post) {
     return Wrap(
       spacing: 8,
@@ -424,7 +380,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== POST IMAGES ==========
   Widget _buildPostImages(ForumPost post) {
     return Column(
       children: post.images.map((imgUrl) {
@@ -470,7 +425,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== INTERACTION BUTTONS ==========
   Widget _buildInteractionButtons(ForumPost post) {
     return Row(
       children: [
@@ -489,10 +443,7 @@ class ForumScreen extends StatelessWidget {
           color: Colors.white54,
           onTap: () => Get.to(() => CommentsScreen(post: post)),
         ),
-
         const Spacer(),
-
-        // PIN BUTTON
         Obx(
           () => IconButton(
             icon: Icon(
@@ -505,8 +456,6 @@ class ForumScreen extends StatelessWidget {
             onPressed: () => _showPinConfirmationDialog(post),
           ),
         ),
-
-        // REPORT BUTTON
         Obx(
           () => IconButton(
             icon: Icon(
@@ -546,105 +495,150 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== DIALOGS ==========
-
   // --- PIN CONFIRMATION DIALOG ---
   void _showPinConfirmationDialog(ForumPost post) {
     bool currentlyPinned = post.isPinned.value;
-
-    Get.defaultDialog(
-      title: "",
-      titlePadding: EdgeInsets.zero,
-      contentPadding: const EdgeInsets.all(20),
-      backgroundColor: const Color(0xFF252836),
-      radius: 20,
-      content: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              const Icon(
-                Icons.push_pin_outlined,
-                size: 40,
-                color: Colors.white,
-              ),
-              if (currentlyPinned)
-                Transform.rotate(
-                  angle: -0.8,
-                  child: Container(height: 2, width: 40, color: Colors.white),
-                ),
-            ],
+    
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: const Color(0xFF252836),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          const SizedBox(height: 16),
-          Text(
-            currentlyPinned
-                ? "Do you want to unpin this post?"
-                : "Do you want to pin this post?",
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Icon(
+                      Icons.push_pin_outlined,
+                      size: 40,
+                      color: Colors.white,
+                    ),
+                    if (currentlyPinned)
+                      Transform.rotate(
+                        angle: -0.8,
+                        child: Container(height: 2, width: 40, color: Colors.white),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  currentlyPinned
+                      ? "Do you want to unpin this post?"
+                      : "Do you want to pin this post?",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF09FACA),
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text(
+                          "CANCEL",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF09FACA),
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          controller.togglePin(post);
+                        },
+                        child: const Text(
+                          "OK",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF09FACA),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () => Get.back(),
-                  child: const Text(
-                    "CANCEL",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF09FACA),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {
-                    Get.back();
-                    controller.togglePin(post);
-                  },
-                  child: const Text(
-                    "OK",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   // --- DELETE CONFIRMATION DIALOG ---
   void _showDeleteConfirmationDialog(ForumPost post) {
-    Get.defaultDialog(
-      title: 'Delete Post',
-      middleText: 'Are you sure you want to delete this post?',
-      textConfirm: 'Delete',
-      textCancel: 'Cancel',
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.red,
-      onConfirm: () async {
-        Get.back();
-        await controller.deletePost(post);
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF252836),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Delete Post',
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to delete this post?',
+            style: GoogleFonts.roboto(
+              color: Colors.white54,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.roboto(color: Colors.white54),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await controller.deletePost(post);
+              },
+              child: Text(
+                'Delete',
+                style: GoogleFonts.roboto(color: Colors.white),
+              ),
+            ),
+          ],
+        );
       },
     );
   }
@@ -663,94 +657,98 @@ class ForumScreen extends StatelessWidget {
 
     controller.resetReportState();
 
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Select our policy that applies",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.black,
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Select our policy that applies",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: controller.reportReasons.map((reason) {
-                  return Obx(() {
-                    final isSelected =
-                        controller.selectedReason.value == reason;
-                    return GestureDetector(
-                      onTap: () => controller.selectReportReason(reason),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFF00FFA3)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: controller.reportReasons.map((reason) {
+                    return Obx(() {
+                      final isSelected =
+                          controller.selectedReason.value == reason;
+                      return GestureDetector(
+                        onTap: () => controller.selectReportReason(reason),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
                             color: isSelected
                                 ? const Color(0xFF00FFA3)
-                                : Colors.black54,
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF00FFA3)
+                                  : Colors.black54,
+                            ),
+                          ),
+                          child: Text(
+                            reason,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          reason,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
+                      );
+                    });
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: Obx(
+                    () => ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF007AFF),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    );
-                  });
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: Obx(
-                  () => ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF007AFF),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      onPressed: controller.selectedReason.value.isEmpty
+                          ? null
+                          : () {
+                              Navigator.of(context).pop();
+                              _showReportConfirmationDialog(post);
+                            },
+                      child: const Text(
+                        "Next",
+                        style: TextStyle(color: Colors.white),
                       ),
-                    ),
-                    onPressed: controller.selectedReason.value.isEmpty
-                        ? null
-                        : () {
-                            Get.back();
-                            _showReportConfirmationDialog(post);
-                          },
-                    child: const Text(
-                      "Next",
-                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -758,152 +756,160 @@ class ForumScreen extends StatelessWidget {
   void _showReportConfirmationDialog(ForumPost post) {
     controller.toggleReportConfirmation(false);
 
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "You've selected the following reason",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.black,
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "You've selected the following reason",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                controller.selectedReason.value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black,
+                const SizedBox(height: 16),
+                Text(
+                  controller.selectedReason.value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                controller.getReasonDefinition(controller.selectedReason.value),
-                style: const TextStyle(fontSize: 13, color: Colors.black87),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Confirmation",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black,
+                const SizedBox(height: 8),
+                Text(
+                  controller.getReasonDefinition(controller.selectedReason.value),
+                  style: const TextStyle(fontSize: 13, color: Colors.black87),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Obx(
-                () => Row(
-                  children: [
-                    Checkbox(
-                      value: controller.isReportConfirmed.value,
-                      activeColor: const Color(0xFF007AFF),
-                      onChanged: (val) =>
-                          controller.toggleReportConfirmation(val ?? false),
-                    ),
-                    Expanded(
-                      child: Text(
-                        "I have confirmed to report this post as ${controller.selectedReason.value.toLowerCase()}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.black,
+                const SizedBox(height: 20),
+                const Text(
+                  "Confirmation",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Obx(
+                  () => Row(
+                    children: [
+                      Checkbox(
+                        value: controller.isReportConfirmed.value,
+                        activeColor: const Color(0xFF007AFF),
+                        onChanged: (val) =>
+                            controller.toggleReportConfirmation(val ?? false),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "I have confirmed to report this post as ${controller.selectedReason.value.toLowerCase()}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: Obx(
-                  () => ElevatedButton(
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: Obx(
+                    () => ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF007AFF),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: controller.isReportConfirmed.value
+                          ? () async {
+                              Navigator.of(context).pop();
+                              final success = await controller.submitReport(post);
+                              if (success) {
+                                _showReportSuccessDialog();
+                              }
+                            }
+                          : null,
+                      child: const Text(
+                        "Submit Report",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // --- REPORT DIALOG - STEP 3: SUCCESS ---
+  void _showReportSuccessDialog() {
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.green,
+                  size: 50,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "You have successfully reported the post",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF007AFF),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: controller.isReportConfirmed.value
-                        ? () async {
-                            Get.back();
-                            final success = await controller.submitReport(post);
-                            if (success) {
-                              _showReportSuccessDialog();
-                            }
-                          }
-                        : null,
+                    onPressed: () => Navigator.of(context).pop(),
                     child: const Text(
-                      "Submit Report",
+                      "OK",
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  // --- REPORT DIALOG - STEP 3: SUCCESS ---
-  void _showReportSuccessDialog() {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                color: Colors.green,
-                size: 50,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                "You have successfully reported the post",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007AFF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () => Get.back(),
-                  child: const Text(
-                    "OK",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -919,61 +925,139 @@ class PostVideoPlayer extends StatefulWidget {
 }
 
 class _PostVideoPlayerState extends State<PostVideoPlayer> {
-  late YoutubePlayerController _controller;
+  YoutubePlayerController? _controller;
   bool _isReady = false;
+  bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
-    final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializePlayer();
+    });
+  }
 
-    if (videoId != null) {
-      _controller =
-          YoutubePlayerController(
-            initialVideoId: videoId,
-            flags: const YoutubePlayerFlags(
-              autoPlay: false,
-              mute: false,
-              disableDragSeek: false,
-              loop: false,
-              isLive: false,
-              forceHD: false,
-              enableCaption: false,
-            ),
-          )..addListener(() {
-            if (mounted && _controller.value.isReady && !_isReady) {
-              setState(() {
-                _isReady = true;
-              });
-            }
-          });
+  Future<void> _initializePlayer() async {
+    try {
+      if (widget.videoUrl.isEmpty) {
+        throw Exception('Video URL is empty');
+      }
+
+      final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+      
+      if (videoId == null) {
+        throw Exception('Invalid YouTube URL');
+      }
+
+      _controller = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+          disableDragSeek: false,
+          loop: false,
+          isLive: false,
+          forceHD: false,
+          enableCaption: false,
+        ),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      if (mounted) {
+        setState(() {
+          _isReady = true;
+        });
+      }
+    } catch (e) {
+      print("Error initializing YouTube player: $e");
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, color: Colors.red, size: 40),
+          SizedBox(height: 10),
+          Text(
+            'Failed to load video',
+            style: TextStyle(color: Colors.white54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Color(0xFF09FACA)),
+            SizedBox(height: 10),
+            Text(
+              'Loading video...',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_hasError) {
+      return _buildErrorWidget();
+    }
+
+    if (!_isReady || _controller == null) {
+      return _buildLoadingWidget();
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: YoutubePlayer(
-        controller: _controller,
+        controller: _controller!,
         showVideoProgressIndicator: true,
         progressIndicatorColor: const Color(0xFF09FACA),
         progressColors: const ProgressBarColors(
           playedColor: Color(0xFF09FACA),
           handleColor: Color(0xFF09FACA),
         ),
-        thumbnail: Container(
-          color: Colors.black,
-          child: const Center(
-            child: CircularProgressIndicator(color: Color(0xFF09FACA)),
-          ),
-        ),
+        onReady: () {
+          if (mounted) {
+            setState(() {
+              _isReady = true;
+            });
+          }
+        },
       ),
     );
   }

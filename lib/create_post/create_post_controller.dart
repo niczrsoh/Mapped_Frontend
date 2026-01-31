@@ -10,12 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_controller.dart';
 
 class CreatePostController extends GetxController {
-  final String baseUrl = kIsWeb
-      ? "http://localhost:5000"
-      : "http://192.168.56.1:5000";
+  final String baseUrl = "http://10.0.2.2:5000";
 
   final TextEditingController textController = TextEditingController();
-  // Removed tagsController since we extract from text now
   final ImagePicker _picker = ImagePicker();
 
   var selectedImages = <XFile>[].obs;
@@ -26,6 +23,7 @@ class CreatePostController extends GetxController {
   var userAvatar = ''.obs;
   var videoUrl = ''.obs;
   var videoThumbnail = ''.obs;
+  var isVideoLoading = false.obs;
 
   String? currentUserId;
 
@@ -113,38 +111,60 @@ class CreatePostController extends GetxController {
   }
 
   // --- VIDEO ---
-  void addVideoLink(String url) {
+  Future<void> addVideoLink(String url) async {
     if (url.isEmpty) return;
-    String? videoId = YoutubePlayer.convertUrlToId(url);
+    
+    isVideoLoading.value = true;
+    
+    try {
+      String? videoId = YoutubePlayer.convertUrlToId(url);
 
-    if (videoId == null) {
-      if (url.contains("youtube.com/watch?v=")) {
-        videoId = url.split("v=")[1].split("&")[0];
-      } else if (url.contains("youtu.be/")) {
-        videoId = url.split("youtu.be/")[1].split("?")[0];
+      if (videoId == null) {
+        if (url.contains("youtube.com/watch?v=")) {
+          videoId = url.split("v=")[1].split("&")[0];
+        } else if (url.contains("youtu.be/")) {
+          videoId = url.split("youtu.be/")[1].split("?")[0];
+        }
       }
-    }
 
-    if (videoId != null && videoId.isNotEmpty) {
-      videoUrl.value = url;
-      videoThumbnail.value = "https://img.youtube.com/vi/$videoId/0.jpg";
-      ytPlayerController = YoutubePlayerController(
-        initialVideoId: videoId,
-        flags: const YoutubePlayerFlags(
-          autoPlay: false,
-          mute: false,
-          disableDragSeek: true,
-        ),
-      );
-      Get.back();
-    } else {
-      Get.snackbar("Error", "Please enter a valid YouTube URL");
+      if (videoId != null && videoId.isNotEmpty) {
+        videoUrl.value = url;
+        videoThumbnail.value = "https://img.youtube.com/vi/$videoId/0.jpg";
+        
+        // Dispose existing controller if any
+        ytPlayerController?.dispose();
+        
+        // Initialize new controller
+        ytPlayerController = YoutubePlayerController(
+          initialVideoId: videoId,
+          flags: const YoutubePlayerFlags(
+            autoPlay: false,
+            mute: false,
+            disableDragSeek: true,
+            enableCaption: false,
+          ),
+        );
+        
+        // Wait for controller to be ready
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        Get.back();
+        Get.snackbar("Success", "Video added successfully");
+      } else {
+        Get.snackbar("Error", "Please enter a valid YouTube URL");
+      }
+    } catch (e) {
+      print("Error adding video: $e");
+      Get.snackbar("Error", "Failed to add video");
+    } finally {
+      isVideoLoading.value = false;
     }
   }
 
   void removeVideo() {
     videoUrl.value = '';
     videoThumbnail.value = '';
+    isVideoLoading.value = false;
     ytPlayerController?.dispose();
     ytPlayerController = null;
   }
@@ -152,9 +172,7 @@ class CreatePostController extends GetxController {
   // --- HASHTAG LOGIC ---
   List<String> _extractHashtags(String text) {
     RegExp regExp = RegExp(r"#[a-zA-Z0-9_]+");
-
     Iterable<Match> matches = regExp.allMatches(text);
-
     return matches.map((m) => m.group(0)!).toSet().toList();
   }
 
@@ -228,11 +246,13 @@ class CreatePostController extends GetxController {
         postSuccess.value = true;
         await Future.delayed(const Duration(seconds: 1));
 
-        // Reset
+        // Reset everything
         textController.clear();
         selectedImages.clear();
         videoUrl.value = '';
         videoThumbnail.value = '';
+        isVideoLoading.value = false;
+        showPreview.value = false;
         ytPlayerController?.dispose();
         ytPlayerController = null;
 
