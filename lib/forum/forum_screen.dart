@@ -25,6 +25,7 @@ class ForumScreen extends StatelessWidget {
           child: CustomScrollView(
             slivers: [
               _buildSliverAppBar(),
+
               SliverToBoxAdapter(
                 child: Column(
                   children: [
@@ -34,6 +35,7 @@ class ForumScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               _buildPostsListSliver(),
             ],
           ),
@@ -218,11 +220,7 @@ class ForumScreen extends StatelessWidget {
           _buildPostHeader(post),
           const SizedBox(height: 12),
           
-          // --- 2. UPDATED: RICH TEXT CONTENT ---
           _buildPostContent(post), 
-
-          // --- 3. REMOVED: _buildHashtags(post) ---
-          // The separate list is gone. Hashtags are now inside the content above.
 
           if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -241,7 +239,6 @@ class ForumScreen extends StatelessWidget {
 
   // ========== UPDATED CONTENT BUILDER ==========
   Widget _buildPostContent(ForumPost post) {
-    // 4. Use RichText + Helper Function
     return RichText(
       text: TextSpan(
         style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5),
@@ -262,7 +259,6 @@ class ForumScreen extends StatelessWidget {
             color: Color(0xFF09FACA), // Cyan Color
             fontWeight: FontWeight.w600,
           ),
-          // When clicking a tag in Feed, go to Search Screen with that tag
           recognizer: TapGestureRecognizer()
             ..onTap = () => Get.to(() => ForumSearchtagsScreen(), arguments: tag),
         ));
@@ -313,10 +309,12 @@ class ForumScreen extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+
                     if (post.isPinned.value) ...[
                       const SizedBox(width: 8),
                       _buildPinnedBadge(),
                     ],
+
                     if (post.isReported.value) ...[
                       const SizedBox(width: 8),
                       _buildReportedBadge(),
@@ -331,7 +329,9 @@ class ForumScreen extends StatelessWidget {
             ],
           ),
         ),
-        _buildPostMenu(post),
+
+        if (post.authorId == controller.currentUserId) 
+          _buildPostMenu(post),
       ],
     );
   }
