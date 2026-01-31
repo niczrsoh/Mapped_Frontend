@@ -2,6 +2,7 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 
 class ForumPost {
   final String id;
+  final String? authorId;
   final String authorName;
   final String? authorImage;
   final String timeAgo;
@@ -18,6 +19,7 @@ class ForumPost {
 
   ForumPost({
     required this.id,
+    this.authorId,
     required this.authorName,
     this.authorImage,
     required this.timeAgo,
@@ -60,7 +62,8 @@ class ForumPost {
     }
 
     return ForumPost(
-      id: json['_id'],
+      id: json['_id'] ?? '',
+      authorId: json['user'] ?? '',
       authorName: json['name'] ?? 'Unknown',
       authorImage: json['avatar'],
       timeAgo: timeAgo,
