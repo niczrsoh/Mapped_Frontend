@@ -308,68 +308,35 @@ class CoachBotController extends GetxController {
   var userName = 'Lieyza'.obs;
   final messageController = TextEditingController();
 
-void explainHistory() {
-    // Navigate to chat with pre-filled message
-    Get.to(() => CoachBotChatScreen());
+  void _navigateToChatWithDraft(String draftText) {
+    // We pass the text as an argument, but we DO NOT send it yet.
+    Get.to(() => CoachBotChatScreen(), arguments: draftText);
+  }
 
-    // Send message after navigation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text =
-          'Explain Taekwondo History & Philosophy';
-      chatController.sendMessage();
-    });
+  // Quick Actions now just draft the message
+  void explainHistory() {
+    _navigateToChatWithDraft('Explain Taekwondo History & Philosophy');
   }
 
   void showTechniques() {
-    // Navigate to chat with pre-filled message
-    Get.to(() => CoachBotChatScreen());
-
-    // Send message after navigation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = 'Show me Taekwondo Techniques';
-      chatController.sendMessage();
-    });
+    _navigateToChatWithDraft('Show me Taekwondo Techniques');
   }
 
   void findDojang() {
-    // Navigate to chat with pre-filled message
-    Get.to(() => CoachBotChatScreen());
-
-    // Send message after navigation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = 'Find a Training Hall Nearby';
-      chatController.sendMessage();
-    });
+    _navigateToChatWithDraft('Find a Training Hall Nearby');
   }
 
   void showOtherOptions() {
-    // Navigate to chat with pre-filled message
-    Get.to(() => CoachBotChatScreen());
-
-    // Send message after navigation
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = 'Show me other options';
-      chatController.sendMessage();
-    });
+    _navigateToChatWithDraft('Show me other options');
   }
 
   void sendMessage(String message) {
-    final messageToSend = message.trim(); 
-    if (messageToSend.isEmpty) return;
-
+    final text = message.trim();
+    if (text.isEmpty) return;
+    
     messageController.clear();
-
-    Get.to(() => CoachBotChatScreen());
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = messageToSend; // Use the trimmed version
-      chatController.sendMessage();
-    });
+    // Pass the typed text to the chat screen to continue editing
+    _navigateToChatWithDraft(text);
   }
 
   void startVoiceInput() {

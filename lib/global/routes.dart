@@ -19,9 +19,9 @@ import '../controller/controller/account_controller.dart';
 import '../screens/profile_editor_screen.dart';
 import '../controller/controller/profile_editor_controller.dart';
 import '../screens/notification_screen.dart';
-import '../screens/forum_searchtags_screen.dart';
-import '../controller/controller/forum_controller.dart';
-import '../screens/create_post_screen.dart';
+import '../forum_searchtags/forum_searchtags_screen.dart';
+import '../forum/forum_controller.dart';
+import '../create_post/create_post_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';

@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/controller/account_controller.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/screens/notification_screen.dart';
 import 'package:mapped_frontend/screens/profile_editor_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   AccountScreen({super.key});
-  
+
   final AccountController controller = Get.find<AccountController>();
   final UserController userController = Get.find<UserController>();
 
@@ -22,18 +21,16 @@ class AccountScreen extends StatelessWidget {
         // Show loading indicator while fetching user data
         if (userController.isLoading.value && userController.userData.isEmpty) {
           return Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF09FACA),
-            ),
+            child: CircularProgressIndicator(color: Color(0xFF09FACA)),
           );
         }
-        
+
         return SingleChildScrollView(
           child: Column(
             children: [
               // Gradient Header
               _buildGradientHeader(),
-              
+
               // Main Content
               Transform.translate(
                 offset: Offset(0, -48),
@@ -60,15 +57,17 @@ class AccountScreen extends StatelessWidget {
                           () => _MenuItem(
                             iconPath: 'assets/images/notification.png',
                             text: 'Notifications',
-                            badge: controller.notificationsEnabled.value ? 'ON' : 'OFF',
+                            badge: controller.notificationsEnabled.value
+                                ? 'ON'
+                                : 'OFF',
                             badgeColor: Color(0xFF09FACA),
                             onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => NotificationScreen(),
-                              ),
-                            );
-                          },
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => NotificationScreen(),
+                                ),
+                              );
+                            },
                           ),
                         ),
                         _MenuItem(
@@ -77,9 +76,9 @@ class AccountScreen extends StatelessWidget {
                           onTap: controller.logout,
                         ),
                       ]),
-                      
+
                       SizedBox(height: 16),
-                      
+
                       // Second Section - Light
                       _buildLightSection([
                         Obx(
@@ -99,9 +98,9 @@ class AccountScreen extends StatelessWidget {
                           onTap: controller.navigateToLanguage,
                         ),
                       ]),
-                      
+
                       SizedBox(height: 16),
-                      
+
                       // Third Section - Dark
                       _buildDarkSection([
                         _MenuItem(
@@ -120,9 +119,9 @@ class AccountScreen extends StatelessWidget {
                           onTap: controller.navigateToAbout,
                         ),
                       ]),
-                      
+
                       SizedBox(height: 32),
-                      
+
                       // Refresh button
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
@@ -163,7 +162,7 @@ class AccountScreen extends StatelessWidget {
       final name = userController.userName;
       final email = user['email'] ?? 'No email';
       final avatar = user['avatar'] ?? '';
-      
+
       // Format created date
       String createdAt = '';
       if (user['createdAt'] != null) {
@@ -182,10 +181,7 @@ class AccountScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF09FACA).withOpacity(0.6),
-              Color(0xFF09FACA),
-            ],
+            colors: [Color(0xFF09FACA).withOpacity(0.6), Color(0xFF09FACA)],
           ),
         ),
         child: Column(
@@ -223,9 +219,9 @@ class AccountScreen extends StatelessWidget {
                       ),
               ),
             ),
-            
+
             SizedBox(height: 16),
-            
+
             // Username
             Text(
               userController.userName,
@@ -235,11 +231,11 @@ class AccountScreen extends StatelessWidget {
                 height: 20 / 14,
                 letterSpacing: 0.25,
                 color: Colors.white,
-              ),    
+              ),
             ),
-            
+
             SizedBox(height: 8),
-            
+
             // Email
             Text(
               email,
@@ -251,9 +247,9 @@ class AccountScreen extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            
+
             SizedBox(height: 4),
-            
+
             // Member since
             if (createdAt.isNotEmpty)
               Text(
@@ -356,10 +352,7 @@ class _MenuItem extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: badgeColor?.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: badgeColor ?? textColor,
-                    width: 1,
-                  ),
+                  border: Border.all(color: badgeColor ?? textColor, width: 1),
                 ),
                 child: Text(
                   badge!,
