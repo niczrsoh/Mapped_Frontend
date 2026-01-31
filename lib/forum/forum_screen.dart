@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/helper/colorConstant.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:flutter/gestures.dart';
 import '../forum/forum_controller.dart';
 import '../forum/forum_model.dart';
 import '../forum_searchtags/forum_searchtags_screen.dart';
@@ -250,11 +251,13 @@ class ForumScreen extends StatelessWidget {
         children: [
           _buildPostHeader(post),
           const SizedBox(height: 12),
-          _buildPostContent(post),
-          if (post.hashtags.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _buildHashtags(post),
-          ],
+          
+          // --- 2. UPDATED: RICH TEXT CONTENT ---
+          _buildPostContent(post), 
+
+          // --- 3. REMOVED: _buildHashtags(post) ---
+          // The separate list is gone. Hashtags are now inside the content above.
+
           if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),
             PostVideoPlayer(videoUrl: post.videoUrl!),
@@ -268,6 +271,46 @@ class ForumScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ========== UPDATED CONTENT BUILDER ==========
+  Widget _buildPostContent(ForumPost post) {
+    // 4. Use RichText + Helper Function
+    return RichText(
+      text: TextSpan(
+        style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5),
+        children: _parseContent(post.content),
+      ),
+    );
+  }
+
+  List<TextSpan> _parseContent(String text) {
+    List<TextSpan> spans = [];
+    text.splitMapJoin(
+      RegExp(r"\B#\w+"), 
+      onMatch: (m) {
+        final tag = m.group(0)!;
+        spans.add(TextSpan(
+          text: tag,
+          style: const TextStyle(
+            color: Color(0xFF09FACA), // Cyan Color
+            fontWeight: FontWeight.w600,
+          ),
+          // When clicking a tag in Feed, go to Search Screen with that tag
+          recognizer: TapGestureRecognizer()
+            ..onTap = () => Get.to(() => ForumSearchtagsScreen(), arguments: tag),
+        ));
+        return "";
+      },
+      onNonMatch: (n) {
+        spans.add(TextSpan(
+          text: n,
+          style: const TextStyle(color: Colors.white),
+        ));
+        return "";
+      },
+    );
+    return spans;
   }
 
   // ========== POST HEADER ==========
@@ -395,32 +438,6 @@ class ForumScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  // ========== POST CONTENT ==========
-  Widget _buildPostContent(ForumPost post) {
-    return Text(
-      post.content,
-      style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5),
-    );
-  }
-
-  // ========== HASHTAGS ==========
-  Widget _buildHashtags(ForumPost post) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 4,
-      children: post.hashtags.map((tag) {
-        return Text(
-          tag,
-          style: GoogleFonts.roboto(
-            fontSize: 13,
-            color: const Color(0xFF09FACA),
-            fontWeight: FontWeight.w500,
-          ),
-        );
-      }).toList(),
     );
   }
 
