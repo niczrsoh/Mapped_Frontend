@@ -23,10 +23,16 @@ subprojects {
 subprojects {
     project.configurations.all {
         resolutionStrategy.eachDependency {
-            if (requested.group == "androidx.activity" &&
-                    requested.name == "activity") {
-                // Force a stable version that works with your current Gradle
+            // --- FIX START: Force compatible androidx.activity version ---
+            if (requested.group == "androidx.activity") {
                 useVersion("1.9.3")
+            }
+
+            if (requested.group == "androidx.core") {
+                // ONLY apply the fix to "core" and "core-ktx"
+                if (requested.name == "core" || requested.name == "core-ktx") {
+                    useVersion("1.15.0")
+                }
             }
         }
     }

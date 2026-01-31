@@ -77,30 +77,35 @@ class CoachBotChatScreen extends StatelessWidget {
 
             // Chat Messages
             Expanded(
-              child: Obx(() => ListView.builder(
-                controller: controller.scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: controller.messages.length,
-                itemBuilder: (context, index) {
-                  final message = controller.messages[index];
-                  
-                  if (index == 0) {
-                    return Column(
-                      children: [
-                        _buildTimestamp(message.timestamp),
-                        const SizedBox(height: 12),
-                        message.isUser
-                            ? _buildUserMessage(message)
-                            : _buildBotMessage(message),
-                      ],
-                    );
-                  }
-                  
-                  return message.isUser
-                      ? _buildUserMessage(message)
-                      : _buildBotMessage(message);
-                },
-              )),
+              child: Obx(
+                () => ListView.builder(
+                  controller: controller.scrollController,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  itemCount: controller.messages.length,
+                  itemBuilder: (context, index) {
+                    final message = controller.messages[index];
+
+                    if (index == 0) {
+                      return Column(
+                        children: [
+                          _buildTimestamp(message.timestamp),
+                          const SizedBox(height: 12),
+                          message.isUser
+                              ? _buildUserMessage(message)
+                              : _buildBotMessage(message),
+                        ],
+                      );
+                    }
+
+                    return message.isUser
+                        ? _buildUserMessage(message)
+                        : _buildBotMessage(message);
+                  },
+                ),
+              ),
             ),
 
             // Input Bar
@@ -184,10 +189,7 @@ class CoachBotChatScreen extends StatelessWidget {
         ),
         child: Text(
           formattedTime, // <-- CHANGED
-          style: GoogleFonts.roboto(
-            fontSize: 11,
-            color: Colors.white54,
-          ),
+          style: GoogleFonts.roboto(fontSize: 11, color: Colors.white54),
         ),
       ),
     );
@@ -286,12 +288,34 @@ class CoachBotChatController extends GetxController {
   void onInit() {
     super.onInit();
     // Welcome message
-    messages.add(ChatMessage(
-      text:
-          "Hello, I'm CoachBot! 🥋 I'm your personal Taekwondo assistant. How can I help you learn about techniques, history or find a training hall?",
-      isUser: false,
-      timestamp: DateTime.now(),
-    ));
+    messages.add(
+      ChatMessage(
+        text:
+            "Hello, I'm CoachBot! 🥋 I'm your personal Taekwondo assistant. How can I help you learn about techniques, history or find a training hall?",
+        isUser: false,
+        timestamp: DateTime.now(),
+      ),
+    );
+
+    // Check for draft message from arguments
+    if (Get.arguments != null && Get.arguments is String) {
+      _fillInputBuffer(Get.arguments);
+    }
+  }
+
+  // This function fills text and moves cursor to end
+  void _fillInputBuffer(String text) {
+    messageController.text = text;
+
+    // Move cursor to the very end of the text
+    messageController.selection = TextSelection.fromPosition(
+      TextPosition(offset: messageController.text.length),
+    );
+  }
+
+  // Call this when user taps a Chip inside the chat
+  void onPromptTapped(String prompt) {
+    _fillInputBuffer(prompt);
   }
 
   void sendMessage() {
@@ -299,11 +323,9 @@ class CoachBotChatController extends GetxController {
     if (text.isEmpty) return;
 
     // Add user message
-    messages.add(ChatMessage(
-      text: text,
-      isUser: true,
-      timestamp: DateTime.now(),
-    ));
+    messages.add(
+      ChatMessage(text: text, isUser: true, timestamp: DateTime.now()),
+    );
 
     messageController.clear();
 
@@ -328,7 +350,8 @@ class CoachBotChatController extends GetxController {
     final lowerMessage = userMessage.toLowerCase();
 
     // --- TAEKWONDO LOGIC ---
-    if (lowerMessage.contains('history') || lowerMessage.contains('philosophy')) {
+    if (lowerMessage.contains('history') ||
+        lowerMessage.contains('philosophy')) {
       response =
           '''Taekwondo is a Korean martial art that emphasizes high, fast and spinning kicks. 🇰🇷
 
@@ -363,11 +386,9 @@ We also practice forms, which are set patterns of defense and attack used to pra
           "I can help you with:\n\n• Taekwondo History & Philosophy\n• Kicks and Forms\n• Finding a local training hall\n\nWhat would you like to know more about?";
     }
 
-    messages.add(ChatMessage(
-      text: response,
-      isUser: false,
-      timestamp: DateTime.now(),
-    ));
+    messages.add(
+      ChatMessage(text: response, isUser: false, timestamp: DateTime.now()),
+    );
 
     // Scroll to bottom
     Future.delayed(const Duration(milliseconds: 100), () {

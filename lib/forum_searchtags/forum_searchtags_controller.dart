@@ -4,82 +4,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import this
+import '../forum/forum_model.dart';
 
-// --- MODEL ---
-class ForumPost {
-  final String id;
-  final String authorName;
-  final String? authorImage;
-  final String timeAgo;
-  final String content;
-  final List<String> hashtags;
-  final List<String> images;
-  final RxInt likes;
-  final int comments;
-  final RxBool isLiked;
-
-  ForumPost({
-    required this.id,
-    required this.authorName,
-    this.authorImage,
-    required this.timeAgo,
-    required this.content,
-    required this.hashtags,
-    required this.images,
-    required int likes,
-    required this.comments,
-    bool isLiked = false,
-  }) : likes = likes.obs,
-       isLiked = isLiked.obs;
-
-  factory ForumPost.fromJson(Map<String, dynamic> json, String currentUserId) {
-    final date = DateTime.parse(json['date']);
-    final diff = DateTime.now().difference(date);
-    String timeAgo = '${diff.inMinutes}m';
-    if (diff.inHours > 0) timeAgo = '${diff.inHours}h';
-    if (diff.inDays > 0) timeAgo = '${diff.inDays}d';
-
-    final likes = (json['likes'] as List);
-    final isLiked = likes.any((like) => like['user'] == currentUserId);
-
-    return ForumPost(
-      id: json['_id'],
-      authorName: json['name'] ?? 'Unknown',
-      authorImage: json['avatar'],
-      timeAgo: timeAgo,
-      content: json['text'],
-      hashtags: List<String>.from(json['tags'] ?? []),
-      images: json['image'] != null && json['image'] != ""
-          ? [json['image']]
-          : [],
-      likes: likes.length,
-      comments: (json['comments'] as List).length,
-      isLiked: isLiked,
-    );
-  }
-}
-
-// --- CONTROLLER ---
 class ForumSearchtagsController extends GetxController {
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "http://192.168.56.1:5000"; // Update with your IP
+      : "http://192.168.56.1:5000";
 
-  final String currentUserId = "692a8a206881c040ebf00943";
+  // 1. Dynamic User ID
+  String currentUserId = '';
 
-  var hasSearched = false.obs; 
+  var hasSearched = false.obs;
   var posts = <ForumPost>[].obs;
   var popularTags = <String>[].obs;
   var allTags = <String>[].obs;
   var isLoading = false.obs;
   var selectedTag = ''.obs;
+  var isTagsExpanded = false.obs;
 
   final TextEditingController searchController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
+    _initializeController();
+  }
+
+  Future<void> _initializeController() async {
+    await _loadCurrentUser();
     loadPopularTags();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      currentUserId = prefs.getString('user_id') ?? '';
+    } catch (e) {
+      print("Error fetching user ID: $e");
+    }
   }
 
   @override
@@ -95,55 +58,81 @@ class ForumSearchtagsController extends GetxController {
       }
     }
   }
-  
+
   @override
   void onClose() {
     searchController.dispose();
     super.onClose();
   }
 
+  void toggleTagsExpanded() {
+    isTagsExpanded.value = !isTagsExpanded.value;
+  }
+
+  // 2. Fix Popular Tags Parsing
   Future<void> loadPopularTags() async {
     try {
-      // NOTE: Using the same endpoint as all tags. 
-      // Ideally, your backend should have '/api/forum/tags/popular' or sort them.
-      // Here, we take the first 10 tags as "Popular".
       final response = await http.get(Uri.parse('$baseUrl/api/forum/tags'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        
-        // Process data: Take top 15, ensure they start with '#', and convert to List<String>
-        popularTags.value = data.take(15).map((tag) {
-          String t = tag.toString();
-          return t.startsWith('#') ? t : '#$t';
+
+        List<String> cleanedTags = data.expand<String>((item) {
+          String t = "";
+
+          if (item is Map) {
+            t = item['name'] ?? item['_id'] ?? item.toString();
+          } else {
+            t = item.toString();
+          }
+
+          if (t.contains(' ')) {
+            return t
+                .split(' ')
+                .where(
+                  (subTag) => subTag.trim().isNotEmpty,
+                ) // Remove empty spaces
+                .map((subTag) => subTag.startsWith('#') ? subTag : '#$subTag');
+          }
+
+          return [t.startsWith('#') ? t : '#$t'];
         }).toList();
-        
+
+        popularTags.value = cleanedTags.toSet().toList().take(15).toList();
       } else {
         print("Failed to fetch tags: ${response.statusCode}");
       }
     } catch (e) {
       print("Load Popular Tags Error: $e");
-      // Fallback: If backend fails, show these defaults so UI isn't empty
       popularTags.value = [
-        '#Taekwondo', '#UTMDojo', '#MartialArts', '#SideKick', 
-        '#BeltGrading', '#Discipline', '#Sparring', '#TeamSpirit'
+        '#Taekwondo',
+        '#UTMDojo',
+        '#MartialArts',
+        '#SideKick',
+        '#BeltGrading',
+        '#Discipline',
+        '#Sparring',
+        '#TeamSpirit',
       ];
     }
   }
 
-  // Load all tags for the "See All" dialog
   Future<void> loadAllTags() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/forum/tags'));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        
-        // Format them with '#'
-        allTags.value = data.map((tag) {
-          String t = tag.toString();
+
+        allTags.value = data.map((item) {
+          String t = "";
+          if (item is Map) {
+            t = item['name'] ?? item['_id'] ?? item.toString();
+          } else {
+            t = item.toString();
+          }
           return t.startsWith('#') ? t : '#$t';
         }).toList();
-        
+
         _showTagsDialog();
       }
     } catch (e) {
@@ -151,11 +140,9 @@ class ForumSearchtagsController extends GetxController {
     }
   }
 
-  // Used by RefreshIndicator - re-runs the CURRENT search
   Future<void> loadPosts() async {
-    if (!hasSearched.value) return; // Don't load if we aren't searching
-    
-    // Rerun search based on current state
+    if (!hasSearched.value) return;
+
     if (selectedTag.value.isNotEmpty) {
       await searchByTag(selectedTag.value, searchQuery: searchController.text);
     } else if (searchController.text.isNotEmpty) {
@@ -163,47 +150,39 @@ class ForumSearchtagsController extends GetxController {
     }
   }
 
-  // Search posts by name or text
+  // 3. Fix Search Logic for Hashtags
   Future<void> searchPosts(String query) async {
     String trimmedQuery = query.trim();
 
-    // 1. If empty, clear results
+    // Reset if empty
     if (trimmedQuery.isEmpty && selectedTag.value.isEmpty) {
       hasSearched.value = false;
       posts.clear();
       return;
     }
 
-    // --- SMART LOGIC START ---
-
-    // CASE 1: Input starts with '#' (e.g., "#Taekwondo")
-    // ACTION: Search ONLY for posts with this tag.
+    // CASE 1: User typed a Hashtag (starts with #)
     if (trimmedQuery.startsWith('#')) {
-      print("🔹 Detected Hashtag Search: $trimmedQuery");
-      
-      // We pass the full string (e.g. "#Taekwondo"). 
-      // The searchByTag function will handle the API call with ?tag=Taekwondo
-      selectedTag.value = trimmedQuery; // Highlight the UI tag if needed
-      await searchByTag(trimmedQuery); 
-      return; 
-    }
+      print("🔹 Hashtag Search detected: $trimmedQuery");
 
-    // CASE 2: Input is normal text (e.g., "Kick")
-    // ACTION: Search Content AND Tags AND Name
-    // This uses the ?q= parameter
-    if (selectedTag.value.isNotEmpty) {
-      // If a tag button was previously clicked, keep filtering by that tag
-      searchByTag(selectedTag.value, searchQuery: trimmedQuery);
+      // Update the UI to show this tag is selected
+      selectedTag.value = trimmedQuery;
+
+      // Call the Tag Search function
+      await searchByTag(trimmedQuery);
       return;
     }
 
-    // STANDARD TEXT SEARCH
+    // CASE 2: User typed normal text (No #)
+    if (selectedTag.value.isNotEmpty) {
+      selectedTag.value = '';
+    }
+
     hasSearched.value = true;
     isLoading.value = true;
     posts.clear();
 
     try {
-      // Send as 'q'. The backend will search text, tags, and name.
       final response = await http.get(
         Uri.parse('$baseUrl/api/forum/search?q=$trimmedQuery'),
       );
@@ -221,32 +200,25 @@ class ForumSearchtagsController extends GetxController {
     }
   }
 
-  // Search posts by tag
   Future<void> searchByTag(String tag, {String? searchQuery}) async {
     hasSearched.value = true;
     isLoading.value = true;
     posts.clear();
 
     try {
-      // 1. Handle the Hash symbol
-      // CHECK YOUR DATABASE: Does it store ["#Taekwondo"] or ["Taekwondo"]?
-      // If DB has #, keep it. If DB has no #, use replaceAll.
-      // Let's assume for now the DB stores CLEAN tags (no #).
-      String cleanTag = tag.replaceAll('#', ''); 
+      String cleanTag = tag.replaceAll('#', '');
 
-      // 2. Build Query Parameters separately
-      Map<String, String> queryParams = {
-        'tag': cleanTag, 
-      };
+      Map<String, String> queryParams = {'tag': cleanTag};
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         queryParams['q'] = searchQuery;
       }
 
-      // 3. Construct the URI correctly
-      final uri = Uri.parse('$baseUrl/api/forum/search').replace(queryParameters: queryParams);
-      
-      print("📢 Calling API: $uri"); // DEBUG: Check this in your console!
+      final uri = Uri.parse(
+        '$baseUrl/api/forum/search',
+      ).replace(queryParameters: queryParams);
+
+      print("📢 Calling API: $uri");
 
       final response = await http.get(uri);
 
@@ -255,10 +227,6 @@ class ForumSearchtagsController extends GetxController {
         posts.value = data
             .map((json) => ForumPost.fromJson(json, currentUserId))
             .toList();
-            
-        if (posts.isEmpty) {
-          print("⚠️ API returned 0 posts for tag: $cleanTag");
-        }
       } else {
         print("❌ API Error: ${response.statusCode}");
       }
@@ -269,43 +237,37 @@ class ForumSearchtagsController extends GetxController {
     }
   }
 
-  // Select a tag and filter posts
   void selectTag(String tag) {
     if (selectedTag.value == tag) {
-      // If clicking the same tag, deselect it
       clearSelection();
     } else {
       selectedTag.value = tag;
-      searchByTag(tag, searchQuery: searchController.text);
+      searchController.clear();
+      searchByTag(tag);
     }
   }
 
-  // Clear tag selection and reset state
   void clearSelection() {
     selectedTag.value = '';
     searchController.clear();
     posts.clear();
-    hasSearched.value = false; // Returns UI to "Search tags..." state
+    hasSearched.value = false;
   }
 
-  // Helper: Get full image URL
   String getFullImageUrl(String relativePath) {
+    if (relativePath.isEmpty) return '';
     if (relativePath.startsWith('http')) return relativePath;
     return "$baseUrl/$relativePath";
   }
 
-  // Helper to show the dialog with all tags
   void _showTagsDialog() {
     Get.dialog(
       AlertDialog(
         backgroundColor: const Color(0xFF252836),
-        title: Text(
-          'All Tags',
-          style: GoogleFonts.inter(color: Colors.white),
-        ),
+        title: Text('All Tags', style: GoogleFonts.inter(color: Colors.white)),
         content: SizedBox(
           width: double.maxFinite,
-          child: SingleChildScrollView( // Added ScrollView for safety
+          child: SingleChildScrollView(
             child: Wrap(
               spacing: 8,
               runSpacing: 8,

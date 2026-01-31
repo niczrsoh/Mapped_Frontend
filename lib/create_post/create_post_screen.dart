@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../controller/controller/create_post_controller.dart';
+import 'create_post_controller.dart';
 
 class CreatePostScreen extends StatelessWidget {
   CreatePostScreen({super.key});
@@ -53,7 +53,6 @@ class CreatePostScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Avatar and Name
             Row(
               children: [
                 Obx(() => CircleAvatar(
@@ -68,7 +67,7 @@ class CreatePostScreen extends StatelessWidget {
                 )),
                 const SizedBox(width: 12),
                 Obx(() => Text(
-                  controller.userName.value, // Shows "Loading..." or Real Name
+                  controller.userName.value, 
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -80,7 +79,6 @@ class CreatePostScreen extends StatelessWidget {
             
             const SizedBox(height: 20),
 
-            // Text Input Area
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF252836),
@@ -94,33 +92,13 @@ class CreatePostScreen extends StatelessWidget {
               child: TextField(
                 controller: controller.textController,
                 maxLines: 8,
+                maxLength: 2000, 
                 style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
                 decoration: InputDecoration(
                   hintText: 'What\'s on your mind?',
                   hintStyle: GoogleFonts.roboto(color: Colors.white54),
                   border: InputBorder.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Tags Input
-            TextField(
-              controller: controller.tagsController,
-              style: GoogleFonts.roboto(
-                color: const Color(0xFF09FACA),
-                fontSize: 14,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Insert your hashtags here (e.g. #Taekwondo, #MartialArts)',
-                hintStyle: GoogleFonts.roboto(color: Colors.white54, fontSize: 14),
-                border: InputBorder.none,
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white10),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF09FACA)),
+                  counterStyle: GoogleFonts.roboto(color: Colors.white54), // Style the 0/2000 text
                 ),
               ),
             ),
@@ -140,7 +118,7 @@ class CreatePostScreen extends StatelessWidget {
             Obx(() {
               if (controller.selectedImages.isNotEmpty) {
                 return SizedBox(
-                  height: 120, // Fixed height for the thumbnail list
+                  height: 120, 
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: controller.selectedImages.length,
@@ -174,7 +152,7 @@ class CreatePostScreen extends StatelessWidget {
                           // Remove Button (X)
                           Positioned(
                             top: 4,
-                            right: 16, // Adjust padding relative to container margin
+                            right: 16, 
                             child: GestureDetector(
                               onTap: () => controller.removeImage(index),
                               child: Container(
@@ -201,7 +179,6 @@ class CreatePostScreen extends StatelessWidget {
             }),
 
             Obx(() {
-               // We listen to videoUrl changes
                if (controller.videoUrl.value.isNotEmpty && controller.ytPlayerController != null) {
                  return _buildVideoPlayer(isEditable: true);
                }
@@ -270,7 +247,7 @@ class CreatePostScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Obx(() => Text(
-                              controller.userName.value, // Shows Real Name
+                              controller.userName.value, 
                               style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
                             )),
                             Text('Just now', style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54)),
@@ -280,11 +257,11 @@ class CreatePostScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
+                  
                   // Content
                   Text(controller.textController.text, style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5)),
                   const SizedBox(height: 12),
-                  if (controller.tagsController.text.isNotEmpty)
-                    Text(controller.tagsController.text, style: GoogleFonts.roboto(fontSize: 13, color: const Color(0xFF09FACA), fontWeight: FontWeight.w500)),
+                                    
                   // Images Stack
                   if (controller.selectedImages.isNotEmpty) ...[
                     const SizedBox(height: 12),
@@ -304,10 +281,10 @@ class CreatePostScreen extends StatelessWidget {
                   ],
 
                   Obx(() {
-                     if (controller.videoUrl.value.isNotEmpty && controller.ytPlayerController != null) {
-                       return _buildVideoPlayer(isEditable: false);
-                     }
-                     return const SizedBox.shrink();
+                      if (controller.videoUrl.value.isNotEmpty && controller.ytPlayerController != null) {
+                        return _buildVideoPlayer(isEditable: false);
+                      }
+                      return const SizedBox.shrink();
                   }),
                 ],
               ),
@@ -393,28 +370,28 @@ class CreatePostScreen extends StatelessWidget {
                   ? null
                   : () {
                       // Show Input Dialog
-          TextEditingController linkController = TextEditingController();
-          Get.defaultDialog(
-            title: "Add Video Link",
-            titleStyle: GoogleFonts.inter(fontWeight: FontWeight.bold),
-            content: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: linkController,
-                decoration: const InputDecoration(
-                  hintText: "Paste YouTube URL here",
-                ),
-              ),
-            ),
-            textConfirm: "Add",
-            textCancel: "Cancel",
-            confirmTextColor: Colors.white,
-            buttonColor: const Color(0xFF09FACA),
-            onConfirm: () {
-              controller.addVideoLink(linkController.text);
-            },
-          );
-        },
+                      TextEditingController linkController = TextEditingController();
+                      Get.defaultDialog(
+                        title: "Add Video Link",
+                        titleStyle: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                        content: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: TextField(
+                            controller: linkController,
+                            decoration: const InputDecoration(
+                              hintText: "Paste YouTube URL here",
+                            ),
+                          ),
+                        ),
+                        textConfirm: "Add",
+                        textCancel: "Cancel",
+                        confirmTextColor: Colors.white,
+                        buttonColor: const Color(0xFF09FACA),
+                        onConfirm: () {
+                          controller.addVideoLink(linkController.text);
+                        },
+                      );
+                    },
             ),
           ],
         ),
