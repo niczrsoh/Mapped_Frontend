@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:mapped_frontend/controller/controller/account_controller.dart';
 
 class ProfileEditorController extends GetxController {
   final Map<dynamic, dynamic>? userData;
@@ -103,7 +108,7 @@ class ProfileEditorController extends GetxController {
         profileImage.value = avatar;
       } else if (avatar.startsWith('uploads/')) {
         // Assuming your backend serves images from uploads folder
-        profileImage.value = 'https://mapped-backend-node-js.onrender.com/$avatar'; // For Android emulator
+        profileImage.value = 'http://10.0.2.2:5000/$avatar'; // For Android emulator
         // For iOS: 'http://localhost:5000/$avatar'
         // For real device: 'http://your-server-ip:5000/$avatar'
       } else {

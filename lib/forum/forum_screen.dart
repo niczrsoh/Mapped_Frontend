@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mapped_frontend/forum/forum_controller.dart';
-import 'package:mapped_frontend/forum/forum_model.dart';
 import 'package:mapped_frontend/helper/colorConstant.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import '../controller/controller/forum_controller.dart';
+import '../screens/forum_searchtags_screen.dart';
+import '../screens/comment_screen.dart';
+import '../screens/create_post_screen.dart';
 
 class ForumScreen extends StatelessWidget {
   ForumScreen({super.key});
@@ -14,134 +17,202 @@ class ForumScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: ColorConstant.themeBg,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Text(
-                    'Home',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
-                    ),
+        child: RefreshIndicator(
+          onRefresh: controller.loadPosts,
+          color: const Color(0xFF09FACA),
+          child: CustomScrollView(
+            slivers: [
+              // 1. Sticky Header AND Search Bar
+              SliverAppBar(
+                backgroundColor: const Color(0xFF1A1D29),
+                pinned: true,
+                floating: false,
+                elevation: 0,
+                automaticallyImplyLeading: false,
+                title: Text(
+                  'Home',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Obx(() => controller.isLoading.value
+                        ? const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF09FACA),
+                              ),
+                            ),
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.refresh, color: Colors.white),
+                            onPressed: controller.loadPosts,
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                          )),
                   ),
                 ],
-              ),
-            ),
-
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF252836),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    color: const Color(0xFF09FACA).withValues(alpha: .3),
-                    width: 1,
-                  ),
-                ),
-                child: TextField(
-                  style: GoogleFonts.roboto(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search by name ...',
-                    hintStyle: GoogleFonts.roboto(
-                      color: Colors.white54,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    suffixIcon: const Icon(Icons.search, color: Colors.white54),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(70.0),
+                  child: Container(
+                    color: const Color(0xFF1A1D29),
+                    padding: const EdgeInsets.only(bottom: 16, top: 0),
+                    child: _buildSearchBar(),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
-
-            // Create Post Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: controller.createPost,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF252836),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFF09FACA).withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          'What\'s on your mind?',
-                          style: GoogleFonts.roboto(
-                            color: Colors.white54,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.collections,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Posts List
-            Expanded(
-              child: Obx(
-                () => ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: controller.posts.length,
-                  itemBuilder: (context, index) {
-                    final post = controller.posts[index];
-                    return _buildPostCard(post);
-                  },
+              // 2. Create Post Section
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildCreatePostSection(),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
-            ),
-          ],
+
+              // 3. The Post List
+              _buildPostsListSliver(),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: () => Get.to(() => ForumSearchtagsScreen()),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF252836),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: const Color(0xFF09FACA).withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Search by name or tags...',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white54,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+              const Icon(Icons.search, color: Colors.white54),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreatePostSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 22,
+            backgroundColor: Colors.grey,
+            child: Icon(Icons.person, color: Colors.white),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => Get.to(() => CreatePostScreen()),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF252836),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF09FACA).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'What\'s on your mind?',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white54,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () => Get.to(() => CreatePostScreen()),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.collections, color: Colors.white, size: 22),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostsListSliver() {
+    return Obx(() {
+      if (controller.isLoading.value && controller.posts.isEmpty) {
+        return const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: CircularProgressIndicator(color: Color(0xFF09FACA)),
+          ),
+        );
+      }
+
+      if (controller.posts.isEmpty) {
+        return SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Text(
+              'No posts yet. Be the first to post!',
+              style: GoogleFonts.roboto(color: Colors.white54, fontSize: 16),
+            ),
+          ),
+        );
+      }
+
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final post = controller.posts[index];
+              return _buildPostCard(post);
+            },
+            childCount: controller.posts.length,
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildPostCard(ForumPost post) {
@@ -159,149 +230,175 @@ class ForumScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Author Info
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.grey[300],
-                backgroundImage: post.authorImage != null
-                    ? AssetImage(post.authorImage!)
-                    : null,
-                child: post.authorImage == null
-                    ? const Icon(Icons.person, color: Colors.grey)
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      post.authorName,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      post.timeAgo,
-                      style: GoogleFonts.roboto(
-                        fontSize: 12,
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.more_horiz, color: Colors.white54),
-                onPressed: () {},
-              ),
-            ],
-          ),
-
+          _buildPostHeader(post),
           const SizedBox(height: 12),
-
-          // Post Content
-          Text(
-            post.content,
-            style: GoogleFonts.roboto(
-              fontSize: 14,
-              color: Colors.white,
-              height: 1.5,
-            ),
-          ),
-
+          _buildPostContent(post),
+          if (post.hashtags.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildHashtags(post),
+          ],
+          if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            PostVideoPlayer(videoUrl: post.videoUrl!),
+          ],
+          if (post.images.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            // UPDATED: Now supports full size vertical stacking
+            _buildPostImages(post),
+          ],
           const SizedBox(height: 12),
-
-          // Hashtags
-          if (post.hashtags.isNotEmpty)
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: post.hashtags.map((tag) {
-                return Text(
-                  tag,
-                  style: GoogleFonts.roboto(
-                    fontSize: 13,
-                    color: const Color(0xFF09FACA),
-                    fontWeight: FontWeight.w500,
-                  ),
-                );
-              }).toList(),
-            ),
-
-          const SizedBox(height: 12),
-
-          // Post Images
-          if (post.images.isNotEmpty)
-            SizedBox(
-              height: 180,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: post.images.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    width: post.images.length > 1 ? 160 : double.infinity,
-                    margin: EdgeInsets.only(
-                      right: index < post.images.length - 1 ? 8 : 0,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey[800],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        post.images[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[800],
-                            child: const Center(
-                              child: Icon(
-                                Icons.image,
-                                color: Colors.white54,
-                                size: 50,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-          const SizedBox(height: 12),
-
-          // Interaction Buttons
-          Row(
-            children: [
-              Obx(
-                () => _buildInteractionButton(
-                  icon: post.isLiked.value
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  count: post.likes.value,
-                  color: post.isLiked.value ? Colors.red : Colors.white54,
-                  onTap: () => controller.toggleLike(post),
-                ),
-              ),
-              const SizedBox(width: 20),
-              _buildInteractionButton(
-                icon: Icons.chat_bubble_outline,
-                count: post.comments,
-                color: Colors.white54,
-                onTap: () => controller.openComments(post),
-              ),
-            ],
-          ),
+          _buildInteractionButtons(post),
         ],
       ),
+    );
+  }
+
+  Widget _buildPostHeader(ForumPost post) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: Colors.grey[300],
+          backgroundImage: post.authorImage != null && post.authorImage!.isNotEmpty
+              ? NetworkImage(controller.getFullImageUrl(post.authorImage!))
+              : null,
+          child: post.authorImage == null || post.authorImage!.isEmpty
+              ? const Icon(Icons.person, color: Colors.grey)
+              : null,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                post.authorName,
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                post.timeAgo,
+                style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_horiz, color: Colors.white54),
+          color: const Color(0xFF252836),
+          onSelected: (value) {
+            if (value == 'delete') {
+              controller.deletePost(post);
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'delete',
+              child: Text(
+                'Delete Post',
+                style: GoogleFonts.roboto(color: Colors.red),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPostContent(ForumPost post) {
+    return Text(
+      post.content,
+      style: GoogleFonts.roboto(
+        fontSize: 14,
+        color: Colors.white,
+        height: 1.5,
+      ),
+    );
+  }
+
+  Widget _buildHashtags(ForumPost post) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      children: post.hashtags.map((tag) {
+        return Text(
+          tag,
+          style: GoogleFonts.roboto(
+            fontSize: 13,
+            color: const Color(0xFF09FACA),
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // --- FIXED: Vertical Column for "Own Size" ---
+  Widget _buildPostImages(ForumPost post) {
+    return Column(
+      children: post.images.map((imgUrl) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 8.0), // Spacing between images
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              controller.getFullImageUrl(imgUrl),
+              width: double.infinity, // Fill the card width
+              fit: BoxFit.fitWidth,   // Scale height automatically (maintain aspect ratio)
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200, // Fallback height if image fails
+                  width: double.infinity,
+                  color: Colors.grey[800],
+                  child: const Center(
+                    child: Icon(Icons.broken_image, color: Colors.white54),
+                  ),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  height: 200, // Placeholder height while loading
+                  width: double.infinity,
+                  color: Colors.grey[900],
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF09FACA),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildInteractionButtons(ForumPost post) {
+    return Row(
+      children: [
+        Obx(() => _buildInteractionButton(
+              icon: post.isLiked.value ? Icons.favorite : Icons.favorite_border,
+              count: post.likes.value,
+              color: post.isLiked.value ? Colors.red : Colors.white54,
+              onTap: () => controller.toggleLike(post),
+            )),
+        const SizedBox(width: 20),
+        _buildInteractionButton(
+          icon: Icons.chat_bubble_outline,
+          count: post.comments,
+          color: Colors.white54,
+          onTap: () => Get.to(() => CommentsScreen(post: post)),
+        ),
+      ],
     );
   }
 
@@ -326,6 +423,78 @@ class ForumScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class PostVideoPlayer extends StatefulWidget {
+  final String videoUrl;
+
+  const PostVideoPlayer({super.key, required this.videoUrl});
+
+  @override
+  State<PostVideoPlayer> createState() => _PostVideoPlayerState();
+}
+
+class _PostVideoPlayerState extends State<PostVideoPlayer> {
+  late YoutubePlayerController _controller;
+  bool _isReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1. Extract Video ID
+    final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+
+    // 2. Initialize Controller
+    if (videoId != null) {
+      _controller = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false, // Don't play automatically in feed!
+          mute: false,
+          disableDragSeek: false,
+          loop: false,
+          isLive: false,
+          forceHD: false,
+          enableCaption: false,
+        ),
+      )..addListener(() {
+          if (mounted && _controller.value.isReady && !_isReady) {
+            setState(() {
+              _isReady = true;
+            });
+          }
+        });
+    }
+  }
+
+  @override
+  void dispose() {
+    // 3. Dispose Controller to free memory (CRITICAL)
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: YoutubePlayer(
+        controller: _controller,
+        showVideoProgressIndicator: true,
+        progressIndicatorColor: const Color(0xFF09FACA),
+        progressColors: const ProgressBarColors(
+          playedColor: Color(0xFF09FACA),
+          handleColor: Color(0xFF09FACA),
+        ),
+        // Optional: Custom Thumbnail if player isn't ready
+        thumbnail: Container(
+          color: Colors.black,
+          child: Center(child: CircularProgressIndicator(color: Color(0xFF09FACA))),
+        ),
       ),
     );
   }

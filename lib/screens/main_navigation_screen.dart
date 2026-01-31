@@ -7,19 +7,32 @@ import '../screens/coachBot_screen.dart';
 import '../screens/account_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  //newly added to allow the get.back to specific tab
+  final int initialIndex; // 1. Add this variable
+
+  // 2. Update constructor to accept it (default to 0)
+  const MainNavigationScreen({super.key, this.initialIndex = 0}); // newly add
+  //const MainNavigationScreen({super.key});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex; // newly added
+  //int _selectedIndex = 0;
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(
     5,
     (index) => GlobalKey<NavigatorState>(),
   );
+
+  @override
+  void initState() {
+    super.initState();
+    // 4. Initialize it with the value passed from the constructor
+    _selectedIndex = widget.initialIndex;
+  } // newly added function
 
   static final List<Widget> _pages = [
     const HomeScreen(),

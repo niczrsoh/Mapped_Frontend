@@ -1,5 +1,7 @@
+// screens/account_screen.dart - UPDATED
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/controller/account_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/user_controller';
@@ -274,9 +276,7 @@ class AccountScreen extends StatelessWidget {
         color: Color(0xFF252836),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        children: items,
-      ),
+      child: Column(children: items),
     );
   }
 
@@ -286,9 +286,7 @@ class AccountScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        children: items,
-      ),
+      child: Column(children: items),
     );
   }
 }
@@ -313,9 +311,12 @@ class _MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = isDark ? Colors.white : Color(0xFF1A1D29);
+    final iconColor = isDark ? Colors.white : Color(0xFF1A1D29);
 
     return InkWell(
       onTap: onTap,
+      splashColor: Color(0xFF09FACA).withOpacity(0.3),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
@@ -328,11 +329,15 @@ class _MenuItem extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // Using network image for icons
             Image.asset(
               iconPath,
               width: 20,
               height: 20,
-              color: textColor,
+              color: iconColor,
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(Icons.circle, size: 20, color: iconColor);
+              },
             ),
             SizedBox(width: 12),
             Expanded(
@@ -341,8 +346,6 @@ class _MenuItem extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.w400,
                   fontSize: 14,
-                  height: 20 / 14,
-                  letterSpacing: 0.25,
                   color: textColor,
                 ),
               ),

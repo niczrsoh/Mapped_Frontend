@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart'; // Import Get
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:io'; // Needed for FileImage
+import '../controller/controller/trainee_controller.dart'; // Import your controller
 import 'add_trainee.dart';
+import 'trainee_detail_screen.dart';
 
 class TraineesScreen extends StatefulWidget {
   const TraineesScreen({Key? key}) : super(key: key);
@@ -12,47 +16,41 @@ class TraineesScreen extends StatefulWidget {
 class _TraineesScreenState extends State<TraineesScreen> {
   String selectedFilter = 'All';
 
-  // Gradient border helper constants (match search_result_screen style)
+  // Inject Controller
+  final TraineeController traineeController = Get.put(TraineeController());
+
   static const double borderThickness = 1.5;
   final LinearGradient customGradient = const LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
   );
-  // Chip/label background color requested: #72777A8A
   static const Color innerCardBackgroundColor = Color(0x8A72777A);
   static const Color accentColor = Color(0xFF00FFB9);
 
-  final List<Map<String, dynamic>> trainees = [
-    {
-      'name': 'Rayyan Firas',
-      'belt': 'White',
-      'color': Colors.white,
-      'note': 'Note : Next Green Belt\nin 2 criteria',
-      'image': 'assets/rayyan.jpg',
-    },
-    {
-      'name': 'Amirah Aini',
-      'belt': 'Red',
-      'color': Colors.red,
-      'note': 'Note : Next Black Belt\nin 3 criteria',
-      'image': 'assets/amirah.jpg',
-    },
-    {
-      'name': 'Badrul Hisham',
-      'belt': 'Green',
-      'color': Colors.green,
-      'note': 'Note : Next Green Belt\nin 2 criteria',
-      'image': 'assets/badrul.jpg',
-    },
-    {
-      'name': 'Chan Wei Tian',
-      'belt': 'Yellow',
-      'color': Colors.yellow,
-      'note': 'Note : Next Green Belt\nin 3 criteria',
-      'image': 'assets/chan.jpg',
-    },
-  ];
+String _getNextBelt(String currentBelt) {
+    switch (currentBelt) {
+      case 'White':
+        return 'Yellow';
+      case 'Yellow':
+        return 'Green';
+      case 'Green':
+        return 'Blue';
+      case 'Blue':
+        return 'Brown';
+      case 'Brown':
+        return 'Black';
+      default:
+        return 'White';
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure data is fresh when screen loads
+    traineeController.fetchTrainees();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +62,12 @@ class _TraineesScreenState extends State<TraineesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with back button
+              // --- Header ---
               Row(
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                   const Text(
                     'Home',
@@ -85,7 +81,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Trainees header card (gradient border)
+              // --- Trainees Header Card ---
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -111,8 +107,8 @@ class _TraineesScreenState extends State<TraineesScreen> {
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
+                        children: [
+                          const Text(
                             'Trainees',
                             style: TextStyle(
                               color: Colors.white,
@@ -120,17 +116,21 @@ class _TraineesScreenState extends State<TraineesScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 4),
-                          Text(
-                            '24 active',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                          const SizedBox(height: 4),
+                          // Reactive count
+                          Obx(
+                            () => Text(
+                              '${traineeController.traineeList.length} active',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      // Smaller gradient Add button (matches SessionPlanner 'Save' style)
                       GestureDetector(
                         onTap: () async {
-                          // Navigate to Add Trainee screen
                           await Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => const AddTraineeScreen(),
@@ -188,7 +188,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Search bar (gradient border)
+              // --- Search Bar ---
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -232,62 +232,66 @@ class _TraineesScreenState extends State<TraineesScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Filter chips (responsive: justified on wide, scrollable on small)
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  if (constraints.maxWidth >= 480) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildFilterChip('All'),
-                        _buildFilterChip('White'),
-                        _buildFilterChip('Yellow'),
-                        _buildFilterChip('Green'),
-                        _buildFilterChip('Blue'),
-                        _buildFilterChip('Red'),
-                        _buildFilterChip('Black'),
-                      ],
-                    );
-                  }
-
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildFilterChip('All'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('White'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Yellow'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Green'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Blue'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Red'),
-                        const SizedBox(width: 12),
-                        _buildFilterChip('Black'),
-                      ],
-                    ),
-                  );
-                },
+              // --- Filter Chips ---
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip('All'),
+                    const SizedBox(width: 12),
+                    _buildFilterChip('White'),
+                    const SizedBox(width: 12),
+                    _buildFilterChip('Yellow'),
+                    const SizedBox(width: 12),
+                    _buildFilterChip('Green'),
+                    const SizedBox(width: 12),
+                    _buildFilterChip('Blue'),
+                    const SizedBox(width: 12),
+                    _buildFilterChip('Brown'),
+                    const SizedBox(width: 12),
+                    _buildFilterChip('Black'),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
 
-              // Trainees list
+              // --- Reactive Trainees List ---
               Expanded(
-                child: ListView.builder(
-                  itemCount: trainees.length,
-                  itemBuilder: (context, index) {
-                    // Cycle through Trainee1..Trainee6 images for avatars
-                    final imagePath =
-                        'assets/images/Trainee${(index % 6) + 1}.png';
-                    return _buildTraineeCard(
-                      trainees[index],
-                      imageOverride: imagePath,
+                child: Obx(() {
+                  if (traineeController.loading.value) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: accentColor),
                     );
-                  },
-                ),
+                  }
+
+                  // Filter logic (optional, basic client-side filtering)
+                  final displayList = selectedFilter == 'All'
+                      ? traineeController.traineeList
+                      : traineeController.traineeList
+                            .where(
+                              (t) =>
+                                  t['belt'].toString().toLowerCase() ==
+                                  selectedFilter.toLowerCase(),
+                            )
+                            .toList();
+
+                  if (displayList.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No trainees found',
+                        style: TextStyle(color: Colors.white54),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: displayList.length,
+                    itemBuilder: (context, index) {
+                      final trainee = displayList[index];
+                      return _buildTraineeCard(trainee);
+                    },
+                  );
+                }),
               ),
             ],
           ),
@@ -296,7 +300,6 @@ class _TraineesScreenState extends State<TraineesScreen> {
     );
   }
 
-  // Helper to render white text with a 1px black outline (stroke)
   Widget _outlinedText(
     String text,
     TextStyle baseStyle, {
@@ -304,7 +307,6 @@ class _TraineesScreenState extends State<TraineesScreen> {
   }) {
     return Stack(
       children: [
-        // stroke
         Text(
           text,
           style: baseStyle.copyWith(
@@ -314,7 +316,6 @@ class _TraineesScreenState extends State<TraineesScreen> {
               ..color = Colors.black,
           ),
         ),
-        // fill
         Text(text, style: baseStyle.copyWith(color: Colors.white)),
       ],
     );
@@ -355,100 +356,147 @@ class _TraineesScreenState extends State<TraineesScreen> {
     );
   }
 
-  Widget _buildTraineeCard(
-    Map<String, dynamic> trainee, {
-    String? imageOverride,
-  }) {
-    final imagePath = imageOverride ?? (trainee['image'] as String?);
+  Widget _buildTraineeCard(Map<String, dynamic> trainee) {
+    final String belt = trainee['belt'] ?? 'White';
+    // final Color beltColor = _getBeltColor(belt);
+    final String nextBelt = _getNextBelt(belt);
+
+    // Handle Image: Check if it's a network URL, local file path, or asset
+    // Since backend might return full object, we usually store image path/url
+    // For this example, if 'image' is null, show default icon
+    final String? imgData = trainee['image'];
     ImageProvider? avatarImage;
-    if (imagePath != null) {
-      avatarImage = AssetImage(imagePath);
+
+    if (imgData != null && imgData.isNotEmpty) {
+      if (imgData.startsWith('http')) {
+        avatarImage = NetworkImage(imgData);
+      } else if (imgData.startsWith('assets/')) {
+        //else if (imgData.contains('/')) {
+        // Assuming it's a local file path captured from camera
+        //avatarImage = FileImage(File(imgData));
+        avatarImage = AssetImage(imgData);
+      } else {
+        // Fallback for your hardcoded assets if mixed data
+        // avatarImage = AssetImage(imgData);
+        try {
+          final file = File(imgData);
+          // Check if file actually exists to prevent crash/error loop
+          if (file.existsSync()) {
+            avatarImage = FileImage(file);
+          } else {
+            // File path exists in DB but file is gone from phone cache
+            avatarImage = null;
+          }
+        } catch (e) {
+          avatarImage = null;
+        }
+      }
     }
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        gradient: customGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(borderThickness),
+    return GestureDetector(
+      // --- UPDATE THIS ONTAP SECTION ---
+      onTap: () {
+        // Use Get.to() so the Controller knows this screen exists
+        Get.to(() => TraineeDetailScreen(trainee: trainee));
+      },
+      // return GestureDetector(
+      //   onTap: () {
+      //     // Pass ID or Trainee Object to detail screen
+      //     Navigator.of(
+      //       context,
+      //     ).push(MaterialPageRoute(builder: (_) => const TraineeRayyanScreen()));
+      //   },
       child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF141823),
-          borderRadius: BorderRadius.circular(20 - borderThickness),
-        ),
-        padding: EdgeInsets.all(16 - borderThickness),
-        child: Row(
-          children: [
-            // Profile image (use Trainee images if available)
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.grey[700],
-              backgroundImage: avatarImage,
-              child: avatarImage == null
-                  ? Icon(Icons.person, color: Colors.grey[400], size: 32)
-                  : null,
-            ),
-            const SizedBox(width: 16),
-
-            // Name and belt
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    trainee['name'],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  // Fixed-size belt badge (match visual size of the 'White' filter chip)
-                  Container(
-                    width: 84,
-                    height: 32,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: const Color(0x8A72777A),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      trainee['belt'],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Note
-            Text(
-              trainee['note'],
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                height: 1.4,
-              ),
+          gradient: customGradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-      ),
-    );
+        padding: const EdgeInsets.all(borderThickness),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF141823),
+            borderRadius: BorderRadius.circular(20 - borderThickness),
+          ),
+          padding: EdgeInsets.all(16 - borderThickness),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.grey[700],
+                backgroundImage: avatarImage,
+                child: avatarImage == null
+                    ? Icon(Icons.person, color: Colors.grey[400], size: 32)
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              // --- UPDATED ROW STRUCTURE TO FIX DISPLAY ---
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            trainee['name'] ?? 'Unknown',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis, // Prevents overflow
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            width: 84,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0x8A72777A),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              belt,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // --- DISPLAY NEXT BELT HERE ---
+                    Expanded(
+                      child: Text(
+                        'Note : Next $nextBelt\nBelt in 3 criteria',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
-}

@@ -1,387 +1,354 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
+import 'dart:io';
+import '../../controller/controller/trainee_controller.dart';
+import 'trainee_detail_screen.dart';
 
-class BeltDetailScreen extends StatefulWidget {
-  const BeltDetailScreen({super.key});
+class BeltDetailListScreen extends StatefulWidget {
+  final String beltName;
+
+  const BeltDetailListScreen({Key? key, required this.beltName})
+    : super(key: key);
 
   @override
-  State<BeltDetailScreen> createState() => _BeltDetailScreenState();
+  State<BeltDetailListScreen> createState() => _BeltDetailListScreenState();
 }
 
-class _BeltDetailScreenState extends State<BeltDetailScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  
-  final List<Map<String, dynamic>> trainees = [
-    {
-      'name': 'Rayyan Firas',
-      'belt': 'White',
-      'beltColor': Colors.grey[300],
-      'note': 'Note : Next Green Belt in 2 criteria',
-      'imageUrl': 'https://i.pravatar.cc/150?img=12',
-    },
-    {
-      'name': 'Amirah Aini',
-      'belt': 'Red',
-      'beltColor': const Color(0xFFFF4444),
-      'note': 'Note : Next Black Belt in 3 criteria',
-      'imageUrl': 'https://i.pravatar.cc/150?img=47',
-    },
-    {
-      'name': 'Badrul Hisham',
-      'belt': 'Green',
-      'beltColor': const Color(0xFF00FFB9),
-      'note': 'Note : Next Green Belt in 2 criteria',
-      'imageUrl': 'https://i.pravatar.cc/150?img=33',
-    },
-    {
-      'name': 'Chan Wei Tian',
-      'belt': 'Yellow',
-      'beltColor': const Color(0xFFFFD700),
-      'note': 'Note : Next Green Belt in 3 criteria',
-      'imageUrl': 'https://i.pravatar.cc/150?img=28',
-    },
-  ];
+class _BeltDetailListScreenState extends State<BeltDetailListScreen> {
+  // Inject Controller
+  final TraineeController controller = Get.put(TraineeController());
 
-  List<Map<String, dynamic>> filteredTrainees = [];
+  late TextEditingController _searchCtrl;
+  final FocusNode _searchFocus = FocusNode();
+
+  // Search query state
+  String _searchQuery = "";
+
+  // Styles from your original code
+  final LinearGradient _customGradient = const LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
+  );
+
+  static const Color _innerBg = Color(0xFF141823);
 
   @override
   void initState() {
     super.initState();
-    filteredTrainees = trainees;
-    _searchController.addListener(_filterTrainees);
+    _searchCtrl = TextEditingController();
+    _searchCtrl.addListener(() {
+      setState(() {
+        _searchQuery = _searchCtrl.text.trim().toLowerCase();
+      });
+    });
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _searchCtrl.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
-  void _filterTrainees() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
-        filteredTrainees = trainees;
-      } else {
-        filteredTrainees = trainees.where((trainee) {
-          return trainee['name'].toLowerCase().contains(query);
-        }).toList();
-      }
-    });
+  // --- NEW: Helper to calculate Next Belt ---
+  String _getNextBelt(String currentBelt) {
+    switch (currentBelt) {
+      case 'White':
+        return 'Yellow';
+      case 'Yellow':
+        return 'Green';
+      case 'Green':
+        return 'Blue';
+      case 'Blue':
+        return 'Brown';
+      case 'Brown':
+        return 'Black';
+      default:
+        return 'White';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1D2E),
+      backgroundColor: const Color(0xFF0F1114),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          '${widget.beltName} Belt',
+          style: GoogleFonts.inter(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with Back Button
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'White Belt',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+        child: Obx(() {
+          final beltTrainees = controller.traineeList.where((t) {
+            final b = t['belt'].toString().toLowerCase();
+            return b == widget.beltName.toLowerCase();
+          }).toList();
 
-            const SizedBox(height: 8),
+          final displayList = _searchQuery.isEmpty
+              ? beltTrainees
+              : beltTrainees.where((t) {
+                  final name = (t['name'] ?? '').toString().toLowerCase();
+                  return name.contains(_searchQuery);
+                }).toList();
 
-            // Belt Info Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2A2D3E),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF00FFB9).withOpacity(0.4),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00FFB9).withOpacity(0.15),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                    ),
-                  ],
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _pill(
+                  '${widget.beltName} Belt',
+                  subtitle: '${displayList.length} active',
                 ),
+
+                const SizedBox(height: 18),
+
+                _searchBox(),
+
+                const SizedBox(height: 18),
+
+                if (displayList.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: Center(
+                      child: Text(
+                        'No trainees found.',
+                        style: GoogleFonts.roboto(color: Colors.white54),
+                      ),
+                    ),
+                  )
+                else
+                  Column(
+                    children: displayList.map((t) => _traineeCard(t)).toList(),
+                  ),
+
+                const SizedBox(height: 60),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _gradientBox({required Widget child, double radius = 20}) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: _customGradient,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      padding: const EdgeInsets.all(1.5),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _innerBg,
+          borderRadius: BorderRadius.circular(radius - 1.5),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _pill(String title, {String? subtitle}) {
+    return SizedBox(
+      width: double.infinity,
+      child: _gradientBox(
+        radius: 20,
+        child: SizedBox(
+          height: 48,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'White Belt',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     Text(
-                      '12 active',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                      title,
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.roboto(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
                   ],
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            const SizedBox(height: 20),
-
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2A2D3E),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: const Color(0xFF00FFB9).withOpacity(0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00FFB9).withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  style: const TextStyle(color: Colors.white, fontSize: 15),
-                  decoration: InputDecoration(
-                    hintText: 'Search by name ...',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
-                      fontSize: 15,
-                    ),
-                    suffixIcon: Container(
-                      margin: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00FFB9).withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.search,
-                        color: Color(0xFF00FFB9),
-                        size: 20,
-                      ),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Trainees List
+  Widget _searchBox() {
+    return SizedBox(
+      width: double.infinity,
+      child: _gradientBox(
+        radius: 20,
+        child: Row(
+          children: [
             Expanded(
-              child: filteredTrainees.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 64,
-                            color: Colors.white.withOpacity(0.3),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No trainees found',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filteredTrainees.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final trainee = filteredTrainees[index];
-                        return _buildTraineeCard(
-                          name: trainee['name'],
-                          belt: trainee['belt'],
-                          beltColor: trainee['beltColor'],
-                          note: trainee['note'],
-                          imageUrl: trainee['imageUrl'],
-                        );
-                      },
-                    ),
+              child: TextField(
+                controller: _searchCtrl,
+                focusNode: _searchFocus,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'JejuGothic',
+                  fontWeight: FontWeight.w400,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Search by name ...',
+                  hintStyle: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'JejuGothic',
+                    fontWeight: FontWeight.w400,
+                  ),
+                  border: InputBorder.none,
+                ),
+                textInputAction: TextInputAction.search,
+              ),
             ),
-
-            const SizedBox(height: 16),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => _searchFocus.requestFocus(),
+              child: const Padding(
+                padding: EdgeInsets.only(left: 4.0),
+                child: Icon(Icons.search, color: Colors.white70, size: 20),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTraineeCard({
-    required String name,
-    required String belt,
-    required Color beltColor,
-    required String note,
-    required String imageUrl,
-  }) {
+  Widget _beltBadge(String belt) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2D3E),
+        color: const Color(0xFF2D3136),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFF00FFB9).withOpacity(0.3),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00FFB9).withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 0,
-          ),
-        ],
       ),
-      child: Row(
-        children: [
-          // Avatar with Neon Border
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFF00FFB9),
-                width: 2.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00FFB9).withOpacity(0.4),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: const Color(0xFF3A3D4E),
-                    child: const Icon(
-                      Icons.person,
-                      color: Color(0xFF00FFB9),
-                      size: 28,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
+      child: Text(
+        belt,
+        style: GoogleFonts.roboto(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
 
-          const SizedBox(width: 14),
+  Widget _traineeCard(Map<String, dynamic> t) {
+    // Logic to display image (Network, Asset, or File)
+    final String? imgData = t['image'];
+    ImageProvider imageProvider;
 
-          // Name and Belt Badge
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final String currentBelt = t['belt'] ?? widget.beltName;
+    final String nextBelt = _getNextBelt(currentBelt);
+
+    final String defaultNote = 'Next $nextBelt Belt in 3 criteria.';
+
+    if (imgData != null && imgData.isNotEmpty) {
+      if (imgData.startsWith('http')) {
+        imageProvider = NetworkImage(imgData);
+      } else if (imgData.startsWith('assets/')) {
+        imageProvider = AssetImage(imgData);
+      } else {
+        // Try file
+        try {
+          imageProvider = FileImage(File(imgData));
+        } catch (e) {
+          imageProvider = const AssetImage('assets/images/accountLogo.png');
+        }
+      }
+    } else {
+      imageProvider = const AssetImage('assets/images/accountLogo.png');
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => TraineeDetailScreen(trainee: t));
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        child: _gradientBox(
+          radius: 14,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey.shade800,
+                  backgroundImage: imageProvider,
+                  onBackgroundImageError: (_, __) {},
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: beltColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: beltColor.withOpacity(0.6),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: beltColor.withOpacity(0.3),
-                        blurRadius: 8,
-                        spreadRadius: 0,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t['name'] ?? 'Unknown',
+                              style: GoogleFonts.roboto(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            _beltBadge(t['belt'] ?? ''),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Note : ${t['note'] ?? defaultNote}',
+                          textAlign: TextAlign.right,
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  child: Text(
-                    belt,
-                    style: TextStyle(
-                      color: beltColor,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(width: 12),
-
-          // Note
-          Expanded(
-            flex: 3,
-            child: Text(
-              note,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                height: 1.3,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

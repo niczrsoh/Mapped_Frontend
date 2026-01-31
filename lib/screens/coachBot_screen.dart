@@ -132,7 +132,7 @@ class CoachBotScreen extends StatelessWidget {
 
                       _buildQuickActionButton(
                         icon: Icons.location_on_outlined, // Good for location
-                        title: 'Find a Dojang Nearby',
+                        title: 'Find a Training Hall Nearby',
                         onTap: () => controller.findDojang(),
                       ),
 
@@ -340,7 +340,7 @@ void explainHistory() {
     // Send message after navigation
     Future.delayed(const Duration(milliseconds: 500), () {
       final chatController = Get.find<CoachBotChatController>();
-      chatController.messageController.text = 'Find a Dojang Nearby';
+      chatController.messageController.text = 'Find a Training Hall Nearby';
       chatController.sendMessage();
     });
   }

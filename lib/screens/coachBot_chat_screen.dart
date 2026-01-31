@@ -288,7 +288,7 @@ class CoachBotChatController extends GetxController {
     // Welcome message
     messages.add(ChatMessage(
       text:
-          "Hello, I'm CoachBot! 🥋 I'm your personal Taekwondo assistant. How can I help you learn about techniques, history, or find a dojang?",
+          "Hello, I'm CoachBot! 🥋 I'm your personal Taekwondo assistant. How can I help you learn about techniques, history or find a training hall?",
       isUser: false,
       timestamp: DateTime.now(),
     ));
@@ -330,37 +330,37 @@ class CoachBotChatController extends GetxController {
     // --- TAEKWONDO LOGIC ---
     if (lowerMessage.contains('history') || lowerMessage.contains('philosophy')) {
       response =
-          '''Taekwondo is a Korean martial art that emphasizes high, fast, and spinning kicks. 🇰🇷
+          '''Taekwondo is a Korean martial art that emphasizes high, fast and spinning kicks. 🇰🇷
 
 Its philosophy is built upon five tenets:
-• **Courtesy** (Ye Ui)
-• **Integrity** (Yom Chi)
-• **Perseverance** (In Nae)
-• **Self-Control** (Guk Gi)
-• **Indomitable Spirit** (Baekjul Boolgool)''';
+• **Courtesy** 
+• **Integrity** 
+• **Perseverance** 
+• **Self-Control** 
+• **Indomitable Spirit**''';
     } else if (lowerMessage.contains('techniques') ||
         lowerMessage.contains('kicks') ||
         lowerMessage.contains('poomsae')) {
       response =
           '''Taekwondo is known for its dynamic kicks! Key techniques include:
 
-• **Ap Chagi** (Front Kick)
-• **Dollyeo Chagi** (Roundhouse Kick)
-• **Yeop Chagi** (Side Kick)
-• **Dwi Chagi** (Back Kick)
+• **Front Kick**
+• **Roundhouse Kick**
+• **Side Kick** 
+• **Back Kick**
 
-We also practice **Poomsae** (forms), which are set patterns of defense and attack used to practice techniques.''';
-    } else if (lowerMessage.contains('dojang') ||
+We also practice forms, which are set patterns of defense and attack used to practice techniques.''';
+    } else if (lowerMessage.contains('training hall') ||
         lowerMessage.contains('nearby') ||
         lowerMessage.contains('find')) {
       response =
-          "To find a *dojang* (Taekwondo school) near you, I'll need your current location or a city name. Would you like me to search for certified dojangs in your area?";
+          "To find a training hall near you, I'll need your current location or a city name. Would you like me to search for certified training hall in your area?";
     } else if (lowerMessage.contains('hello') || lowerMessage.contains('hi')) {
       response =
-          "Hello! How can I assist you with Taekwondo today? I can help with history, techniques, or finding a school.";
+          "Hello! How can I assist you with Taekwondo today? I can help with history, techniques or finding a school.";
     } else {
       response =
-          "I can help you with:\n\n• Taekwondo History & Philosophy\n• Kicks and Poomsae (Forms)\n• Finding a local Dojang\n\nWhat would you like to know more about?";
+          "I can help you with:\n\n• Taekwondo History & Philosophy\n• Kicks and Forms\n• Finding a local training hall\n\nWhat would you like to know more about?";
     }
 
     messages.add(ChatMessage(

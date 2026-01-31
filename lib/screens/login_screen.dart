@@ -156,7 +156,7 @@ class LoginScreen extends GetView<LoginController> {
                           ),
                         )),
 
-                        const SizedBox(height: 6),
+                    const SizedBox(height: 6),
 
                         // Fingerprint Button - Using MediaQuery for responsive width
                         Center(

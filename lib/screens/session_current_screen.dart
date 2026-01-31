@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import '../controller/controller/session_controller.dart';
 
 class SessionCurrentScreen extends StatelessWidget {
   const SessionCurrentScreen({super.key});
@@ -17,17 +18,6 @@ class SessionCurrentScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            date,
-            style: GoogleFonts.roboto(
-              color: Colors.white70,
-              fontWeight: FontWeight.w400,
-              fontSize: 12,
-              height: 1.0,
-              letterSpacing: 0.0,
-            ),
-          ),
-          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -46,6 +36,7 @@ class SessionCurrentScreen extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -59,7 +50,6 @@ class SessionCurrentScreen extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                     height: 1.0,
-                    letterSpacing: 0.0,
                   ),
                 ),
               ),
@@ -82,14 +72,12 @@ class SessionCurrentScreen extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                     height: 1.0,
-                    letterSpacing: 0.0,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          // Trainees row
           Row(
             children: [
               const Icon(Icons.group_outlined, size: 14, color: Colors.white54),
@@ -101,13 +89,11 @@ class SessionCurrentScreen extends StatelessWidget {
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
                   height: 1.0,
-                  letterSpacing: 0.0,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          // Trainer on its own line below trainees
           Row(
             children: [
               const Icon(Icons.person_outline, size: 14, color: Colors.white54),
@@ -120,7 +106,6 @@ class SessionCurrentScreen extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                     height: 1.0,
-                    letterSpacing: 0.0,
                   ),
                 ),
               ),
@@ -131,11 +116,11 @@ class SessionCurrentScreen extends StatelessWidget {
     );
   }
 
+  // ... _planCard() remains the same ...
   Widget _planCard() {
-    // Use same outer gradient container as the 'Current' card to match border style
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
-      padding: const EdgeInsets.all(1), // simulate 1px gradient border
+      padding: const EdgeInsets.all(1),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
@@ -162,7 +147,6 @@ class SessionCurrentScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-
             Text(
               'Warm-up (10 min)',
               style: GoogleFonts.roboto(
@@ -181,7 +165,6 @@ class SessionCurrentScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-
             Text(
               'Drill 1 (15 min)',
               style: GoogleFonts.roboto(
@@ -200,7 +183,6 @@ class SessionCurrentScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-
             Text(
               'Cooldown (5 min)',
               style: GoogleFonts.roboto(
@@ -226,7 +208,10 @@ class SessionCurrentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeBg = const Color(0xFF0F1114);
+    // 1. Find Controller
+    final SessionController controller = Get.find<SessionController>();
+    final themeBg = const Color(0xFF141823);
+
     return Scaffold(
       backgroundColor: themeBg,
       appBar: AppBar(
@@ -277,88 +262,94 @@ class SessionCurrentScreen extends StatelessWidget {
 
               const SizedBox(height: 18),
 
-              // Top card similar to dashboard card but containing multiple sessions
-              // ✅ Top scrollable card with fixed height and internal scrolling
-              Container(
-                width: double.infinity,
-                constraints: const BoxConstraints(maxWidth: 299),
-                height: 200, // Reduced height - adjust as needed
-                padding: const EdgeInsets.all(1),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(32),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+              // 👇👇👇 CHANGED PART STARTS HERE 👇👇👇
+              Obx(() {
+                return Container(
+                  key: const ValueKey('list_state'),
+                  width: double.infinity,
+                  constraints: const BoxConstraints(maxWidth: 299),
+                  padding: const EdgeInsets.all(1),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141823),
+                    gradient: const LinearGradient(
+                      colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Current',
-                        style: GoogleFonts.roboto(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        // This makes the scrollable area take remaining space
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _smallSessionRow(
-                                date: 'Wed, Sept 21, 2025',
-                                time: '6:00 - 7:00 PM',
-                                venue:
-                                    'Dewan Sekolah Rendah Sri Gading, Main Hall',
-                                trainees: '25 Trainees',
-                                trainer: 'Sir Ramesh',
-                              ),
-                              const Divider(color: Colors.white70),
-                              _smallSessionRow(
-                                date: 'Wed, Sept 21, 2025',
-                                time: '9:00 - 10:00 PM',
-                                venue: 'Dewan Taman Sri Kerayong, Main Hall',
-                                trainees: '20 Trainees',
-                                trainer: 'Sir Ramesh',
-                              ),
-                              const Divider(color: Colors.white70),
-                              _smallSessionRow(
-                                date: 'Thu, Sept 22, 2025',
-                                time: '5:00 - 6:00 PM',
-                                venue: 'Dewan Seri Perdana, Training Hall',
-                                trainees: '18 Trainees',
-                                trainer: 'Sir Ali',
-                              ),
-                              // You can add more sessions here and they'll be scrollable
-                            ],
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141823),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Current',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                        const SizedBox(height: 12),
 
+                        // Check empty state INSIDE the container
+                        if (controller.currentList.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20.0),
+                            child: Center(
+                              child: Text(
+                                "No Current Sessions Available",
+                                style: GoogleFonts.roboto(
+                                  color: Colors.white54,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          // Loop through sessions if data exists
+                          ...List.generate(controller.currentList.length, (i) {
+                            return Column(
+                              children: [
+                                _smallSessionRow(
+                                  date:
+                                      controller.currentList[i]['uiDate'] ??
+                                      '-',
+                                  time:
+                                      controller.currentList[i]['time'] ?? '-',
+                                  venue:
+                                      controller.currentList[i]['venue'] ?? '-',
+                                  trainees:
+                                      '${controller.currentList[i]['totalTrainees']} Trainees',
+                                  trainer:
+                                      controller.currentList[i]['trainer'] ??
+                                      '-',
+                                ),
+                                if (i < controller.currentList.length - 1)
+                                  const Divider(
+                                    color: Colors.white24,
+                                    height: 24,
+                                  ),
+                              ],
+                            );
+                          }),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+
+              // 👆👆👆 CHANGED PART ENDS HERE 👆👆👆
               const SizedBox(height: 18),
 
               _planCard(),
 
               const SizedBox(height: 22),
 
-              // ASK COACHBOT button with 2px gradient border
+              // [KEEP BUTTON CODE]
               Center(
                 child: Container(
                   decoration: BoxDecoration(
@@ -370,7 +361,7 @@ class SessionCurrentScreen extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  padding: const EdgeInsets.all(2), // 2px border thickness
+                  padding: const EdgeInsets.all(2),
                   child: SizedBox(
                     width: 220,
                     height: 44,
@@ -404,7 +395,6 @@ class SessionCurrentScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 40),
             ],
           ),
