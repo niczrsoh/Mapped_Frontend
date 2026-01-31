@@ -311,6 +311,7 @@ class ApiService {
   // 👇 PASTE THIS NEW FUNCTION HERE (Inside the class) 👇
 
   Future<Map<String, dynamic>> createSession({
+    required String trainerId,
     required String trainer,
     required String date,
     required String startTime, // New Param
@@ -319,21 +320,18 @@ class ApiService {
     required String totalTrainees,
   }) async {
     try {
-      // 1. Point to the new session route
       final url = Uri.parse('$baseUrl/session');
 
-      // 2. Encode the data
-      // We send strings for date/time because your backend parses them
       final body = jsonEncode({
+        "trainerId": trainerId,
         "trainer": trainer,
-        "date": date, // "Wed, Sept 21, 2025"
-        "startTime": startTime, // "6:00 PM"
-        "endTime": endTime, // "7:00 PM"
+        "date": date,
+        "startTime": startTime,
+        "endTime": endTime,
         "venue": venue,
         "totalTrainees": totalTrainees,
       });
 
-      // 3. Send POST request
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
@@ -364,20 +362,31 @@ class ApiService {
     }
   }
 
-  // Fetch Dashboard Data (Current, Upcoming, History)
-  Future<Map<String, dynamic>> getSessionDashboard() async {
+  // Use this version instead
+  // UPDATED: Now accepts both ID and Name to match Controller and Backend
+  Future<Map<String, dynamic>> getSessionDashboard({
+    required String trainerId,
+    required String trainerName,
+  }) async {
     try {
-      // Ensure this matches your backend route
-      final url = Uri.parse('$baseUrl/session/dashboard');
+      // 1. Construct URL with multiple query parameters
+      final url = Uri.parse(
+        '$baseUrl/session/dashboard?trainerId=$trainerId&trainer=$trainerName',
+      );
 
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      final decodedBody = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return decodedBody;
       } else {
         return {
           'success': false,
-          'msg': 'Failed to load dashboard: ${response.statusCode}',
+          'msg': decodedBody['msg'] ?? 'Failed to load dashboard',
         };
       }
     } catch (e) {
@@ -664,6 +673,99 @@ class ApiService {
       }
     } catch (e) {
       return {'success': false, 'msg': 'Failed to parse server response'};
+    }
+  }
+
+  Future<Map<String, dynamic>> recordResourceView(
+    String resourceId,
+    String userId,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/resources/view'),
+      body: jsonEncode({
+        'resourceId': resourceId,
+        'userId': userId, // Now backend can save it to the user's profile
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+    return jsonDecode(response.body);
+  }
+
+  // Update this to accept userId
+  Future<Map<String, dynamic>> getUserResourceProgress(String userId) async {
+    try {
+      // Ensure your Node.js route matches this: /api/user/resource-progress/:userId
+      final response = await http.get(
+        Uri.parse('$baseUrl/user/resource-progress/$userId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'msg': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateBeltProgress({
+    required String userId,
+    required String beltColor, // 'W', 'Y', 'G', etc.
+    required String
+    actionType, // 'recommendation', 'photo', 'open_resource', etc.
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/belt-progress/update');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode({
+          'userId': userId,
+          'beltColor': beltColor,
+          'actionType': actionType,
+        }),
+      );
+
+      final decodedBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': decodedBody['data']};
+      } else {
+        return {
+          'success': false,
+          'msg': decodedBody['msg'] ?? 'Failed to update belt progress',
+        };
+      }
+    } catch (e) {
+      print("API Update Belt Error: $e");
+      return {'success': false, 'msg': 'Network Error: $e'};
+    }
+  }
+
+  // ==================================================
+  // FETCH BELT PROGRESS DATA
+  // ==================================================
+  Future<Map<String, dynamic>> fetchBeltProgress(String userId) async {
+    try {
+      final url = Uri.parse('$baseUrl/belt-progress?userId=$userId');
+
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      final decodedBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Pass the full response body because backend returns 'belts' at the root level
+        return decodedBody;
+      } else {
+        return {
+          'success': false,
+          'msg': decodedBody['msg'] ?? 'Failed to fetch belt progress',
+        };
+      }
+    } catch (e) {
+      print("API Fetch Belt Error: $e");
+      return {'success': false, 'msg': 'Network Error: $e'};
     }
   }
 } // <---

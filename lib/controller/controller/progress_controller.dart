@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import '../../services/api_service.dart';
 import 'trainee_controller.dart';
-import 'belt_progress_ring_controller.dart';
+import '../../TProgress/belt_progress_ring_controller.dart';
 
 class ProgressController extends GetxController {
   final ApiService _apiService = ApiService();

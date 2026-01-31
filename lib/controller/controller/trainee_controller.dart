@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TraineeController extends GetxController {
   static const double totalFormCount = 8.0;
   var loading = false.obs;
   var error = ''.obs;
   var success = false.obs;
+  var currentUserId = ''.obs;
+
+  var currentUserName = ''.obs;
+  var activeDaysCount = 0.obs;
 
   // Observable list to update UI automatically
   var traineeList = <dynamic>[].obs;
@@ -19,7 +24,54 @@ class TraineeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _loadAuthData();
     fetchTrainees();
+    updateActiveDays();
+  }
+
+  Future<void> updateActiveDays() async {
+    final prefs = await SharedPreferences.getInstance();
+    String today = DateTime.now().toString().split(' ')[0];
+    String? lastDate = prefs.getString('last_active_date');
+    int currentCount = prefs.getInt('active_days_count') ?? 0;
+    String? userId = prefs.getString('user_id');
+
+    if (lastDate != today) {
+      currentCount++;
+      await prefs.setInt('active_days_count', currentCount);
+      await prefs.setString('last_active_date', today);
+    }
+
+    activeDaysCount.value = currentCount;
+
+    if (userId != null && userId.isNotEmpty) {
+      await _apiService.updateTrainee(userId, {'activeCount': currentCount});
+      print('✅ Active Count synced to backend: $currentCount');
+    }
+  }
+
+  Future<void> _loadAuthData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? storedId = prefs.getString('user_id');
+      final String? storedName = prefs.getString('user_name');
+
+      if (storedId != null && storedName != null) {
+        currentUserId.value = storedId;
+        currentUserName.value = storedName;
+        print("✅ TraineeController: Auth data restored ($storedName)");
+      } else {
+        print("⚠️ TraineeController: No stored auth data found");
+      }
+    } catch (e) {
+      print("❌ TraineeController: Error loading auth data: $e");
+    }
+  }
+
+  void setUserInfo(String id, String name) {
+    currentUserId.value = id;
+    currentUserName.value = name;
+    print("👤 Trainer Profile Set: $name ($id)");
   }
 
   // --- FETCH DATA ---

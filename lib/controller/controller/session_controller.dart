@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../services/api_service.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
 class SessionController extends GetxController {
   // Service Injection
@@ -15,6 +16,7 @@ class SessionController extends GetxController {
   var currentSession = Rxn<dynamic>();
   var upcomingSession = Rxn<dynamic>();
   var historySession = Rxn<dynamic>();
+  var totalSessionsCount = 0.obs;
 
   // List variables (For the Detailed Screens)
   var upcomingList = <dynamic>[].obs;
@@ -36,7 +38,24 @@ class SessionController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result = await _apiService.getSessionDashboard();
+      // Get User Details for API Call
+      String tId = '';
+      String tName = '';
+
+      try {
+        if (Get.isRegistered<UserController>()) {
+          final userController = Get.find<UserController>();
+          tId = userController.userId.value;
+          tName = userController.userName;
+        }
+      } catch (e) {
+        print("Could not find UserController: $e");
+      }
+
+      final result = await _apiService.getSessionDashboard(
+        trainerId: tId,
+        trainerName: tName,
+      );
 
       if (result['success'] == true) {
         final data = result['data'];
@@ -79,6 +98,10 @@ class SessionController extends GetxController {
         // Update Singular Variable (For Dashboard Card)
         historySession.value = historyList.isNotEmpty ? historyList[0] : null;
 
+        // Calculate Total Sessions
+        totalSessionsCount.value =
+            currentList.length + upcomingList.length + historyList.length;
+
         print("✅ Dashboard Data Updated (Robust Mode)");
       } else {
         print("❌ Failed to load dashboard: ${result['msg']}");
@@ -106,6 +129,17 @@ class SessionController extends GetxController {
       error.value = '';
       success.value = false;
 
+      // Get User Details for API Call
+      String tId = '';
+      try {
+        if (Get.isRegistered<UserController>()) {
+          final userController = Get.find<UserController>();
+          tId = userController.userId.value;
+        }
+      } catch (e) {
+        print("Could not find UserController: $e");
+      }
+
       final result = await _apiService.createSession(
         trainer: trainer,
         date: date,
@@ -113,6 +147,7 @@ class SessionController extends GetxController {
         endTime: endTime, // Sending ISO String
         venue: venue,
         totalTrainees: totalTrainees,
+        trainerId: tId,
       );
 
       if (result['success'] == true) {
@@ -138,8 +173,8 @@ class SessionController extends GetxController {
     required String id,
     required String trainer,
     required String date,
-    required String startTime, 
-    required String endTime, 
+    required String startTime,
+    required String endTime,
     required String venue,
     required String totalTrainees,
   }) async {
@@ -159,7 +194,7 @@ class SessionController extends GetxController {
 
       if (result['success'] == true) {
         success.value = true;
-      
+
         await fetchDashboardData();
       } else {
         error.value = result['msg'] ?? 'Failed to update';
@@ -173,7 +208,6 @@ class SessionController extends GetxController {
       isLoading.value = false;
     }
   }
-
 
   void resetState() {
     isLoading.value = false;

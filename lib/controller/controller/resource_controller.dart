@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../services/api_service.dart';
+import 'trainee_controller.dart';
+
 
 class ResourceController extends GetxController {
   final ApiService _apiService = ApiService();
+
+  final TraineeController traineeController = Get.find<TraineeController>();
 
   var loading = false.obs;
   var resourceList = <dynamic>[].obs;
@@ -11,12 +15,44 @@ class ResourceController extends GetxController {
   var tagsLoading = false.obs;
   var selectedTag = ''.obs;
   var success = false.obs;
+  var viewedResourceIds = <String>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
     fetchResources();
-    fetchTags();
+    fetchOpenResourceCount();
+  }
+
+Future<void> fetchOpenResourceCount() async {
+    try {
+      // Get the ID from the TraineeController
+      String userId = traineeController.currentUserId.value;
+      if (userId.isEmpty) return;
+
+      final result = await _apiService.getUserResourceProgress(userId);
+      if (result['success'] == true) {
+        List<String> savedIds = List<String>.from(result['data'] ?? []);
+        viewedResourceIds.assignAll(savedIds);
+      }
+    } catch (e) {
+      debugPrint("Error fetching resource count: $e");
+    }
+  }
+
+ // Update this in ResourceController
+void markResourceAsViewed(String id) async {
+    String userId = traineeController.currentUserId.value;
+    
+    if (!viewedResourceIds.contains(id)) {
+      viewedResourceIds.add(id); // Update UI immediately
+      try {
+        // Record to DB so it persists after logout
+        await _apiService.recordResourceView(id, userId); 
+      } catch (e) {
+        debugPrint("Failed to record view: $e");
+      }
+    }
   }
 
   Future<void> fetchResources({
