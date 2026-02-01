@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:mapped_frontend/forum/forum_screen.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_controller.dart';
@@ -255,11 +256,8 @@ class CreatePostController extends GetxController {
         showPreview.value = false;
         ytPlayerController?.dispose();
         ytPlayerController = null;
-
-        Get.back();
+        Get.off(() => ForumScreen());
         Get.snackbar("Success", "Post published successfully");
-
-        // Refresh Feed
         try {
           Get.find<ForumController>().loadPosts();
         } catch (e) {
