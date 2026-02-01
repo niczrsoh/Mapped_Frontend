@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   //-----------------end----------------------------
-  final String baseUrl = "http://10.0.2.2:5000/api";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api";
 
   Future<Map<String, dynamic>> registerUser({
     required String fullName,

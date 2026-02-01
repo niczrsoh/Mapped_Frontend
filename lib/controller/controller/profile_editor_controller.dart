@@ -108,7 +108,7 @@ class ProfileEditorController extends GetxController {
         profileImage.value = avatar;
       } else if (avatar.startsWith('uploads/')) {
         // Assuming your backend serves images from uploads folder
-        profileImage.value = 'http://10.0.2.2:5000/$avatar'; // For Android emulator
+        profileImage.value = 'https://mapped-backend-node-js.onrender.com/$avatar'; // For Android emulator
         // For iOS: 'http://localhost:5000/$avatar'
         // For real device: 'http://your-server-ip:5000/$avatar'
       } else {

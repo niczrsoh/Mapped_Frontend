@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_controller.dart';
 
 class CreatePostController extends GetxController {
-  final String baseUrl = "http://10.0.2.2:5000";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com";
 
   final TextEditingController textController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
