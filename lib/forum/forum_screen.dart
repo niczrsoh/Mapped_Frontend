@@ -679,7 +679,7 @@ class ForumScreen extends StatelessWidget {
 
     showDialog(
       context: Get.context!,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -778,7 +778,7 @@ class ForumScreen extends StatelessWidget {
 
     showDialog(
       context: Get.context!,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -884,7 +884,7 @@ class ForumScreen extends StatelessWidget {
   void _showReportSuccessDialog() {
     showDialog(
       context: Get.context!,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
