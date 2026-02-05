@@ -9,7 +9,7 @@ class ForumController extends GetxController {
   // CONFIGURATION
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "http://192.168.56.1:5000";
+      : "http://10.0.2.2:5000";
 
   String currentUserId = '';
 

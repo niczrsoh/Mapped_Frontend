@@ -12,7 +12,7 @@ import '../forum/forum_controller.dart';
 class CreatePostController extends GetxController {
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "http://192.168.56.1:5000";
+      : "http://10.0.2.2:5000";
 
   final TextEditingController textController = TextEditingController();
   // Removed tagsController since we extract from text now

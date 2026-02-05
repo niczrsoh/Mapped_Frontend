@@ -60,30 +60,6 @@ class ForumScreen extends StatelessWidget {
           color: Colors.white,
         ),
       ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Obx(
-            () => controller.isLoading.value
-                ? const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF09FACA),
-                      ),
-                    ),
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white),
-                    onPressed: controller.loadPosts,
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
-                  ),
-          ),
-        ),
-      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(70.0),
         child: Container(
@@ -102,14 +78,7 @@ class ForumScreen extends StatelessWidget {
       child: GestureDetector(
         onTap: () => Get.to(() => ForumSearchtagsScreen()),
         child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF252836),
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(
-              color: const Color(0xFF09FACA).withOpacity(0.3),
-              width: 1,
-            ),
-          ),
+          decoration: AppStyles.searchBarDeco,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
             children: [
@@ -233,16 +202,7 @@ class ForumScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF252836),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: post.isPinned.value
-              ? const Color(0xFF09FACA).withOpacity(0.6)
-              : const Color(0xFF09FACA).withOpacity(0.2),
-          width: post.isPinned.value ? 1.5 : 1,
-        ),
-      ),
+      decoration: AppStyles.postCardDeco(post.isPinned.value),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -285,7 +245,7 @@ class ForumScreen extends StatelessWidget {
         spans.add(TextSpan(
           text: tag,
           style: const TextStyle(
-            color: Color(0xFF09FACA), // Cyan Color
+            color: Color(0xFF09FACA),
             fontWeight: FontWeight.w600,
           ),
           recognizer: TapGestureRecognizer()
@@ -554,7 +514,6 @@ class ForumScreen extends StatelessWidget {
   }
 
   // ========== DIALOGS ==========
-
   // --- PIN CONFIRMATION DIALOG ---
   void _showPinConfirmationDialog(ForumPost post) {
     bool currentlyPinned = post.isPinned.value;
