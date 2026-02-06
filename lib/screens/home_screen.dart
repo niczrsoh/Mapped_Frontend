@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/screens/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/screens/coaching_screen.dart';
-import 'package:mapped_frontend/screens/resource_screen.dart';
+import 'package:mapped_frontend/resource/resource_screen.dart';
 import 'package:mapped_frontend/screens/search_result_screen.dart';
 import 'package:mapped_frontend/screens/trainee_screen.dart';
 import './belt_progress_screen.dart';
@@ -641,7 +641,7 @@ class HomeScreen extends GetView<HomeController> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => const ResourcesScreen(),
+                      builder: (context) => ResourceScreen(),
                     ),
                   );
                 },

@@ -1,0 +1,304 @@
+import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../forum/forum_controller.dart';
+import '../resource/resource_controller.dart';
+
+class CreateResourceController extends GetxController {
+  final String baseUrl = kIsWeb
+      ? "http://localhost:5000"
+      : "http://10.0.2.2:5000";
+
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController textController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+
+  var showTitleError = false.obs;
+  var selectedImages = <XFile>[].obs;
+  var isPosting = false.obs;
+  var showPreview = false.obs;
+  var postSuccess = false.obs;
+  var userName = 'Loading...'.obs;
+  var userAvatar = ''.obs;
+  var videoUrl = ''.obs;
+  var videoThumbnail = ''.obs;
+
+  String? currentUserId;
+
+  YoutubePlayerController? ytPlayerController;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchCurrentUser();
+  }
+
+  @override
+  void onClose() {
+    titleController.dispose();
+    textController.dispose();
+    ytPlayerController?.dispose();
+    super.onClose();
+  }
+
+  Future<void> fetchCurrentUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      currentUserId = prefs.getString('user_id');
+      String? storedName = prefs.getString('user_name');
+      String? storedAvatar = prefs.getString('user_avatar');
+
+      if (storedName != null && storedName.isNotEmpty)
+        userName.value = storedName;
+      if (storedAvatar != null && storedAvatar.isNotEmpty)
+        userAvatar.value = storedAvatar;
+
+      if (currentUserId == null) {
+        userName.value = "Guest";
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/auth/$currentUserId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        userName.value =
+            data['name'] ?? data['user']?['name'] ?? 'Unknown User';
+        userAvatar.value = data['avatar'] ?? data['user']?['avatar'] ?? '';
+      }
+    } catch (e) {
+      print("Error fetching user: $e");
+    }
+  }
+
+  // --- IMAGES ---
+  Future<void> pickImageFromGallery() async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage();
+      if (images.isNotEmpty) selectedImages.addAll(images);
+    } catch (e) {
+      Get.snackbar("Error", "Failed to pick images");
+    }
+  }
+
+  Future<void> pickImageFromCamera() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+      if (image != null) selectedImages.add(image);
+    } catch (e) {
+      Get.snackbar("Error", "Failed to take photo");
+    }
+  }
+
+  void removeImage(int index) => selectedImages.removeAt(index);
+
+  // --- PREVIEW ---
+  void previewPost() {
+    if (titleController.text.trim().isEmpty) {
+      showTitleError.value = true;
+      return;
+    }
+
+    showTitleError.value = false;
+    showPreview.value = true;
+  }
+
+  void backToEdit() {
+    showPreview.value = false;
+    postSuccess.value = false;
+  }
+
+  // --- VIDEO ---
+  void addVideoLink(String url) {
+    if (url.isEmpty) return;
+    String? videoId = YoutubePlayer.convertUrlToId(url);
+
+    if (videoId == null) {
+      if (url.contains("youtube.com/watch?v=")) {
+        videoId = url.split("v=")[1].split("&")[0];
+      } else if (url.contains("youtu.be/")) {
+        videoId = url.split("youtu.be/")[1].split("?")[0];
+      }
+    }
+
+    if (videoId != null && videoId.isNotEmpty) {
+      videoUrl.value = url;
+      videoThumbnail.value = "https://img.youtube.com/vi/$videoId/0.jpg";
+      ytPlayerController = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+          disableDragSeek: true,
+        ),
+      );
+      Get.back();
+    } else {
+      Get.snackbar("Error", "Please enter a valid YouTube URL");
+    }
+  }
+
+  void removeVideo() {
+    videoUrl.value = '';
+    videoThumbnail.value = '';
+    ytPlayerController?.dispose();
+    ytPlayerController = null;
+  }
+
+  // --- HASHTAG LOGIC ---
+  List<String> _extractHashtags(String text) {
+    RegExp regExp = RegExp(r"#[a-zA-Z0-9_]+");
+
+    Iterable<Match> matches = regExp.allMatches(text);
+
+    return matches.map((m) => m.group(0)!).toSet().toList();
+  }
+
+  // --- SUBMIT ---
+  Future<void> submitPost() async {
+    if (titleController.text.trim().isEmpty) {
+      Get.snackbar("Error", "Title cannot be empty");
+      return;
+    }
+
+    if (textController.text.trim().isEmpty) {
+      Get.snackbar("Error", "Content cannot be empty");
+      return;
+    }
+
+    if (currentUserId == null) {
+      final prefs = await SharedPreferences.getInstance();
+      currentUserId = prefs.getString('user_id');
+      if (currentUserId == null) {
+        Get.snackbar("Error", "User session expired. Please login again.");
+        return;
+      }
+    }
+
+    isPosting.value = true;
+
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/api/resources'),
+      );
+
+      // Required fields
+      request.fields['userId'] = currentUserId!;
+      request.fields['title'] = titleController.text.trim();
+      request.fields['content'] = textController.text.trim();
+      request.fields['description'] = textController.text.trim();
+
+      // Mark as resource
+      request.fields['category'] = 'resource';
+      request.fields['isResource'] = 'true';
+
+      // 1. EXTRACT TAGS AUTOMATICALLY
+      List<String> extractedTags = _extractHashtags(textController.text);
+
+      // 2. SEND AS COMMA-SEPARATED STRING
+      if (extractedTags.isNotEmpty) {
+        request.fields['tags'] = extractedTags.join(',');
+        print("Sending tags: ${request.fields['tags']}");
+      }
+
+      // Determine resource type
+      String resourceType = 'text';
+      if (selectedImages.isNotEmpty) {
+        resourceType = 'image';
+      } else if (videoUrl.value.isNotEmpty) {
+        resourceType = 'video';
+      } else if (textController.text.contains('http://') ||
+          textController.text.contains('https://')) {
+        resourceType = 'link';
+      }
+      request.fields['type'] = resourceType;
+      request.fields['resourceType'] = resourceType;
+
+      if (videoUrl.value.isNotEmpty) {
+        request.fields['videoUrl'] = videoUrl.value;
+      }
+      if (videoThumbnail.value.isNotEmpty) {
+        request.fields['videoThumbnail'] = videoThumbnail.value;
+      }
+
+      // Add Images with correct field name
+      for (var image in selectedImages) {
+        if (kIsWeb) {
+          var bytes = await image.readAsBytes();
+          request.files.add(
+            http.MultipartFile.fromBytes('images', bytes, filename: image.name),
+          );
+        } else {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'images',
+              image.path,
+              filename: image.name,
+            ),
+          );
+        }
+      }
+
+      print('📤 Sending resource POST to: ${request.url}');
+      print('📝 Fields: ${request.fields}');
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      print('📥 Response Status: ${response.statusCode}');
+      print('📥 Response Body: $responseBody');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        postSuccess.value = true;
+        await Future.delayed(const Duration(seconds: 1));
+
+        // Reset
+        titleController.clear();
+        textController.clear();
+        selectedImages.clear();
+        videoUrl.value = '';
+        videoThumbnail.value = '';
+        ytPlayerController?.dispose();
+        ytPlayerController = null;
+
+        Get.back();
+        Get.snackbar("Success", "Resource published successfully");
+
+        // Refresh both resource and forum pages
+        try {
+          // Refresh resource page
+          Get.find<ResourceController>().loadResources();
+        } catch (e) {
+          print("ResourceController not found, that's okay");
+        }
+
+        try {
+          // Also refresh forum if it's open
+          Get.find<ForumController>().loadPosts();
+        } catch (e) {
+          print("ForumController not found, that's okay");
+        }
+      } else {
+        print("❌ Error: $responseBody");
+        Get.snackbar(
+          "Error",
+          "Failed to upload resource (${response.statusCode})",
+        );
+      }
+    } catch (e) {
+      print("❌ Error sending resource: $e");
+      Get.snackbar("Error", "Connection error: $e");
+    } finally {
+      isPosting.value = false;
+    }
+  }
+}
