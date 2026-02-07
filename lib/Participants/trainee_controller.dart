@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../services/api_service.dart';
+import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'trainee_model.dart';
 
 class TraineeController extends GetxController {
   static const double totalFormCount = 8.0;
@@ -11,12 +12,7 @@ class TraineeController extends GetxController {
   var currentUserId = ''.obs;
 
   var currentUserName = ''.obs;
-  var activeDaysCount = 0.obs;
-
-  // Observable list to update UI automatically
   var traineeList = <dynamic>[].obs;
-
-  // 1. ADD THIS: A reactive map to store "ID -> Percentage String"
   var traineeProgressMap = <String, String>{}.obs;
 
   final ApiService _apiService = ApiService();
@@ -24,30 +20,9 @@ class TraineeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadAuthData();
-    fetchTrainees();
-    updateActiveDays();
-  }
-
-  Future<void> updateActiveDays() async {
-    final prefs = await SharedPreferences.getInstance();
-    String today = DateTime.now().toString().split(' ')[0];
-    String? lastDate = prefs.getString('last_active_date');
-    int currentCount = prefs.getInt('active_days_count') ?? 0;
-    String? userId = prefs.getString('user_id');
-
-    if (lastDate != today) {
-      currentCount++;
-      await prefs.setInt('active_days_count', currentCount);
-      await prefs.setString('last_active_date', today);
-    }
-
-    activeDaysCount.value = currentCount;
-
-    if (userId != null && userId.isNotEmpty) {
-      await _apiService.updateTrainee(userId, {'activeCount': currentCount});
-      print('✅ Active Count synced to backend: $currentCount');
-    }
+    _loadAuthData().then((_) {
+      fetchTrainees();
+    });
   }
 
   Future<void> _loadAuthData() async {
@@ -71,21 +46,31 @@ class TraineeController extends GetxController {
   void setUserInfo(String id, String name) {
     currentUserId.value = id;
     currentUserName.value = name;
-    print("👤 Trainer Profile Set: $name ($id)");
   }
 
-  // --- FETCH DATA ---
   Future<void> fetchTrainees() async {
     try {
       loading.value = true;
+
+      if (currentUserId.value.isEmpty) {
+        await _loadAuthData();
+      }
+
       final result = await _apiService.getAllTrainees();
 
       if (result['success'] == true) {
-        traineeList.assignAll(result['data']);
+        List<dynamic> allData = result['data'];
+        if (currentUserId.value.isNotEmpty) {
+          List<dynamic> myTrainees = allData
+              .where((t) => t['trainerId'] == currentUserId.value)
+              .toList();
+          traineeList.assignAll(myTrainees);
+        } else {
+          traineeList.assignAll([]);
+        }
 
-        // Optional: Trigger progress load for all fetched trainees immediately
-        for (var trainee in result['data']) {
-          loadTraineeProgress(trainee['id']);
+        for (var trainee in traineeList) {
+          loadTraineeProgress(trainee['id'], trainee['belt'] ?? 'White');
         }
       }
     } catch (e) {
@@ -95,37 +80,12 @@ class TraineeController extends GetxController {
     }
   }
 
-  // --- ADD TRAINEE ---
-  Future<void> addTrainee({
-    required String name,
-    required String belt,
-    required String dateOfBirth,
-    required String gender,
-    required String phone,
-    required String email,
-    required String address,
-    required String guardianName,
-    required String guardianContact,
-    required String guardianAddress,
-    String? imagePath,
-  }) async {
+  Future<void> addTrainee(TraineeModel trainee) async {
     try {
       loading.value = true;
       error.value = '';
 
-      final result = await _apiService.addTrainee(
-        name: name,
-        belt: belt,
-        dateOfBirth: dateOfBirth,
-        gender: gender,
-        phone: phone,
-        email: email,
-        address: address,
-        guardianName: guardianName,
-        guardianContact: guardianContact,
-        guardianAddress: guardianAddress,
-        imagePath: imagePath,
-      );
+      final result = await _apiService.addTrainee(trainee);
 
       if (result['success'] == true) {
         success.value = true;
@@ -135,7 +95,6 @@ class TraineeController extends GetxController {
         success.value = false;
       }
     } catch (e) {
-      print('Trainee Controller Error: $e');
       error.value = 'Error: $e';
       success.value = false;
     } finally {
@@ -143,19 +102,36 @@ class TraineeController extends GetxController {
     }
   }
 
-  // --- UPDATE TRAINEE ---
   Future<void> updateTrainee(String id, Map<String, dynamic> data) async {
     try {
       loading.value = true;
       error.value = '';
 
       final result = await _apiService.updateTrainee(id, data);
-      print('Update Result: $result');
 
       if (result['success'] == true) {
         success.value = true;
 
-        await fetchTrainees();
+        if (result['data'] != null) {
+          int index = traineeList.indexWhere((t) => t['id'] == id);
+
+          if (index != -1) {
+            final Map<String, dynamic> oldData = traineeList[index];
+            final Map<String, dynamic> newData = Map<String, dynamic>.from(
+              result['data'],
+            );
+
+            traineeList[index] = {...oldData, ...newData};
+            traineeList.refresh();
+            print(
+              "✅ TraineeController: Local state updated for ${result['data']['name']}",
+            );
+          } else {
+            await fetchTrainees();
+          }
+        } else {
+          await fetchTrainees();
+        }
 
         print('Navigating back...');
         Get.back();
@@ -185,21 +161,35 @@ class TraineeController extends GetxController {
     }
   }
 
-  // --- DELETE TRAINEE ---
   Future<void> deleteTrainee(String id) async {
     try {
       loading.value = true;
+
+      final progressRes = await _apiService.deleteProgress(id);
+      if (progressRes['success'] != true) {
+        print(
+          "⚠️ Warning: Failed to delete progress. proceeding to delete trainee. Reason: ${progressRes['msg']}",
+        );
+      } else {
+        print("✅ Progress deleted successfully");
+      }
+
+      // 2. Then Delete Trainee
       final result = await _apiService.deleteTrainee(id);
 
       if (result['success'] == true) {
         success.value = true;
+        // Remove from local list immediately
+        traineeList.removeWhere((t) => t['id'] == id);
+        update(); // Force UI update
+
         await fetchTrainees();
 
-        Get.close(2);
+        Get.close(2); 
 
         Get.snackbar(
           'Deleted',
-          'Trainee removed successfully',
+          'Trainee and progress removed successfully',
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
@@ -222,48 +212,23 @@ class TraineeController extends GetxController {
     }
   }
 
-  // Future<void> loadTraineeProgress(String traineeId) async {
-  //   try {
-  //     final result = await _apiService.getAllProgress(traineeId);
-  //     if (result['success'] == true && result['data'] != null) {
-  //       List<dynamic> forms = result['data'];
-  //       if (forms.isEmpty) {
-  //         traineeProgressMap[traineeId] = '0 %';
-  //       } else {
-  //         double totalPercentage = 0.0;
-  //         for (var form in forms) {
-  //           totalPercentage += (form['percentage'] ?? 0.0).toDouble();
-  //         }
-  //         int avg = ((totalPercentage / forms.length) * 100).round();
-  //         traineeProgressMap[traineeId] = '$avg %';
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print("Error loading progress: $e");
-  //   }
-  // }
-
-  Future<void> loadTraineeProgress(String traineeId) async {
+  Future<void> loadTraineeProgress(String traineeId, String beltColor) async {
     try {
-      final result = await _apiService.getAllProgress(traineeId);
+      final result = await _apiService.getAllProgress(traineeId, beltColor);
 
       if (result['success'] == true && result['data'] != null) {
         final data = result['data'];
 
-        // SCENARIO 1: Backend sends Map (Best Case)
         if (data is Map<String, dynamic>) {
           double serverAvg = (data['overallAverage'] ?? 0.0).toDouble();
           int percentageInt = (serverAvg * 100).round();
           traineeProgressMap[traineeId] = '$percentageInt %';
-        }
-        // SCENARIO 2: Backend sends List (Fallback)
-        else if (data is List) {
+        } else if (data is List) {
           double totalPercentage = 0.0;
           for (var form in data) {
             totalPercentage += (form['percentage'] ?? 0.0).toDouble();
           }
 
-          // Divide by total form count (8), NOT items count
           double calculatedAvg = totalPercentage / totalFormCount;
 
           if (calculatedAvg > 1.0) calculatedAvg = 1.0;
@@ -272,7 +237,6 @@ class TraineeController extends GetxController {
         }
       }
     } catch (e) {
-      print("Error loading progress: $e");
       traineeProgressMap[traineeId] = '0 %';
     }
   }

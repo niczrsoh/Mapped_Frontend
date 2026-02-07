@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import '../controller/controller/trainee_controller.dart';
+import '../Participants/trainee_controller.dart';
 
 class BeltListScreen extends StatefulWidget {
   final String beltName;

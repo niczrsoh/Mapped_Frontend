@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import '../controller/controller/session_controller.dart';
-import 'edit_session.dart';
+import 'session_controller.dart';
 
-class UpcomingSessionsScreen extends StatelessWidget {
-  const UpcomingSessionsScreen({super.key});
+class SessionCurrentScreen extends StatelessWidget {
+  const SessionCurrentScreen({super.key});
 
-  Widget _upcomingRow({
-    required String id,
+  Widget _smallSessionRow({
     required String date,
     required String time,
     required String venue,
@@ -16,22 +14,23 @@ class UpcomingSessionsScreen extends StatelessWidget {
     required String trainer,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.calendar_today, size: 14, color: Colors.white),
+              const Icon(Icons.calendar_today, size: 14, color: Colors.white54),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   date,
                   style: GoogleFonts.roboto(
-                    color: Colors.white,
-                    fontSize: 12,
+                    color: Colors.white70,
                     fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
                   ),
                 ),
               ),
@@ -41,15 +40,16 @@ class UpcomingSessionsScreen extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.access_time, size: 14, color: Colors.white),
+              const Icon(Icons.access_time, size: 14, color: Colors.white54),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   time,
                   style: GoogleFonts.roboto(
-                    color: Colors.white,
-                    fontSize: 12,
+                    color: Colors.white54,
                     fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
                   ),
                 ),
               ),
@@ -57,21 +57,21 @@ class UpcomingSessionsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(
                 Icons.location_on_outlined,
-                color: Colors.white,
                 size: 14,
+                color: Colors.white54,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   venue,
                   style: GoogleFonts.roboto(
-                    color: Colors.white,
-                    fontSize: 12,
+                    color: Colors.white54,
                     fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
                   ),
                 ),
               ),
@@ -79,101 +79,135 @@ class UpcomingSessionsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.group_outlined, size: 14, color: Colors.white),
+              const Icon(Icons.group_outlined, size: 14, color: Colors.white54),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  trainees,
-                  style: GoogleFonts.roboto(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
+              Text(
+                trainees,
+                style: GoogleFonts.roboto(
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  height: 1.0,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.person_outline, size: 14, color: Colors.white),
+              const Icon(Icons.person_outline, size: 14, color: Colors.white54),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Trainer : $trainer',
                   style: GoogleFonts.roboto(
-                    color: Colors.white,
-                    fontSize: 12,
+                    color: Colors.white54,
                     fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    height: 1.0,
                   ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: TextButton(
-              onPressed: () async {
-                final sessionData = {
-                  'id': id,
-                  'trainer': trainer,
-                  'date': date,
-                  'time': time,
-                  'venue': venue,
-                  'number': trainees.split(' ').first,
-                };
-                // ... sent to the next screen invisibly
-                Get.to(() => EditSessionScreen(sessionData: sessionData));
-
-                final result = await Get.to(
-                  () => EditSessionScreen(sessionData: sessionData),
-                );
-                if (result != null) {
-                  Get.snackbar(
-                    'Session updated',
-                    'Changes saved',
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
-                }
-              },
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                minimumSize: const Size(0, 24),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Edit Session',
-                    style: GoogleFonts.roboto(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _planCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.all(1),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
+        ),
+        borderRadius: BorderRadius.circular(19),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFF141823),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ai Success for Plan Today',
+              style: GoogleFonts.roboto(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Warm-up (10 min)',
+              style: GoogleFonts.roboto(
+                color: const Color(0xFF00FFA6),
+                fontWeight: FontWeight.w400,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '• Line drills with seated option\n• Elastic band mobility',
+              style: GoogleFonts.roboto(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Drill 1 (15 min)',
+              style: GoogleFonts.roboto(
+                color: const Color(0xFF00FFA6),
+                fontWeight: FontWeight.w400,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '• Straight punch combos (L/R)\n• Partner pads - pair by strength',
+              style: GoogleFonts.roboto(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Cooldown (5 min)',
+              style: GoogleFonts.roboto(
+                color: const Color(0xFF00FFA6),
+                fontWeight: FontWeight.w400,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '• Breathing + wrist/ankle circles\n• Reflection prompt',
+              style: GoogleFonts.roboto(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final SessionController controller = Get.find<SessionController>();
+    final SessionController controller = Get.put(SessionController());
     final themeBg = const Color(0xFF141823);
 
     return Scaffold(
@@ -191,10 +225,10 @@ class UpcomingSessionsScreen extends StatelessWidget {
         ),
         title: Text(
           'Session Dashboard',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.roboto(
             color: Colors.white,
             fontSize: 16,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -215,7 +249,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Upcoming Sessions',
+                    'Current Session',
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -226,12 +260,11 @@ class UpcomingSessionsScreen extends StatelessWidget {
 
               const SizedBox(height: 18),
 
-              // ✅ RESPONSIVE WIDTH FIX
-              Center(
-                child: Container(
-                  // 'double.infinity' makes it stretch to fill the width (minus padding)
+              Obx(() {
+                return Container(
+                  key: const ValueKey('list_state'),
                   width: double.infinity,
-                  height: 486, // Fixed height kept as requested
+                  constraints: const BoxConstraints(maxWidth: 299),
                   padding: const EdgeInsets.all(1),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -251,7 +284,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Upcoming',
+                          'Current',
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -259,63 +292,60 @@ class UpcomingSessionsScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Expanded(
-                          child: Obx(() {
-                            if (controller.upcomingList.isEmpty) {
-                              return Center(
-                                child: Text(
-                                  "No Upcoming Sessions Available",
-                                  style: GoogleFonts.roboto(
-                                    color: Colors.white54,
-                                  ),
+
+                        if (controller.currentList.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20.0),
+                            child: Center(
+                              child: Text(
+                                "No Current Sessions Available",
+                                style: GoogleFonts.roboto(
+                                  color: Colors.white54,
                                 ),
-                              );
-                            }
-                            return SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  for (
-                                    var i = 0;
-                                    i < controller.upcomingList.length;
-                                    i++
-                                  ) ...[
-                                    _upcomingRow(
-                                      // 3. Pass the ID from the list here
-                                      id:
-                                          controller.upcomingList[i]['_id'] ??
-                                          '',
-                                      date:
-                                          controller
-                                              .upcomingList[i]['uiDate'] ??
-                                          '-',
-                                      time:
-                                          controller.upcomingList[i]['time'] ??
-                                          '-',
-                                      venue:
-                                          controller.upcomingList[i]['venue'] ??
-                                          '-',
-                                      trainees:
-                                          '${controller.upcomingList[i]['totalTrainees']} Trainees',
-                                      trainer:
-                                          controller
-                                              .upcomingList[i]['trainer'] ??
-                                          '-',
-                                    ),
-                                    if (i < controller.upcomingList.length - 1)
-                                      const Divider(color: Colors.white),
-                                  ],
-                                ],
                               ),
+                            ),
+                          )
+                        else
+                          ...List.generate(controller.currentList.length, (i) {
+                            final session = controller.currentList[i];
+                            return Column(
+                              children: [
+                                _smallSessionRow(
+                                  date: session.uiDate ?? session.date ?? '-',
+                                  time: () {
+                                    final d = session.duration;
+                                    if (d != null &&
+                                        d.isNotEmpty &&
+                                        d != 'null') {
+                                      return d.toLowerCase().contains('min')
+                                          ? d
+                                          : '$d min';
+                                    }
+                                    return '-';
+                                  }(),
+                                  venue: session.venue ?? '-',
+                                  trainees: '${session.totalTrainees} Trainees',
+                                  trainer: session.trainer ?? '-',
+                                ),
+                                if (i < controller.currentList.length - 1)
+                                  const Divider(
+                                    color: Colors.white24,
+                                    height: 24,
+                                  ),
+                              ],
                             );
                           }),
-                        ),
                       ],
                     ),
                   ),
-                ),
-              ),
+                );
+              }),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 18),
+
+              _planCard(),
+
+              const SizedBox(height: 22),
 
               Center(
                 child: Container(
@@ -362,7 +392,6 @@ class UpcomingSessionsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 40),
             ],
           ),

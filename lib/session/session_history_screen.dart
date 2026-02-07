@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import '../controller/controller/session_controller.dart';
+import 'session_controller.dart';
+import 'session_details.dart';
+import 'session_reflect.dart';
+import 'session_model.dart';
 
 class SessionHistoryScreen extends StatelessWidget {
   const SessionHistoryScreen({super.key});
@@ -12,9 +15,11 @@ class SessionHistoryScreen extends StatelessWidget {
     required String venue,
     required String trainees,
     required String trainer,
+    required SessionModel sessionData,
+    required SessionController controller,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.only(top: 6.0, bottom: 0.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -111,32 +116,94 @@ class SessionHistoryScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                minimumSize: const Size(0, 24),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Row(
+          Transform.translate(
+            offset: const Offset(0, -12),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    'View Session',
-                    style: GoogleFonts.roboto(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
+                  TextButton(
+                    onPressed: () {
+                      Get.to(
+                        () => SessionDetailsScreen(
+                          sessionData: sessionData.toJson(),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 0,
+                      ),
+                      minimumSize: const Size(0, 24),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'View Session',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: Colors.white,
-                    size: 16,
+                  TextButton(
+                    onPressed: () async {
+                      // 1. Refresh data to ensure we have the latest reflection info
+                      await controller.fetchDashboardData();
+
+                      // 2. Find the fresh session object from the list
+                      final upToDateSession = controller.historyList.firstWhere(
+                        (s) => s.id == sessionData.id,
+                        orElse: () => sessionData,
+                      );
+
+                      Get.to(
+                        () => SessionReflectionsScreen(
+                          sessionData: upToDateSession.toJson(),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 0,
+                      ),
+                      minimumSize: const Size(0, 24),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Reflect Session',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -149,7 +216,7 @@ class SessionHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SessionController controller = Get.find<SessionController>();
+    final SessionController controller = Get.put(SessionController());
     final themeBg = const Color(0xFF141823);
 
     return Scaffold(
@@ -202,11 +269,10 @@ class SessionHistoryScreen extends StatelessWidget {
 
               const SizedBox(height: 18),
 
-              // ✅ RESPONSIVE WIDTH FIX
               Center(
                 child: Container(
-                  width: double.infinity, // Resizes with screen width
-                  height: 486, // Fixed height preserved
+                  width: double.infinity,
+                  height: 486,
                   padding: const EdgeInsets.all(1),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -256,20 +322,30 @@ class SessionHistoryScreen extends StatelessWidget {
                                   ) ...[
                                     _historyRow(
                                       date:
-                                          controller.historyList[i]['uiDate'] ??
+                                          controller.historyList[i].uiDate ??
                                           '-',
-                                      time:
-                                          controller.historyList[i]['time'] ??
-                                          '-',
+                                      time: () {
+                                        final val = controller.historyList[i];
+                                        final d = val.duration;
+                                        if (d != null &&
+                                            d.isNotEmpty &&
+                                            d != 'null') {
+                                          return d.toLowerCase().contains('min')
+                                              ? d
+                                              : '$d min';
+                                        }
+                                        return '-';
+                                      }(),
+                                      controller: controller,
                                       venue:
-                                          controller.historyList[i]['venue'] ??
+                                          controller.historyList[i].venue ??
                                           '-',
                                       trainees:
-                                          '${controller.historyList[i]['totalTrainees']} Trainees',
+                                          '${controller.historyList[i].totalTrainees} Trainees',
                                       trainer:
-                                          controller
-                                              .historyList[i]['trainer'] ??
+                                          controller.historyList[i].trainer ??
                                           '-',
+                                      sessionData: controller.historyList[i],
                                     ),
                                     if (i < controller.historyList.length - 1)
                                       const Divider(color: Colors.white),

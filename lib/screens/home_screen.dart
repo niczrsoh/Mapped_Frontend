@@ -7,13 +7,13 @@ import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/screens/coaching_screen.dart';
 import 'package:mapped_frontend/screens/resource_screen.dart';
 import 'package:mapped_frontend/screens/search_result_screen.dart';
-import 'package:mapped_frontend/screens/trainee_screen.dart';
-import 'package:mapped_frontend/screens/session_planner_screen.dart';
-import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
+import 'package:mapped_frontend/Participants/trainee_screen.dart';
+import 'package:mapped_frontend/session/session_planner.dart';
+import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controller/home_controller/controller/home_controller.dart';
-import 'package:mapped_frontend/controller/controller/trainee_controller.dart';
-import 'package:mapped_frontend/controller/controller/session_controller.dart';
+import 'package:mapped_frontend/controller/controller/trainer_controller.dart';
+import 'package:mapped_frontend/session/session_controller.dart';
 import 'package:mapped_frontend/controller/controller/resource_controller.dart';
 
 // - Importing to access belt logic
@@ -33,7 +33,7 @@ class HomeScreen extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    final TraineeController traineeController = Get.put(TraineeController());
+    final TrainerController trainerController = Get.put(TrainerController());
 
     final themeBg = const Color(0xFF141823);
 
@@ -52,18 +52,16 @@ class HomeScreen extends GetView<HomeController> {
     Widget sectionCard({required Widget child, double radius = 18}) {
       return Container(
         width: double.infinity,
-        // The padding here creates the "Border Width" (1.0)
         padding: const EdgeInsets.all(1.0),
         decoration: BoxDecoration(
-          gradient: customGradient, // The border gradient
+          gradient: customGradient, 
           borderRadius: BorderRadius.circular(radius),
         ),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16), // Original content padding
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF141823), // Original Card Background
-            // Inner radius must be slightly less than outer to prevent corners bleeding
+            color: const Color(0xFF141823), 
             borderRadius: BorderRadius.circular(radius - 1),
           ),
           child: child,
@@ -161,7 +159,6 @@ class HomeScreen extends GetView<HomeController> {
                                 hintText:
                                     'Search Students, Sessions, Forums ...',
                                 hintStyle: TextStyle(
-                                  // Fixed: withOpacity deprecated -> withValues
                                   color: Colors.white.withValues(alpha: 0.95),
                                   fontSize: 14,
                                 ),
@@ -223,7 +220,7 @@ class HomeScreen extends GetView<HomeController> {
                       final int totalSessions =
                           sessionController.totalSessionsCount.value;
                       final int totalDays =
-                          traineeController.activeDaysCount.value;
+                          trainerController.activeDaysCount.value;
                       final int totalResources =
                           resourceController.viewedResourceIds.length;
 
@@ -504,7 +501,7 @@ class HomeScreen extends GetView<HomeController> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Trainee',
+                              'Participants',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
@@ -512,7 +509,7 @@ class HomeScreen extends GetView<HomeController> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Monitor the trainee',
+                              'Participant information',
                               style: GoogleFonts.poppins(color: Colors.white),
                             ),
                           ],

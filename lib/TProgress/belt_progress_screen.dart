@@ -1,16 +1,16 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/helper/colorConstant.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
-import '../../controller/controller/trainee_controller.dart';
+import '../../controller/controller/trainer_controller.dart';
 import 'belt_progress_ring_controller.dart';
-import '../controller/controller/session_controller.dart';
+import '../session/session_controller.dart';
 import '../../controller/controller/resource_controller.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
-import 'package:mapped_frontend/TProgress/data/belt_requirements.dart'; // Ensure this import points to your new file
+import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
 
 class BeltProgressScreen extends StatefulWidget {
   final String beltName;
@@ -27,7 +27,7 @@ class BeltProgressScreen extends StatefulWidget {
 }
 
 class _BeltProgressScreenState extends State<BeltProgressScreen> {
-  final TraineeController controller = Get.put(TraineeController());
+  final TrainerController controller = Get.put(TrainerController());
   late BeltProgressRingController ringController;
 
   @override
@@ -43,14 +43,33 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
   }
 
   Future<void> _refreshData() async {
+    // 1. Try to sync User ID from UserController (most reliable source)
+    if (Get.isRegistered<UserController>()) {
+      final userCtrl = Get.find<UserController>();
+      if (userCtrl.userId.value.isNotEmpty) {
+        controller.currentUserId.value = userCtrl.userId.value;
+        print(
+          "🔗 TrainerController synced with UserController ID: ${userCtrl.userId.value}",
+        );
+      }
+    }
+
     if (controller.currentUserId.value.isEmpty) {
       print("⏳ Waiting for User ID...");
       int retries = 0;
       while (controller.currentUserId.value.isEmpty && retries < 10) {
+        // Try checking Get.find<UserController> again in loop
+        if (Get.isRegistered<UserController>() &&
+            controller.currentUserId.value.isEmpty) {
+          final u = Get.find<UserController>();
+          if (u.userId.value.isNotEmpty)
+            controller.currentUserId.value = u.userId.value;
+        }
         await Future.delayed(const Duration(milliseconds: 200));
         retries++;
       }
     }
+
     // 0. Ensure Resources & Active Days are loaded/updated
     final resourceController = Get.isRegistered<ResourceController>()
         ? Get.find<ResourceController>()
@@ -61,6 +80,28 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
     // 1. Fetch the ring percentages
     await ringController.fetchBeltProgress();
 
+    int maxImpliedDays = 0;
+    try {
+      for (var belt in ringController.detailedBeltData) {
+        final req = BeltRequirementsData.getFor(belt.beltColor);
+        int beltActiveDays = belt.progress.activeDayCount;
+
+        if (beltActiveDays > 0) {
+          int implied = beltActiveDays + req.cumulativeDayOffset;
+          if (implied > maxImpliedDays) maxImpliedDays = implied;
+        }
+      }
+
+      if (maxImpliedDays > controller.activeDaysCount.value) {
+        print(
+          "🩹 Self-Healing: Found $maxImpliedDays active days in Belt History (vs ${controller.activeDaysCount.value} in Profile). Updating.",
+        );
+        controller.activeDaysCount.value = maxImpliedDays;
+      }
+    } catch (e) {
+      print("Self-Healing Error: $e");
+    }
+
     // 2. Fetch the session count for the specific user
     final sessionController = Get.find<SessionController>();
     await sessionController.fetchDashboardData();
@@ -69,22 +110,28 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
     await _syncAllBelts();
   }
 
-  Map<String, dynamic> _calculateBeltStats(BeltRequirement req, int totalSessions, int totalActiveDays, int openResources) {
-    // 1. Calculate the raw current values (clamped to the specific task target)
-    int currentSess = (totalSessions - req.cumulativeSessionOffset)
-        .clamp(0, _getTaskTarget(req, RequirementType.session));
-        
-    int currentDays = (totalActiveDays - req.cumulativeDayOffset)
-        .clamp(0, _getTaskTarget(req, RequirementType.activeDay));
+  Map<String, dynamic> _calculateBeltStats(
+    BeltRequirement req,
+    int totalSessions,
+    int totalActiveDays,
+    int openResources,
+  ) {
+    int currentSess = (totalSessions - req.cumulativeSessionOffset).clamp(
+      0,
+      _getTaskTarget(req, RequirementType.session),
+    );
+
+    int currentDays = (totalActiveDays - req.cumulativeDayOffset).clamp(
+      0,
+      _getTaskTarget(req, RequirementType.activeDay),
+    );
 
     double currentProgressSum = 0;
     double targetProgressSum = 0;
 
     for (var task in req.tasks) {
-      // Always add the target to the denominator
       targetProgressSum += task.target;
 
-      // Add actual progress to the numerator
       int val = 0;
       switch (task.type) {
         case RequirementType.session:
@@ -101,7 +148,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
         case RequirementType.reflection:
         case RequirementType.forumPost:
         case RequirementType.shareTip:
-          val = 0; 
+          val = 0;
           break;
       }
       currentProgressSum += val;
@@ -115,11 +162,13 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
       'sessions': currentSess,
       'days': currentDays,
       'progress': progressPct,
-      'resources': openResources.clamp(0, _getTaskTarget(req, RequirementType.resource))
+      'resources': openResources.clamp(
+        0,
+        _getTaskTarget(req, RequirementType.resource),
+      ),
     };
   }
 
-  /// Helper to safely get a target for a specific type from a requirement, defaults to 0
   int _getTaskTarget(BeltRequirement req, RequirementType type) {
     try {
       return req.tasks.firstWhere((t) => t.type == type).target;
@@ -130,14 +179,22 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
   Future<void> _syncAllBelts() async {
     final SessionController sessionController = Get.find<SessionController>();
-    final ResourceController resourceController = Get.find<ResourceController>();
+    final ResourceController resourceController =
+        Get.find<ResourceController>();
 
     int totalSessions = sessionController.totalSessionsCount.value;
     int totalActiveDays = controller.activeDaysCount.value;
+
+    if (totalActiveDays > 100) {
+      print("⚠️ WARNING: Suspiciously high Active Days count!");
+    }
+    // CRITICAL FIX: Double-check controller active count is not 0 (e.g. if updateActiveDays missed a cycle)
+    // If controller is suspiciously low (1) but we know backend usually higher, try to trust a re-fetch or ensure updateActiveDays finished.
+    print("DEBUG: _syncAllBelts see Active Days: $totalActiveDays");
+
     int localResources = resourceController.viewedResourceIds.length;
     int backendResources = 0;
 
-    // Fetch backend resources from White Belt if available
     try {
       BeltProgressModelV2? whiteBelt;
       for (var b in ringController.detailedBeltData) {
@@ -153,10 +210,17 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
       print("Error reading backend resource count: $e");
     }
 
-    int currentOpenResources = (localResources > backendResources) ? localResources : backendResources;
+    int currentOpenResources = (localResources > backendResources)
+        ? localResources
+        : backendResources;
 
     var wReq = BeltRequirementsData.getFor('White');
-    var wStats = _calculateBeltStats(wReq, totalSessions, totalActiveDays, currentOpenResources);
+    var wStats = _calculateBeltStats(
+      wReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'White',
       sessionCount: wStats['sessions'],
@@ -167,7 +231,12 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Yellow
     var yReq = BeltRequirementsData.getFor('Yellow');
-    var yStats = _calculateBeltStats(yReq, totalSessions, totalActiveDays, currentOpenResources);
+    var yStats = _calculateBeltStats(
+      yReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Yellow',
       sessionCount: yStats['sessions'],
@@ -177,7 +246,12 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Green
     var gReq = BeltRequirementsData.getFor('Green');
-    var gStats = _calculateBeltStats(gReq, totalSessions, totalActiveDays, currentOpenResources);
+    var gStats = _calculateBeltStats(
+      gReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Green',
       sessionCount: gStats['sessions'],
@@ -187,7 +261,12 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Blue
     var bReq = BeltRequirementsData.getFor('Blue');
-    var bStats = _calculateBeltStats(bReq, totalSessions, totalActiveDays, currentOpenResources);
+    var bStats = _calculateBeltStats(
+      bReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Blue',
       sessionCount: bStats['sessions'],
@@ -197,7 +276,12 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Brown
     var brReq = BeltRequirementsData.getFor('Brown');
-    var brStats = _calculateBeltStats(brReq, totalSessions, totalActiveDays, currentOpenResources);
+    var brStats = _calculateBeltStats(
+      brReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Brown',
       sessionCount: brStats['sessions'],
@@ -212,14 +296,14 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final SessionController sessionController = Get.find<SessionController>();
+    final SessionController sessionController = Get.put(SessionController());
+    final TrainerController controller = Get.put(TrainerController());
     final resourceController = Get.isRegistered<ResourceController>()
         ? Get.find<ResourceController>()
         : Get.put(ResourceController());
     final themeBg = ColorConstant.themeBg;
     final cardBgColor = const Color(0xFF151725);
 
-    // --- 1. DETERMINE CURRENT & NEXT BELT COLORS ---
     final currentBeltDef = BeltDefinitions.getByName(widget.beltName);
     final String nextBeltName = (currentBeltDef.nextBeltId != null)
         ? BeltDefinitions.getByCode(currentBeltDef.nextBeltId!).name
@@ -252,7 +336,11 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
       ),
       body: Obx(() {
         int totalSessions = sessionController.totalSessionsCount.value;
-        int totalActiveDays = controller.activeDaysCount.value;
+        // Use local controller reference or the one from build
+        final tController = Get.isRegistered<TrainerController>()
+            ? Get.find<TrainerController>()
+            : Get.put(TrainerController());
+        int totalActiveDays = tController.activeDaysCount.value;
         int localResources = resourceController.viewedResourceIds.length;
 
         // 2. Get Backend Count (Fetched from API)
@@ -273,13 +361,21 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
             : backendResources;
 
         final beltReq = BeltRequirementsData.getFor(widget.beltName);
-        
-        int currentPlannedCount = (totalSessions - beltReq.cumulativeSessionOffset)
-                                  .clamp(0, _getTaskTarget(beltReq, RequirementType.session));
-        int currentActiveDays = (totalActiveDays - beltReq.cumulativeDayOffset)
-                                .clamp(0, _getTaskTarget(beltReq, RequirementType.activeDay));
 
-        var stats = _calculateBeltStats(beltReq, totalSessions, totalActiveDays, currentOpenResources);
+        int currentPlannedCount =
+            (totalSessions - beltReq.cumulativeSessionOffset).clamp(
+              0,
+              _getTaskTarget(beltReq, RequirementType.session),
+            );
+        int currentActiveDays = (totalActiveDays - beltReq.cumulativeDayOffset)
+            .clamp(0, _getTaskTarget(beltReq, RequirementType.activeDay));
+
+        var stats = _calculateBeltStats(
+          beltReq,
+          totalSessions,
+          totalActiveDays,
+          currentOpenResources,
+        );
         double liveProgress = stats['progress'];
 
         return SafeArea(
@@ -352,7 +448,12 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                   ),
                                 ),
                                 Positioned(
-                                  left: ((barWidth * liveProgress).clamp(0.0, barWidth)) - (thumbSize / 2),
+                                  left:
+                                      ((barWidth * liveProgress).clamp(
+                                        0.0,
+                                        barWidth,
+                                      )) -
+                                      (thumbSize / 2),
                                   top: -4,
                                   child: Container(
                                     width: thumbSize,
@@ -362,7 +463,9 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                       color: widget.beltColor,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: widget.beltColor.withOpacity(0.4),
+                                          color: widget.beltColor.withOpacity(
+                                            0.4,
+                                          ),
                                           blurRadius: 8,
                                           spreadRadius: 3,
                                         ),
@@ -518,7 +621,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                 itemCount: beltReq.tasks.length,
                                 itemBuilder: (context, index) {
                                   final task = beltReq.tasks[index];
-                                  
+
                                   // Determine Current Value
                                   int currentValue = 0;
                                   switch (task.type) {
@@ -529,7 +632,10 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                       currentValue = currentActiveDays;
                                       break;
                                     case RequirementType.resource:
-                                      currentValue = currentOpenResources.clamp(0, task.target);
+                                      currentValue = currentOpenResources.clamp(
+                                        0,
+                                        task.target,
+                                      );
                                       break;
                                     default:
                                       // Others are currently not tracked in controller, default to 0
@@ -538,31 +644,34 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
                                   // Highlight Logic (Matches original code for White belt session completion)
                                   Color? highlight;
-                                  if (widget.beltName == 'White' && 
-                                      task.type == RequirementType.session && 
+                                  if (widget.beltName == 'White' &&
+                                      task.type == RequirementType.session &&
                                       currentValue >= task.target) {
                                     highlight = const Color(0xFF00E676);
                                   } else {
-                                    highlight = widget.beltColor; 
+                                    highlight = widget.beltColor;
                                   }
 
                                   Color displayColor = widget.beltColor;
-                                  if (widget.beltName == 'White' && task.type == RequirementType.session && currentValue >= task.target) {
-                                      displayColor = const Color(0xFF00E676);
+                                  if (widget.beltName == 'White' &&
+                                      task.type == RequirementType.session &&
+                                      currentValue >= task.target) {
+                                    displayColor = const Color(0xFF00E676);
                                   } else if (widget.beltName == 'White') {
-                                      // White belt generic items didn't have specific color in original else block unless specified
-                                      displayColor = Colors.white; 
+                                    // White belt generic items didn't have specific color in original else block unless specified
+                                    displayColor = Colors.white;
                                   }
 
-                                  if(widget.beltName != 'White') {
+                                  if (widget.beltName != 'White') {
                                     displayColor = widget.beltColor;
                                   } else {
-                                     // For White belt, only session gets green, others white unless specified
-                                     if(task.type == RequirementType.session && currentValue >= task.target) {
-                                       displayColor = const Color(0xFF00E676);
-                                     } else {
-                                       displayColor = Colors.white;
-                                     }
+                                    // For White belt, only session gets green, others white unless specified
+                                    if (task.type == RequirementType.session &&
+                                        currentValue >= task.target) {
+                                      displayColor = const Color(0xFF00E676);
+                                    } else {
+                                      displayColor = Colors.white;
+                                    }
                                   }
 
                                   return Column(
@@ -599,7 +708,17 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Get.snackbar(
+                                    "Info",
+                                    "This feature is currently in development.",
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.white24,
+                                    colorText: Colors.white,
+                                    margin: const EdgeInsets.all(10),
+                                    borderRadius: 10,
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white.withOpacity(
                                     0.15,

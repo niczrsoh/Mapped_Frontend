@@ -24,7 +24,7 @@ class BeltProgressModelV2 {
       reqSessionCount: json['reqSessionCount'] ?? 0,
       progress: ProgressCounters.fromJson(
         json,
-      ), // Use json directly as fields are there
+      ),
       isCompleted: json['isCompleted'] ?? false,
       assignedTrainerId: json['assignedTrainerId'],
       progressPercentage: (json['progressPercentage'] is num)

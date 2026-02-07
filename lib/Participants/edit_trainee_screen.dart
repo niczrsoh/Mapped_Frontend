@@ -3,7 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart' as img;
-import '../controller/controller/trainee_controller.dart';
+import 'trainee_controller.dart';
+import 'trainee_progress.dart';
+import 'progress_controller.dart';
+import '../TProgress/data/belt_definitions.dart';
 
 const double _borderThicknessEdit = 1.5;
 
@@ -29,8 +32,13 @@ const RadialGradient _deleteButtonGradient = RadialGradient(
 
 class EditTraineeScreen extends StatefulWidget {
   final Map<String, dynamic> trainee;
+  final bool showDeleteDialog;
 
-  const EditTraineeScreen({Key? key, required this.trainee}) : super(key: key);
+  const EditTraineeScreen({
+    Key? key,
+    required this.trainee,
+    this.showDeleteDialog = false,
+  }) : super(key: key);
 
   @override
   State<EditTraineeScreen> createState() => _EditTraineeScreenState();
@@ -38,6 +46,8 @@ class EditTraineeScreen extends StatefulWidget {
 
 class _EditTraineeScreenState extends State<EditTraineeScreen> {
   final TraineeController traineeController = Get.find<TraineeController>();
+  final ProgressController progressController = Get.put(ProgressController());
+  final Map<String, Map<String, dynamic>> _pendingProgressUpdates = {};
 
   late TextEditingController _nameCtrl;
   late TextEditingController _beltCtrl;
@@ -49,8 +59,10 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
   late TextEditingController _guardianNameCtrl;
   late TextEditingController _guardianContactCtrl;
   late TextEditingController _guardianAddressCtrl;
+  late TextEditingController _goalsCtrl;
+  late TextEditingController _conditionsCtrl;
+  late TextEditingController _competencyCtrl;
 
-  // --- NEW VARIABLE TO STORE THE ACTUAL DATE OBJECT ---
   DateTime? _selectedDob;
 
   final FocusNode _nameFocus = FocusNode();
@@ -63,7 +75,9 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
   final FocusNode _guardianNameFocus = FocusNode();
   final FocusNode _guardianContactFocus = FocusNode();
   final FocusNode _guardianAddressFocus = FocusNode();
-
+  final FocusNode _goalsFocus = FocusNode();
+  final FocusNode _conditionsFocus = FocusNode();
+  final FocusNode _competencyFocus = FocusNode();
   final Map<String, String?> _errors = {};
 
   img.XFile? _pickedImage;
@@ -75,9 +89,8 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     _nameCtrl = TextEditingController(text: widget.trainee['name']);
     _beltCtrl = TextEditingController(text: widget.trainee['belt']);
 
-    // --- UPDATED INIT LOGIC FOR DATE ---
-    _dobCtrl = TextEditingController(); // Initialize empty first
-    _initializeDob(widget.trainee['dateOfBirth']); // Then populate
+    _dobCtrl = TextEditingController();
+    _initializeDob(widget.trainee['dateOfBirth']);
 
     _genderCtrl = TextEditingController(text: widget.trainee['gender']);
     _phoneCtrl = TextEditingController(text: widget.trainee['phone']);
@@ -93,7 +106,16 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       text: widget.trainee['guardianAddress'],
     );
 
-    // Validation Listeners
+    _goalsCtrl = TextEditingController(
+      text: widget.trainee['goals']?.toString() ?? '',
+    );
+    _conditionsCtrl = TextEditingController(
+      text: widget.trainee['conditions']?.toString() ?? '',
+    );
+    _competencyCtrl = TextEditingController(
+      text: widget.trainee['competency']?.toString() ?? '',
+    );
+
     _nameFocus.addListener(
       () => _onFocusChange(_nameFocus, 'name', _nameCtrl.text),
     );
@@ -133,20 +155,27 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
         _guardianAddressCtrl.text,
       ),
     );
+
+    if (widget.showDeleteDialog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showConfirmDialog(
+          message: 'Are you sure want to Delete a Participant?',
+          confirmButtonText: 'OK',
+          onConfirm: _deleteTrainee,
+          isDelete: true,
+        );
+      });
+    }
   }
 
-  // --- 1. INITIALIZE DATE CORRECTLY (UTC -> LOCAL) ---
   void _initializeDob(String? dateString) {
     if (dateString == null || dateString.isEmpty) return;
     try {
-      // Parse the UTC date from DB (2015-01-30T16:00...)
       DateTime utcDate = DateTime.parse(dateString);
-      // Convert to Malaysia Time (2015-01-31T00:00...)
       _selectedDob = utcDate.toLocal();
-      // Update text field
       _dobCtrl.text = _formatDate(_selectedDob!);
     } catch (e) {
-      _dobCtrl.text = dateString; // Fallback
+      _dobCtrl.text = dateString;
     }
   }
 
@@ -175,12 +204,9 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     return '${d.day} ${months[d.month]} ${d.year}';
   }
 
-  // --- 2. PICK DATE (Save to _selectedDob) ---
   Future<void> _pickDob() async {
     final now = DateTime.now();
-    final initial =
-        _selectedDob ??
-        DateTime(now.year - 10); // Use existing selection if available
+    final initial = _selectedDob ?? DateTime(now.year - 10);
 
     final picked = await showDatePicker(
       context: context,
@@ -201,8 +227,8 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     );
     if (picked != null) {
       setState(() {
-        _selectedDob = picked; // Save the Object
-        _dobCtrl.text = _formatDate(picked); // Show the String
+        _selectedDob = picked;
+        _dobCtrl.text = _formatDate(picked);
         _errors['dob'] = null;
       });
     }
@@ -235,7 +261,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       } else if (key == 'email' && !GetUtils.isEmail(trimmedValue)) {
         error = 'Invalid Email';
       } else if ((key == 'phone' || key == 'guardianContact') &&
-          trimmedValue.length < 9) {
+          (trimmedValue.length < 9 || trimmedValue.length > 12)) {
         error = 'Invalid Phone';
       }
     }
@@ -275,6 +301,10 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     _guardianContactCtrl.dispose();
     _guardianAddressCtrl.dispose();
 
+    _goalsCtrl.dispose();
+    _conditionsCtrl.dispose();
+    _competencyCtrl.dispose();
+
     _nameFocus.dispose();
     _beltFocus.dispose();
     _dobFocus.dispose();
@@ -285,12 +315,64 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     _guardianNameFocus.dispose();
     _guardianContactFocus.dispose();
     _guardianAddressFocus.dispose();
+
+    _goalsFocus.dispose();
+    _conditionsFocus.dispose();
+    _competencyFocus.dispose();
+
     super.dispose();
   }
 
-  // --- 3. SAVE LOGIC (Format Date strictly to YYYY-MM-DD) ---
-  void _saveChanges() {
-    // Format date as "YYYY-MM-DD" to avoid timezone shifts
+  void _saveChanges() async {
+    if (_pendingProgressUpdates.isNotEmpty) {
+      for (var form in _pendingProgressUpdates.keys) {
+        var data = _pendingProgressUpdates[form]!;
+        await progressController.saveProgress(
+          traineeId: widget.trainee['id'],
+          beltColor: _beltCtrl.text,
+          form: form,
+          techniques: Map<String, int>.from(data['techniques']),
+          kicks: Map<String, int>.from(data['kicks']),
+        );
+      }
+    }
+
+    String rawBelt = _beltCtrl.text.trim();
+    String beltNameForLookup = rawBelt;
+    if (beltNameForLookup.toLowerCase().endsWith(' belt')) {
+      beltNameForLookup = beltNameForLookup
+          .substring(0, beltNameForLookup.length - 5)
+          .trim();
+    }
+
+    final currentBeltDef = BeltDefinitions.getByName(beltNameForLookup);
+    final String canonicalBeltName = currentBeltDef.name;
+
+    await progressController.fetchOverallStats(widget.trainee['id'], rawBelt);
+
+    if (progressController.overallAverage.value < 0.01 &&
+        rawBelt.toLowerCase() != canonicalBeltName.toLowerCase()) {
+      await progressController.fetchOverallStats(
+        widget.trainee['id'],
+        canonicalBeltName,
+      );
+    }
+
+    String nextBelt = rawBelt;
+    bool isPromoted = false;
+
+    if (progressController.overallAverage.value >= 0.99) {
+      if (canonicalBeltName.toLowerCase() == 'black') {
+        // Stay Black
+      } else {
+        final nextBeltDef = BeltDefinitions.getNext(currentBeltDef.id);
+        if (nextBeltDef != null) {
+          nextBelt = nextBeltDef.name;
+          isPromoted = true;
+        }
+      }
+    }
+
     String formattedDateForApi = "";
     if (_selectedDob != null) {
       String year = _selectedDob!.year.toString();
@@ -298,15 +380,13 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       String day = _selectedDob!.day.toString().padLeft(2, '0');
       formattedDateForApi = "$year-$month-$day";
     } else {
-      // Fallback: send existing text if user didn't change it,
-      // but ideally we should use _selectedDob logic.
       formattedDateForApi = _dobCtrl.text;
     }
 
     final Map<String, dynamic> updateData = {
       'name': _nameCtrl.text,
-      'belt': _beltCtrl.text,
-      'dateOfBirth': formattedDateForApi, // SEND THE CLEAN STRING
+      'belt': nextBelt,
+      'dateOfBirth': formattedDateForApi,
       'gender': _genderCtrl.text,
       'phone': _phoneCtrl.text,
       'email': _emailCtrl.text,
@@ -314,13 +394,25 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       'guardianName': _guardianNameCtrl.text,
       'guardianContact': _guardianContactCtrl.text,
       'guardianAddress': _guardianAddressCtrl.text,
+      'goals': _goalsCtrl.text,
+      'conditions': _conditionsCtrl.text,
+      'competency': _competencyCtrl.text,
     };
 
-    if (_pickedImage != null) {
-      updateData['image'] = _pickedImage!.path;
-    }
+    await traineeController.updateTrainee(widget.trainee['id'], updateData);
+    if (isPromoted) {
+      await Future.delayed(const Duration(milliseconds: 300));
 
-    traineeController.updateTrainee(widget.trainee['id'], updateData);
+      Get.snackbar(
+        "Congratulations!",
+        "Trainee promoted to $nextBelt Belt!",
+        backgroundColor: const Color(0xFF00FFA6),
+        colorText: Colors.black,
+        duration: const Duration(seconds: 5),
+        snackPosition: SnackPosition.TOP,
+        margin: const EdgeInsets.all(10),
+      );
+    }
   }
 
   void _deleteTrainee() {
@@ -403,6 +495,8 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     double height = 30,
     bool readOnly = false,
     VoidCallback? onTap,
+    String? hintText,
+    int maxLines = 1,
   }) {
     return Container(
       padding: const EdgeInsets.all(10),
@@ -413,32 +507,43 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: Colors.grey[400],
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+          if (label.isNotEmpty) ...[
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                color: Colors.grey[400],
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-          ),
-          const SizedBox(height: 3),
+            const SizedBox(height: 3),
+          ],
           SizedBox(
-            height: height == 30 ? 18 : height,
+            height: height == 30 && maxLines == 1 ? 18 : height,
             child: TextField(
               controller: ctrl,
               focusNode: focusNode,
               readOnly: readOnly,
               onTap: onTap,
-              textAlignVertical: TextAlignVertical.center,
+              maxLines: maxLines,
+              textAlignVertical: maxLines > 1
+                  ? TextAlignVertical.top
+                  : TextAlignVertical.center,
               style: GoogleFonts.poppins(
                 color: Colors.white,
-                fontSize: height == 30 ? 14 : 12,
+                fontSize: height == 30 || maxLines > 1 ? 14 : 12,
                 fontWeight: FontWeight.w600,
               ),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
                 border: InputBorder.none,
+                hintText: hintText,
+                hintStyle: GoogleFonts.poppins(
+                  color: Colors.white54,
+                  fontSize: height == 30 || maxLines > 1 ? 14 : 12,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ),
           ),
@@ -639,7 +744,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Edit Trainee',
+          'Participant',
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -730,6 +835,35 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                                           _beltCtrl,
                                           focusNode: _beltFocus,
                                           fieldKey: 'belt',
+                                          readOnly: true,
+                                          onTap: () async {
+                                            final result = await Get.to(
+                                              () => TraineeProgressScreen(
+                                                traineeId: widget.trainee['id']
+                                                    .toString(),
+                                                traineeName: _nameCtrl.text,
+                                                currentBelt: _beltCtrl.text,
+                                                initialPendingUpdates:
+                                                    _pendingProgressUpdates,
+                                              ),
+                                            );
+
+                                            if (result != null &&
+                                                result is Map) {
+                                              setState(() {
+                                                result.forEach((key, value) {
+                                                  if (key is String &&
+                                                      value is Map) {
+                                                    _pendingProgressUpdates[key] =
+                                                        Map<
+                                                          String,
+                                                          dynamic
+                                                        >.from(value);
+                                                  }
+                                                });
+                                              });
+                                            }
+                                          },
                                         ),
                                       ),
                                     ],
@@ -739,7 +873,6 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                                     children: [
                                       Expanded(
                                         flex: 2,
-                                        // --- UPDATED DATE PICKER FIELD ---
                                         child: _boxedField(
                                           'Date of Birth',
                                           _dobCtrl,
@@ -816,6 +949,42 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                         height: 48,
                       ),
                     ]),
+                    const SizedBox(height: 12),
+                    _section('Goals', [
+                      _boxedField(
+                        '',
+                        _goalsCtrl,
+                        focusNode: _goalsFocus,
+                        fieldKey: 'goals',
+                        hintText: 'I want ...',
+                        maxLines: 4,
+                        height: 80,
+                      ),
+                    ]),
+                    const SizedBox(height: 12),
+                    _section('Disability & Medical Concern', [
+                      _boxedField(
+                        '',
+                        _conditionsCtrl,
+                        focusNode: _conditionsFocus,
+                        fieldKey: 'conditions',
+                        hintText: 'List disabilities...',
+                        maxLines: 4,
+                        height: 80,
+                      ),
+                    ]),
+                    const SizedBox(height: 12),
+                    _section('Competency', [
+                      _boxedField(
+                        '',
+                        _competencyCtrl,
+                        focusNode: _competencyFocus,
+                        fieldKey: 'competency',
+                        hintText: 'I want ...',
+                        maxLines: 4,
+                        height: 80,
+                      ),
+                    ]),
                     const SizedBox(height: 18),
 
                     Container(
@@ -876,7 +1045,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                                   if (traineeController.loading.value) return;
                                   _showConfirmDialog(
                                     message:
-                                        'Are you sure want to Delete a trainee?',
+                                        'Are you sure want to Delete a Participant?',
                                     confirmButtonText: 'OK',
                                     onConfirm: _deleteTrainee,
                                     isDelete: true,
