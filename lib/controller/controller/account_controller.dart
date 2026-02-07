@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AccountController extends GetxController {
   var notificationsEnabled = true.obs;
   var securityMethod = 'Fingerprint'.obs;
-  
+
   // Get the UserController instance
   UserController get userController => Get.find<UserController>();
 
@@ -18,7 +18,7 @@ class AccountController extends GetxController {
     super.onInit();
     // Listen to changes from NotificationController if it exists
     ever(notificationsEnabled, (_) => _syncNotificationState());
-    
+
     // Fetch user data on initialization
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (userController.userData.isEmpty) {
@@ -26,7 +26,7 @@ class AccountController extends GetxController {
       }
     });
   }
-  
+
   void _syncNotificationState() {
     // Sync with NotificationController when it's registered
     if (Get.isRegistered<NotificationController>()) {
@@ -34,32 +34,29 @@ class AccountController extends GetxController {
       notificationsEnabled.value = notifController.generalNotification.value;
     }
   }
-  
+
   void navigateToNotifications() {
     // Get or create the notification controller
     final notifController = Get.put(NotificationController());
-    
+
     // Sync the state before navigating
     notificationsEnabled.value = notifController.generalNotification.value;
-    
-    Navigator.of(Get.context!).push(
-      MaterialPageRoute(
-        builder: (context) => NotificationScreen(),
-      ),
-    );
+
+    Navigator.of(
+      Get.context!,
+    ).push(MaterialPageRoute(builder: (context) => NotificationScreen()));
   }
-  
+
   void editProfile() {
     // Pass user data to profile editor
     Navigator.of(Get.context!).push(
       MaterialPageRoute(
-        builder: (context) => ProfileEditorScreen(
-          userData: userController.userData.value,
-        ),
+        builder: (context) =>
+            ProfileEditorScreen(userData: userController.userData.value),
       ),
     );
   }
-  
+
   Future<void> logout() async {
     Get.defaultDialog(
       title: 'Log Out',
@@ -68,36 +65,38 @@ class AccountController extends GetxController {
       textCancel: 'No',
       onConfirm: () async {
         // Clear user data
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_id');
-      await prefs.remove('user_name');
-      await prefs.remove('user_email');
-      await prefs.remove('user_avatar');
-      await prefs.remove('user_role');
-          
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('user_id');
+        await prefs.remove('user_name');
+        await prefs.remove('user_email');
+        await prefs.remove('user_avatar');
+        await prefs.remove('user_role');
+        await prefs.remove('active_days_count');
+        await prefs.remove('last_active_date');
+
         // Navigate to login
         Get.back();
         Get.offAllNamed('/login');
       },
     );
   }
-  
+
   void navigateToSecurity() {
     Get.toNamed('/security');
   }
-  
+
   void navigateToLanguage() {
     Get.toNamed('/language');
   }
-  
+
   void navigateToHelp() {
     Get.toNamed('/help-support');
   }
-  
+
   void navigateToPrivacy() {
     Get.toNamed('/privacy-policy');
   }
-  
+
   void navigateToAbout() {
     Get.toNamed('/about-us');
   }
