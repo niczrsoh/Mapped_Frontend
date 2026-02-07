@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:mapped_frontend/helper/colorConstant.dart';
 import 'resource_controller.dart';
 import 'resource_model.dart';
@@ -22,7 +23,7 @@ class ResourceScreen extends StatelessWidget {
           color: const Color(0xFF09FACA),
           child: CustomScrollView(
             slivers: [
-              _buildSliverAppBar(),
+              _buildSliverAppBar(context),
               SliverToBoxAdapter(
                 child: Column(
                   children: [
@@ -42,7 +43,7 @@ class ResourceScreen extends StatelessWidget {
   }
 
   // ========== SLIVER APP BAR ==========
-  Widget _buildSliverAppBar() {
+  Widget _buildSliverAppBar(BuildContext context) {
     return SliverAppBar(
       backgroundColor: const Color(0xFF1A1D29),
       pinned: true,
@@ -53,7 +54,10 @@ class ResourceScreen extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Get.back(),
+            onPressed: () {
+              // Use Navigator.pop() with proper context
+              Navigator.pop(context);
+            },
           ),
           Text(
             'Resources',
@@ -293,6 +297,11 @@ class ResourceScreen extends StatelessWidget {
                                 padding: const EdgeInsets.only(left: 8),
                                 child: _buildPinnedBadge(),
                               ),
+                            if (resource.isReported.value)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: _buildReportedBadge(),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -352,48 +361,6 @@ class ResourceScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Interaction Buttons
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Row(
-                children: [
-                  const Spacer(),
-
-                  // PIN BUTTON
-                  Obx(
-                    () => IconButton(
-                      icon: Icon(
-                        resource.isPinned.value
-                            ? Icons.push_pin
-                            : Icons.push_pin_outlined,
-                        color: resource.isPinned.value
-                            ? const Color(0xFF09FACA)
-                            : Colors.white54,
-                        size: 20,
-                      ),
-                      onPressed: () => _showPinConfirmationDialog(resource),
-                    ),
-                  ),
-
-                  // REPORT BUTTON
-                  Obx(
-                    () => IconButton(
-                      icon: Icon(
-                        resource.isReported.value
-                            ? Icons.flag
-                            : Icons.flag_outlined,
-                        color: resource.isReported.value
-                            ? Colors.red
-                            : Colors.white54,
-                        size: 20,
-                      ),
-                      onPressed: () => _showReportDialog(resource),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -412,8 +379,45 @@ class ResourceScreen extends StatelessWidget {
       );
     }
 
-    // If it has video, show video icon
+    // If it has video, show YouTube thumbnail
     if (resource.videoUrl != null && resource.videoUrl!.isNotEmpty) {
+      final videoId = YoutubePlayer.convertUrlToId(resource.videoUrl!);
+      if (videoId != null && videoId.isNotEmpty) {
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // YouTube thumbnail
+            Image.network(
+              "https://img.youtube.com/vi/$videoId/0.jpg",
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: Colors.grey[800],
+                child: const Icon(
+                  Icons.play_circle_outline,
+                  color: Color(0xFF09FACA),
+                  size: 32,
+                ),
+              ),
+            ),
+            // Play button overlay
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(8),
+                child: const Icon(
+                  Icons.play_circle_filled,
+                  color: Color(0xFF09FACA),
+                  size: 28,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+      // Fallback if videoId can't be extracted
       return const Icon(
         Icons.play_circle_outline,
         color: Color(0xFF09FACA),
@@ -421,14 +425,48 @@ class ResourceScreen extends StatelessWidget {
       );
     }
 
-    // If it has links, show link icon
+    // If it has links, show link preview or icon
     if (resource.content.contains('http://') ||
         resource.content.contains('https://')) {
-      return const Icon(Icons.link, color: Color(0xFF09FACA), size: 32);
+      return Container(
+        color: const Color(0xFF1A1D29),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.link, color: Color(0xFF09FACA), size: 28),
+            const SizedBox(height: 4),
+            Text(
+              'Link',
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                color: Colors.white54,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    // Default to document icon
-    return const Icon(Icons.article_outlined, color: Colors.white54, size: 32);
+    // Default to document icon for text resources
+    return Container(
+      color: const Color(0xFF1A1D29),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.article_outlined, color: Colors.white54, size: 28),
+          const SizedBox(height: 4),
+          Text(
+            'Text',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              color: Colors.white54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ========== BADGES ==========
@@ -449,6 +487,31 @@ class ResourceScreen extends StatelessWidget {
             style: GoogleFonts.roboto(
               fontSize: 10,
               color: const Color(0xFF09FACA),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportedBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.flag, size: 10, color: Colors.red),
+          const SizedBox(width: 4),
+          Text(
+            "Reported",
+            style: GoogleFonts.roboto(
+              fontSize: 10,
+              color: Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -494,91 +557,6 @@ class ResourceScreen extends StatelessWidget {
   }
 
   // ========== DIALOGS ==========
-  // --- PIN CONFIRMATION DIALOG ---
-  void _showPinConfirmationDialog(ResourcePost resource) {
-    bool currentlyPinned = resource.isPinned.value;
-
-    Get.defaultDialog(
-      title: "",
-      titlePadding: EdgeInsets.zero,
-      contentPadding: const EdgeInsets.all(20),
-      backgroundColor: const Color(0xFF252836),
-      radius: 20,
-      content: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              const Icon(
-                Icons.push_pin_outlined,
-                size: 40,
-                color: Colors.white,
-              ),
-              if (currentlyPinned)
-                Transform.rotate(
-                  angle: -0.8,
-                  child: Container(height: 2, width: 40, color: Colors.white),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            currentlyPinned
-                ? "Do you want to unpin this resource?"
-                : "Do you want to pin this resource?",
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF09FACA),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () => Get.back(),
-                  child: const Text(
-                    "CANCEL",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF09FACA),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {
-                    Get.back();
-                    controller.togglePin(resource);
-                  },
-                  child: const Text(
-                    "OK",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   // --- DELETE CONFIRMATION DIALOG ---
   void _showDeleteConfirmationDialog(ResourcePost resource) {
     Get.defaultDialog(
@@ -592,266 +570,6 @@ class ResourceScreen extends StatelessWidget {
         Get.back();
         await controller.deleteResource(resource);
       },
-    );
-  }
-
-  // --- REPORT DIALOG - STEP 1: POLICY SELECTION ---
-  void _showReportDialog(ResourcePost resource) {
-    if (!controller.canReportResource(resource)) {
-      Get.snackbar(
-        "Info",
-        "You have already reported this resource.",
-        backgroundColor: Colors.grey[800],
-        colorText: Colors.white,
-      );
-      return;
-    }
-
-    controller.resetReportState();
-
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Select our policy that applies",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: controller.reportReasons.map((reason) {
-                  return Obx(() {
-                    final isSelected =
-                        controller.selectedReason.value == reason;
-                    return GestureDetector(
-                      onTap: () => controller.selectReportReason(reason),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFF00FFA3)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isSelected
-                                ? const Color(0xFF00FFA3)
-                                : Colors.black54,
-                          ),
-                        ),
-                        child: Text(
-                          reason,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    );
-                  });
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: Obx(
-                  () => ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF007AFF),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: controller.selectedReason.value.isEmpty
-                        ? null
-                        : () {
-                            Get.back();
-                            _showReportConfirmationDialog(resource);
-                          },
-                    child: const Text(
-                      "Next",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // --- REPORT DIALOG - STEP 2: CONFIRMATION ---
-  void _showReportConfirmationDialog(ResourcePost resource) {
-    controller.toggleReportConfirmation(false);
-
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "You've selected the following reason",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                controller.selectedReason.value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                controller.getReasonDefinition(controller.selectedReason.value),
-                style: const TextStyle(fontSize: 13, color: Colors.black87),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Confirmation",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Obx(
-                () => Row(
-                  children: [
-                    Checkbox(
-                      value: controller.isReportConfirmed.value,
-                      activeColor: const Color(0xFF007AFF),
-                      onChanged: (val) =>
-                          controller.toggleReportConfirmation(val ?? false),
-                    ),
-                    Expanded(
-                      child: Text(
-                        "I have confirmed to report this resource as ${controller.selectedReason.value.toLowerCase()}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: Obx(
-                  () => ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF007AFF),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: controller.isReportConfirmed.value
-                        ? () async {
-                            Get.back();
-                            final success = await controller.submitReport(
-                              resource,
-                            );
-                            if (success) {
-                              _showReportSuccessDialog();
-                            }
-                          }
-                        : null,
-                    child: const Text(
-                      "Submit Report",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // --- REPORT DIALOG - STEP 3: SUCCESS ---
-  void _showReportSuccessDialog() {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                color: Colors.green,
-                size: 50,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                "You have successfully reported the resource",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007AFF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () => Get.back(),
-                  child: const Text(
-                    "OK",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

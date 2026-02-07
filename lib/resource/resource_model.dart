@@ -77,13 +77,14 @@ class ResourcePost {
         return 'image';
       }
 
+      // Note: videoUrl (YouTube links) are classified as 'link'
       if (videoUrls != null) {
         if (videoUrls is List && videoUrls.isNotEmpty) {
-          print('🎬 Auto-detected as VIDEO (array)');
-          return 'video';
+          print('🔗 Auto-detected as LINK (from video URL array)');
+          return 'link';
         } else if (videoUrls is String && videoUrls.isNotEmpty) {
-          print('🎬 Auto-detected as VIDEO (string)');
-          return 'video';
+          print('🔗 Auto-detected as LINK (from video URL string)');
+          return 'link';
         }
       }
 

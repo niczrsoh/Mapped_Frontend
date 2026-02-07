@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'resource_searchtags_model.dart';
 
 class ResourceSearchtagsController extends GetxController {
@@ -72,7 +72,7 @@ class ResourceSearchtagsController extends GetxController {
   // 2. Fix Popular Tags Parsing
   Future<void> loadPopularTags() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/forum/tags'));
+      final response = await http.get(Uri.parse('$baseUrl/api/resources/tags'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -119,7 +119,7 @@ class ResourceSearchtagsController extends GetxController {
 
   Future<void> loadAllTags() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/forum/tags'));
+      final response = await http.get(Uri.parse('$baseUrl/api/resources/tags'));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
 
@@ -184,7 +184,7 @@ class ResourceSearchtagsController extends GetxController {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/forum/search?q=$trimmedQuery'),
+        Uri.parse('$baseUrl/api/resources/search?q=$trimmedQuery'),
       );
 
       if (response.statusCode == 200) {
@@ -215,7 +215,7 @@ class ResourceSearchtagsController extends GetxController {
       }
 
       final uri = Uri.parse(
-        '$baseUrl/api/forum/search',
+        '$baseUrl/api/resources/search',
       ).replace(queryParameters: queryParams);
 
       print("📢 Calling API: $uri");
@@ -224,9 +224,13 @@ class ResourceSearchtagsController extends GetxController {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        print(
+          "📦 API Response: ${data.first}",
+        ); // Log first item to see structure
         resources.value = data
             .map((json) => Resources.fromJson(json, currentUserId))
             .toList();
+        print("✅ Loaded ${resources.length} resources");
       } else {
         print("❌ API Error: ${response.statusCode}");
       }

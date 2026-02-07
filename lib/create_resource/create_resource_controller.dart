@@ -211,11 +211,13 @@ class CreateResourceController extends GetxController {
       }
 
       // Determine resource type
+      // Note: videoUrl refers to YouTube links, which should be classified as 'link'
       String resourceType = 'text';
       if (selectedImages.isNotEmpty) {
         resourceType = 'image';
       } else if (videoUrl.value.isNotEmpty) {
-        resourceType = 'video';
+        // YouTube links are classified as 'link', not 'video'
+        resourceType = 'link';
       } else if (textController.text.contains('http://') ||
           textController.text.contains('https://')) {
         resourceType = 'link';

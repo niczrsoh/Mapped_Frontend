@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/gestures.dart';
 import 'package:mapped_frontend/resource_searchtags/resource_searchtags_model.dart';
+import 'package:mapped_frontend/resource/resource_detail_screen.dart';
+import 'package:mapped_frontend/resource/resource_model.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'resource_searchtags_controller.dart';
 
 class ResourceSearchtagsScreen extends StatelessWidget {
@@ -272,122 +274,196 @@ class ResourceSearchtagsScreen extends StatelessWidget {
 
   Widget _buildGridCard(Resources resource) {
     // Get the first image if available
-    final imageUrl = resource.images.isNotEmpty 
+    final imageUrl = resource.images.isNotEmpty
         ? controller.getFullImageUrl(resource.images.first)
         : null;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF252836),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF09FACA).withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image or Placeholder
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              child: imageUrl != null
-                  ? Image.network(
-                      imageUrl,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[800],
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.white54,
-                          size: 40,
-                        ),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[800],
-                      child: const Center(
-                        child: Icon(
-                          Icons.article,
-                          color: Colors.white54,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-            ),
+    // Get video ID from videoUrl
+    String? videoId;
+    if (imageUrl == null &&
+        resource.videoUrl != null &&
+        resource.videoUrl!.isNotEmpty) {
+      videoId = YoutubePlayer.convertUrlToId(resource.videoUrl!);
+    }
+
+    return GestureDetector(
+      onTap: () {
+        // Convert Resources to ResourcePost and navigate to detail screen
+        final resourcePost = ResourcePost(
+          id: resource.id,
+          title: _extractTitle(resource.content),
+          content: resource.content,
+          authorId: '', // Not available in search results
+          authorName: resource.authorName,
+          authorImage: resource.authorImage,
+          timeAgo: resource.timeAgo,
+          images: resource.images,
+          videoUrl: resource.videoUrl,
+          tags: resource.hashtags,
+          resourceType: 'resource', // Default to resource
+          createdAt: DateTime.now().subtract(Duration(minutes: 30)),
+          updatedAt: DateTime.now().subtract(Duration(minutes: 30)),
+        );
+        Get.to(() => ResourceDetailScreen(resource: resourcePost));
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF252836),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFF09FACA).withOpacity(0.2),
+            width: 1,
           ),
-
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title/Content Preview
-                Text(
-                  _extractTitle(resource.content),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image or Placeholder
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
                 ),
-                const SizedBox(height: 8),
-
-                // Author Info
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: resource.authorImage != null &&
-                              resource.authorImage!.isNotEmpty
-                          ? NetworkImage(
-                              controller.getFullImageUrl(resource.authorImage!),
-                            )
-                          : null,
-                      child: resource.authorImage == null ||
-                              resource.authorImage!.isEmpty
-                          ? const Icon(Icons.person, size: 12, color: Colors.grey)
-                          : null,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            resource.authorName,
-                            style: GoogleFonts.roboto(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                child: imageUrl != null
+                    // Show uploaded image
+                    ? Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey[800],
+                          child: const Icon(
+                            Icons.broken_image,
+                            color: Colors.white54,
+                            size: 40,
                           ),
-                          Text(
-                            resource.timeAgo,
-                            style: GoogleFonts.roboto(
-                              fontSize: 10,
-                              color: Colors.white54,
+                        ),
+                      )
+                    : videoId != null && videoId.isNotEmpty
+                    // Show YouTube thumbnail
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            "https://img.youtube.com/vi/$videoId/0.jpg",
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: Colors.grey[800],
+                                  child: const Icon(
+                                    Icons.play_circle_outline,
+                                    color: Color(0xFF09FACA),
+                                    size: 40,
+                                  ),
+                                ),
+                          ),
+                          // Play button overlay
+                          Center(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(8),
+                              child: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.white,
+                                size: 32,
+                              ),
                             ),
                           ),
                         ],
+                      )
+                    : Container(
+                        color: Colors.grey[800],
+                        child: const Center(
+                          child: Icon(
+                            Icons.article,
+                            color: Colors.white54,
+                            size: 40,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title/Content Preview
+                  Text(
+                    _extractTitle(resource.content),
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Author Info
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Colors.grey[300],
+                        backgroundImage:
+                            resource.authorImage != null &&
+                                resource.authorImage!.isNotEmpty
+                            ? NetworkImage(
+                                controller.getFullImageUrl(
+                                  resource.authorImage!,
+                                ),
+                              )
+                            : null,
+                        child:
+                            resource.authorImage == null ||
+                                resource.authorImage!.isEmpty
+                            ? const Icon(
+                                Icons.person,
+                                size: 12,
+                                color: Colors.grey,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              resource.authorName,
+                              style: GoogleFonts.roboto(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              resource.timeAgo,
+                              style: GoogleFonts.roboto(
+                                fontSize: 10,
+                                color: Colors.white54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -396,46 +472,12 @@ class ResourceSearchtagsScreen extends StatelessWidget {
   String _extractTitle(String content) {
     // Remove hashtags for cleaner title
     final cleanContent = content.replaceAll(RegExp(r'\B#\w+'), '').trim();
-    
+
     // Get first line or first 50 characters
     final firstLine = cleanContent.split('\n').first;
     if (firstLine.length > 50) {
       return '${firstLine.substring(0, 50)}...';
     }
     return firstLine.isEmpty ? 'Untitled' : firstLine;
-  }
-
-  List<TextSpan> _parseContent(String text) {
-    List<TextSpan> spans = [];
-
-    // Finds words starting with #
-    text.splitMapJoin(
-      RegExp(r"\B#\w+"),
-      onMatch: (m) {
-        final tag = m.group(0)!;
-        spans.add(
-          TextSpan(
-            text: tag,
-            style: const TextStyle(
-              color: Color(0xFF09FACA),
-              fontWeight: FontWeight.w600,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () => controller.selectTag(tag),
-          ),
-        );
-        return "";
-      },
-      onNonMatch: (n) {
-        spans.add(
-          TextSpan(
-            text: n,
-            style: const TextStyle(color: Colors.white),
-          ),
-        );
-        return "";
-      },
-    );
-    return spans;
   }
 }
