@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:mapped_frontend/controller/controller/account_controller.dart';
+import 'package:mapped_frontend/account/account_controller.dart';
 import 'package:mapped_frontend/controller/user_controller';
+import 'package:mapped_frontend/text_size/text_size_controller.dart';
 import 'global/app_binding.dart';
 import 'global/routes.dart';
 
@@ -20,6 +21,8 @@ void main() async
     ),
   );
 
+  Get.put(TextSizeController());
+
   runApp(const MyApp());
 }
 
@@ -30,6 +33,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Get.put(UserController());
     Get.put(AccountController());
+    
     return GetMaterialApp(
       title: 'MAPPED',
       debugShowCheckedModeBanner: false,
@@ -45,6 +49,25 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: AppRoutes.splash,
       getPages: AppPages.routes,
+      builder: (context, child) => ScaledMediaQuery(child: child!),
     );
+  }
+}
+
+class ScaledMediaQuery extends StatelessWidget {
+  final Widget child;
+  
+  const ScaledMediaQuery({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final TextSizeController textSizeController = Get.find<TextSizeController>();
+    
+    return Obx(() => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(textSizeController.textScale.value),
+      ),
+      child: child,
+    ));
   }
 }

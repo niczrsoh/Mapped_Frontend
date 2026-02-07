@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/account/account_controller.dart';
 import 'package:mapped_frontend/coachBot/coachBot_chat_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
 
@@ -12,7 +13,7 @@ class CoachBotController extends GetxController {
     userName = userController.userData['name']?.toString().obs ?? 'Coach'.obs;
     super.onInit();
   }
-
+  
   final messageController = TextEditingController();
   
   // Navigate to chat with optional draft message
@@ -98,7 +99,7 @@ class CoachBotController extends GetxController {
 
   @override
   void onClose() {
-    messageController.dispose();
+   // messageController.dispose();
     super.onClose();
   }
 }

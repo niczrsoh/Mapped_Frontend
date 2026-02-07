@@ -376,7 +376,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
           TextSpan(
             text: tag,
             style: const TextStyle(
-              color: Color(0xFF09FACA), // Cyan color
+              color: Color(0xFF09FACA),
               fontWeight: FontWeight.w600,
             ),
             recognizer: TapGestureRecognizer()
