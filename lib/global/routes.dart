@@ -3,7 +3,7 @@ import 'package:mapped_frontend/coachBot/coachBot_controller.dart';
 import 'package:mapped_frontend/coachBot/coachBot_screen.dart';
 import 'package:mapped_frontend/forum/forum_screen.dart';
 import 'package:mapped_frontend/screens/main_navigation_screen.dart';
-import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
+import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/register_screen.dart';

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart'; // Needed for Obx and Get.find
+import 'package:get/get.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
-import '../controller/controller/trainee_controller.dart';
-import '../controller/controller/progress_controller.dart'; // Import ProgressController
+import 'trainee_controller.dart';
+import 'progress_controller.dart';
 import 'edit_trainee_screen.dart';
-import 'trainee_progress.dart';
 
 class TraineeDetailScreen extends StatelessWidget {
   final Map<String, dynamic> trainee;
@@ -21,7 +20,6 @@ class TraineeDetailScreen extends StatelessWidget {
     colors: [Color(0x1AFFFFFF), Color(0xFA00FFA6)],
   );
 
-  // --- NEW: Helper to calculate Next Belt ---
   String _getNextBelt(String currentBelt) {
     switch (currentBelt) {
       case 'White':
@@ -34,12 +32,13 @@ class TraineeDetailScreen extends StatelessWidget {
         return 'Brown';
       case 'Brown':
         return 'Black';
+      case 'Black':
+        return 'Black';
       default:
         return 'White';
     }
   }
 
-  // Formats date to '23 January 2015'
   String _formatDob(String? dateString) {
     if (dateString == null || dateString.isEmpty || dateString == 'N/A') {
       return 'N/A';
@@ -87,6 +86,60 @@ class TraineeDetailScreen extends StatelessWidget {
     return const AssetImage('assets/images/placeholder_avatar.png');
   }
 
+  Widget _formatConditions(dynamic conditions) {
+    if (conditions == null) {
+      return _DetailRow(text: 'No known medical concerns.');
+    }
+
+    // Handle legacy List data
+    if (conditions is List) {
+      if (conditions.isEmpty) {
+        return _DetailRow(text: 'No known medical concerns.');
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: conditions.map((item) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: _DetailRow(text: item.toString().trim()),
+          );
+        }).toList(),
+      );
+    }
+
+    // Handle String data
+    String text = conditions.toString().trim();
+    if (text.isEmpty || text == 'null') {
+      return _DetailRow(text: 'No known medical concerns.');
+    }
+
+    // Detect and format bullet points with hyphens
+    if (text.contains('-')) {
+      final items = text
+          .split('-')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+      if (items.isEmpty) {
+        return _DetailRow(text: 'No known medical concerns.');
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: items.map((item) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: _DetailRow(text: item),
+          );
+        }).toList(),
+      );
+    }
+
+    // Plain text without special formatting
+    return _DetailRow(text: text);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -94,18 +147,13 @@ class TraineeDetailScreen extends StatelessWidget {
     final double avatarSize = compact ? 60.0 : 72.0;
     final double circleOuter = compact ? 56.0 : 62.0;
     final double circleInner = compact ? 44.0 : 50.0;
-
-    // 1. Find TraineeController
     final TraineeController controller = Get.find<TraineeController>();
-
-    // 2. Initialize ProgressController to fetch backend data
     final ProgressController progressController = Get.put(ProgressController());
-
     final String traineeId = trainee['id'];
+    final String belt = trainee['belt'] ?? 'White';
 
-    // 3. Trigger Fetch for this Trainee (Get Average of all forms)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      progressController.fetchOverallStats(traineeId);
+      progressController.fetchOverallStats(traineeId, belt);
     });
 
     return Scaffold(
@@ -118,7 +166,7 @@ class TraineeDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Dashboard',
+          'Belt Progress',
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -126,45 +174,6 @@ class TraineeDetailScreen extends StatelessWidget {
           ),
         ),
         centerTitle: false,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      "Belt Progress",
-                      style: GoogleFonts.roboto(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
       body: SafeArea(
         child: Obx(() {
@@ -179,7 +188,11 @@ class TraineeDetailScreen extends StatelessWidget {
           final String dob = _formatDob(currentTrainee['dateOfBirth']);
           final String phone = currentTrainee['phone'] ?? 'N/A';
           final String email = currentTrainee['email'] ?? 'N/A';
-          final String? imgData = currentTrainee['image'];
+
+          String? imgData = currentTrainee['image'];
+          if (imgData == null || imgData.isEmpty) {
+            imgData = currentTrainee['imagePath'];
+          }
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -188,15 +201,7 @@ class TraineeDetailScreen extends StatelessWidget {
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: () {
-                    Get.to(() => EditTraineeScreen(trainee: currentTrainee));
-                    // Get.to(
-                    //   () => TraineeProgressScreen(
-                    //     traineeId: currentTrainee['id'],
-                    //     traineeName: currentTrainee['name'] ?? 'Trainee',
-                    //   ),
-                    // );
-                  },
+                  onTap: null, // Tap handled by inner buttons
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -249,7 +254,6 @@ class TraineeDetailScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              // DYNAMIC PROGRESS CIRCLE
                               SizedBox(
                                 width: circleOuter,
                                 height: circleOuter,
@@ -269,9 +273,15 @@ class TraineeDetailScreen extends StatelessWidget {
                                       height: circleInner,
                                       child: RotatedBox(
                                         quarterTurns: 1,
-                                        child: Obx(
-                                          // BIND TO OVERALL AVERAGE
-                                          () => CircularProgressIndicator(
+                                        child: Obx(() {
+                                          final currentTrainee = controller
+                                              .traineeList
+                                              .firstWhere(
+                                                (t) => t['id'] == traineeId,
+                                                orElse: () => null,
+                                              );
+
+                                          return CircularProgressIndicator(
                                             value: progressController
                                                 .overallAverage
                                                 .value,
@@ -282,8 +292,8 @@ class TraineeDetailScreen extends StatelessWidget {
                                                 ),
                                             backgroundColor:
                                                 Colors.grey.shade800,
-                                          ),
-                                        ),
+                                          );
+                                        }),
                                       ),
                                     ),
                                     Obx(
@@ -310,39 +320,137 @@ class TraineeDetailScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: BackdropFilter(
-                                    filter: ui.ImageFilter.blur(
-                                      sigmaX: 30,
-                                      sigmaY: 30,
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0x8A72777A),
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: const [
-                                          BoxShadow(
-                                            color: Color(0x1A000000),
-                                            offset: Offset(0, 4),
-                                            blurRadius: 4,
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: BackdropFilter(
+                                        filter: ui.ImageFilter.blur(
+                                          sigmaX: 30,
+                                          sigmaY: 30,
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
                                           ),
-                                        ],
-                                      ),
-                                      child: Text(
-                                        '$belt Belt',
-                                        style: GoogleFonts.roboto(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0x8A72777A),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Color(0x1A000000),
+                                                offset: Offset(0, 4),
+                                                blurRadius: 4,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Text(
+                                            '$belt Belt',
+                                            style: GoogleFonts.roboto(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
+                                    Row(
+                                      children: [
+                                        InkWell(
+                                          onTap: () async {
+                                            final String oldBelt =
+                                                currentTrainee['belt'] ??
+                                                'White';
+                                            await Get.to(
+                                              () => EditTraineeScreen(
+                                                trainee: currentTrainee,
+                                              ),
+                                            );
+                                            // Refresh using the LATEST belt from the controller
+                                            final updatedTrainee = controller
+                                                .traineeList
+                                                .firstWhere(
+                                                  (t) => t['id'] == traineeId,
+                                                  orElse: () => trainee,
+                                                );
+
+                                            final String newBelt =
+                                                updatedTrainee['belt'] ?? belt;
+
+                                            // If belt changed, reset stats to 0% immediately
+                                            if (oldBelt != newBelt) {
+                                              print(
+                                                "Belt updated from $oldBelt to $newBelt. Resetting stats.",
+                                              );
+                                              progressController
+                                                      .overallAverage
+                                                      .value =
+                                                  0.0;
+                                            }
+
+                                            progressController
+                                                .fetchOverallStats(
+                                                  traineeId,
+                                                  newBelt,
+                                                );
+                                          },
+                                          child: const Icon(
+                                            Icons.edit_outlined,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        InkWell(
+                                          onTap: () async {
+                                            final String oldBelt =
+                                                currentTrainee['belt'] ??
+                                                'White';
+                                            await Get.to(
+                                              () => EditTraineeScreen(
+                                                trainee: currentTrainee,
+                                                showDeleteDialog: true,
+                                              ),
+                                            );
+                                            // Refresh using the LATEST belt from the controller
+                                            final updatedTrainee = controller
+                                                .traineeList
+                                                .firstWhere(
+                                                  (t) => t['id'] == traineeId,
+                                                  orElse: () => trainee,
+                                                );
+
+                                            final String newBelt =
+                                                updatedTrainee['belt'] ?? belt;
+
+                                            if (oldBelt != newBelt) {
+                                              progressController
+                                                      .overallAverage
+                                                      .value =
+                                                  0.0;
+                                            }
+
+                                            progressController
+                                                .fetchOverallStats(
+                                                  traineeId,
+                                                  newBelt,
+                                                );
+                                          },
+                                          child: const Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
@@ -446,102 +554,6 @@ class TraineeDetailScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Milestones and Details remain unchanged...
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: customGradient,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.all(borderThickness),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF141823),
-                      borderRadius: BorderRadius.circular(20 - borderThickness),
-                    ),
-                    padding: EdgeInsets.all(16 - borderThickness),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Milestones',
-                          style: GoogleFonts.roboto(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const _CheckItem(text: 'Blocks and Strikes Good'),
-                        const SizedBox(height: 8),
-                        const _CheckItem(text: 'Master Form 1'),
-                        const SizedBox(height: 8),
-                        const _CheckItem(text: 'Improve Side Kick'),
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            // --- UPDATED NAVIGATION LOGIC ---
-                            onTap: () async {
-                              // 1. Await the navigation to finish
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => TraineeProgressScreen(
-                                    traineeId: currentTrainee['id'],
-                                    traineeName:
-                                        currentTrainee['name'] ?? 'Trainee',
-                                    currentBelt:
-                                        currentTrainee['belt'] ?? 'White',
-                                  ),
-                                ),
-                              );
-
-                              // 2. Refresh the stats immediately upon return
-                              progressController.fetchOverallStats(traineeId);
-                            },
-                            // --------------------------------
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Color(0x33FFFFFF),
-                                    Color(0x33604E5C),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.military_tech,
-                                    color: Colors.white70,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Progress',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 20),
                 Container(
                   width: double.infinity,
@@ -560,7 +572,7 @@ class TraineeDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Student Details',
+                          'Participant Details',
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -581,6 +593,166 @@ class TraineeDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
+
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: customGradient,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(borderThickness),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141823),
+                      borderRadius: BorderRadius.circular(20 - borderThickness),
+                    ),
+                    padding: EdgeInsets.all(16 - borderThickness),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Guardian & Emergency',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _DetailRow(
+                          text:
+                              currentTrainee['guardianName'] ??
+                              'No Guardian Name',
+                        ),
+                        const SizedBox(height: 8),
+                        _DetailRow(
+                          text:
+                              currentTrainee['guardianAddress'] ??
+                              'No Guardian Address',
+                        ),
+                        const SizedBox(height: 8),
+                        _DetailRow(
+                          text:
+                              currentTrainee['guardianContact'] ??
+                              'No Guardian Contact',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: customGradient,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(borderThickness),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141823),
+                      borderRadius: BorderRadius.circular(20 - borderThickness),
+                    ),
+                    padding: EdgeInsets.all(16 - borderThickness),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Aim / Goals',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          currentTrainee['goals']?.toString() ??
+                              'No specific goals set.',
+                          style: GoogleFonts.roboto(
+                            color: Colors.grey.shade300,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: customGradient,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(borderThickness),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141823),
+                      borderRadius: BorderRadius.circular(20 - borderThickness),
+                    ),
+                    padding: EdgeInsets.all(16 - borderThickness),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Disability & Medical Concern',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _formatConditions(currentTrainee['conditions']),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: customGradient,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(borderThickness),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141823),
+                      borderRadius: BorderRadius.circular(20 - borderThickness),
+                    ),
+                    padding: EdgeInsets.all(16 - borderThickness),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Competency',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          currentTrainee['competency']?.toString() ??
+                              'No competency details provided.',
+                          style: GoogleFonts.roboto(
+                            color: Colors.grey.shade300,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 32),
               ],
             ),
@@ -589,33 +761,88 @@ class TraineeDetailScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-// ... _CheckItem and _DetailRow classes remain exactly the same ...
-class _CheckItem extends StatelessWidget {
-  final String text;
-  const _CheckItem({Key? key, required this.text}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(Icons.check, color: Color(0xFF00FFB9), size: 16),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.roboto(
-              color: Colors.grey.shade300,
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+  void _confirmDelete(
+    BuildContext context,
+    TraineeController controller,
+    String id,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF141823),
+        title: Text(
+          'Delete Trainee?',
+          style: GoogleFonts.roboto(color: Colors.white),
+        ),
+        content: Text(
+          'Are you sure you want to delete this trainee? This action cannot be undone.',
+          style: GoogleFonts.roboto(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop(); // Close dialog
+              await controller.deleteTrainee(id);
+              if (controller.success.value) {
+                Get.back(); // Go back to list
+                Get.snackbar(
+                  "Success",
+                  "Trainee deleted",
+                  backgroundColor: const Color(0xFF00FFA6),
+                  colorText: Colors.black,
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              } else {
+                Get.snackbar(
+                  "Error",
+                  controller.error.value,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              }
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.redAccent),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
+
+// // ... _CheckItem and _DetailRow classes remain exactly the same ...
+// class _CheckItem extends StatelessWidget {
+//   final String text;
+//   const _CheckItem({Key? key, required this.text}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       children: [
+//         const Icon(Icons.check, color: Color(0xFF00FFB9), size: 16),
+//         const SizedBox(width: 8),
+//         Expanded(
+//           child: Text(
+//             text,
+//             style: GoogleFonts.roboto(
+//               color: Colors.grey.shade300,
+//               fontSize: 12,
+//               fontWeight: FontWeight.w400,
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
 
 class _DetailRow extends StatelessWidget {
   final String text;

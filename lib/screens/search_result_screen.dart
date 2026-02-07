@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart'; // For kIsWeb
-import '../controller/controller/trainee_controller.dart';
-import 'trainee_detail_screen.dart';
+import '../Participants/trainee_controller.dart';
+import '../Participants/trainee_detail_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../controller/controller/resource_controller.dart';

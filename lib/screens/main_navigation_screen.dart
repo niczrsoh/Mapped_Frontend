@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
+import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import '../screens/home_screen.dart';
 import '../forum/forum_screen.dart';
 import '../coachBot/coachBot_screen.dart';

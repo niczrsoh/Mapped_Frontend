@@ -2,11 +2,14 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'dart:convert';
-import '../controller/controller/trainee_controller.dart';
+import '../controller/controller/trainer_controller.dart';
 import '../services/api_service.dart';
 
 class BeltProgressRingController extends GetxController {
-  final TraineeController _traineeController = Get.find<TraineeController>();
+  final TrainerController _trainerController =
+      Get.isRegistered<TrainerController>()
+      ? Get.find<TrainerController>()
+      : Get.put(TrainerController());
   final ApiService _apiService = ApiService();
 
   var beltPercentages = <String, int>{}.obs;
@@ -16,16 +19,13 @@ class BeltProgressRingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // 1. Listen for User ID changes (e.g. upon login)
-    // This ensures that if the ID wasn't ready when the controller was created,
-    // we fetch data automatically once it arrives.
-    ever(_traineeController.currentUserId, (String uid) {
+
+    ever(_trainerController.currentUserId, (String uid) {
       if (uid.isNotEmpty) {
         fetchBeltProgress();
       }
     });
 
-    // 2. Try fetching immediately (in case ID is already there)
     fetchBeltProgress();
   }
 
@@ -37,15 +37,13 @@ class BeltProgressRingController extends GetxController {
     int? openResourceCount,
   }) async {
     try {
-      String userId = _traineeController.currentUserId.value;
+      String userId = _trainerController.currentUserId.value;
       if (userId.isEmpty) {
         isLoading.value = false;
         return;
       }
 
-      var url = Uri.parse(
-        '${_apiService.baseUrl}/belt-progress/sync-belt',
-      ); // Ensure baseUrl is correct
+      var url = Uri.parse('${_apiService.baseUrl}/belt-progress/sync-belt');
 
       Map<String, dynamic> requestBody = {
         "userId": userId,
@@ -85,7 +83,7 @@ class BeltProgressRingController extends GetxController {
   Future<void> fetchBeltProgress() async {
     try {
       isLoading.value = true;
-      String userId = _traineeController.currentUserId.value;
+      String userId = _trainerController.currentUserId.value;
       if (userId.isEmpty) {
         isLoading.value = false;
         return;
@@ -142,7 +140,7 @@ class BeltProgressRingController extends GetxController {
 
   Future<void> updateBeltProgress(String beltCode, String actionType) async {
     try {
-      String userId = _traineeController.currentUserId.value;
+      String userId = _trainerController.currentUserId.value;
       if (userId.isEmpty) {
         isLoading.value = false;
         return;
@@ -165,7 +163,6 @@ class BeltProgressRingController extends GetxController {
     }
   }
 
-  // --- Helpers stay the same ---
   int getPercentage(String beltName) {
     String cleanName = beltName.replaceAll(' Belt', '');
     return beltPercentages[cleanName] ?? 0;

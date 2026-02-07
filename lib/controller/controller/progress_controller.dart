@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import '../../services/api_service.dart';
-import 'trainee_controller.dart';
+import '../../Participants/trainee_controller.dart';
 import '../../TProgress/belt_progress_ring_controller.dart';
 
 class ProgressController extends GetxController {
@@ -20,12 +20,16 @@ class ProgressController extends GetxController {
   var loadedKicks = <String, int>{}.obs;
 
   // --- FETCH DATA (Load previous ratings for specific form) ---
-  Future<void> fetchProgress(String traineeId, String form) async {
+  Future<void> fetchProgress(
+    String traineeId,
+    String beltColor, // Add beltColor
+    String form,
+  ) async {
     try {
       isLoading.value = true;
 
       // Call Backend
-      final result = await _apiService.getProgress(traineeId, form);
+      final result = await _apiService.getProgress(traineeId, beltColor, form);
 
       if (result['success'] == true && result['data'] != null) {
         final data = result['data'];
@@ -36,15 +40,23 @@ class ProgressController extends GetxController {
         // 2. Load Techniques Map
         if (data['techniques'] != null) {
           Map<String, dynamic> techMap = data['techniques'];
-          loadedTechniques.value = techMap.map((k, v) => MapEntry(k, v as int));
+          loadedTechniques.value = techMap.map(
+            (k, v) => MapEntry(k, (v as num).toInt()),
+          );
+          print(
+            "ProgressController: Loaded ${loadedTechniques.length} techniques.",
+          );
         } else {
+          print("ProgressController: No techniques data found for this form.");
           loadedTechniques.clear();
         }
 
         // 3. Load Kicks Map
         if (data['kicks'] != null) {
           Map<String, dynamic> kicksMap = data['kicks'];
-          loadedKicks.value = kicksMap.map((k, v) => MapEntry(k, v as int));
+          loadedKicks.value = kicksMap.map(
+            (k, v) => MapEntry(k, (v as num).toInt()),
+          );
         } else {
           loadedKicks.clear();
         }
@@ -64,6 +76,7 @@ class ProgressController extends GetxController {
   // --- SAVE DATA (Auto-save on tap) ---
   Future<void> saveProgress({
     required String traineeId,
+    required String beltColor, // Add beltColor
     required String form,
     required Map<String, int> techniques,
     required Map<String, int> kicks,
@@ -73,8 +86,10 @@ class ProgressController extends GetxController {
       _calculateLocalScore(techniques, kicks);
 
       // 2. Send to Backend silently
+      print("Sending Progress Update for Belt: $beltColor");
       final result = await _apiService.saveProgress({
         'traineeId': traineeId,
+        'beltColor': beltColor, // Include beltColor
         'form': form,
         'techniques': techniques,
         'kicks': kicks,
@@ -82,11 +97,14 @@ class ProgressController extends GetxController {
 
       // 3. Sync with exact backend calculation if successful
       if (result['success'] == true) {
+        print(
+          "ProgressController: Save Success. New Form Score: ${result['data']['percentage']}",
+        );
         // Update current form score from backend
         currentScore.value = (result['data']['percentage'] ?? 0.0).toDouble();
 
         // --- KEY LOGIC: Recalculate Overall Average for Dashboard ---
-        await fetchOverallStats(traineeId);
+        await fetchOverallStats(traineeId, beltColor);
 
         // Sync the result to TraineeController immediately
         if (Get.isRegistered<TraineeController>()) {
@@ -105,20 +123,27 @@ class ProgressController extends GetxController {
       print("Error saving progress: $e");
     }
   }
-  
+
   // --- 1. FETCH OVERALL STATS (The Fix is Here) ---
-  Future<void> fetchOverallStats(String traineeId) async {
+  Future<void> fetchOverallStats(String traineeId, String beltColor) async {
     try {
-      final result = await _apiService.getAllProgress(traineeId);
+      final result = await _apiService.getAllProgress(traineeId, beltColor);
 
       if (result['success'] == true && result['data'] != null) {
         final data = result['data'];
 
         // FIX: Check if data is a Map (New Backend format)
         if (data is Map<String, dynamic>) {
-          double serverAvg = (data['overallAverage'] ?? 0.0).toDouble();
+          // Robust parsing for overallAverage
+          var avgVal = data['overallAverage'];
+          double serverAvg = 0.0;
+          if (avgVal is num) {
+            serverAvg = avgVal.toDouble();
+          } else if (avgVal is String) {
+            serverAvg = double.tryParse(avgVal) ?? 0.0;
+          }
           overallAverage.value = serverAvg;
-        } 
+        }
         // Fallback: Check if data is a List (Old Backend format)
         else if (data is List) {
           if (data.isEmpty) {

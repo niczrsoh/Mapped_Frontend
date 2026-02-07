@@ -4,12 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'belt_progress_ring_controller.dart';
-import '../../controller/controller/trainee_controller.dart';
-import '../controller/controller/session_controller.dart';
+import '../../controller/controller/trainer_controller.dart';
+import '../session/session_controller.dart';
 import '../../controller/controller/resource_controller.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
-// Import your new requirement file
-import 'package:mapped_frontend/TProgress/data/belt_requirements.dart'; 
+import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
 
 void main() {
   runApp(const MyApp());
@@ -43,7 +42,14 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize required controllers BEFORE consuming them
+    Get.put(TrainerController());
+    Get.put(SessionController());
+    Get.put(ResourceController());
+
+    // Then initialize the ring controller which might depend on them
     ringController = Get.put(BeltProgressRingController());
+
     // Trigger a fresh fetch from backend whenever dashboard loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ringController.fetchBeltProgress();
@@ -52,10 +58,10 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Inject Controllers
-    final TraineeController traineeController = Get.put(TraineeController());
-    final SessionController sessionController = Get.put(SessionController());
-    final resourceController = Get.put(ResourceController());
+    // Get instances using Get.find() since they are already initialized in initState
+    final TrainerController trainerController = Get.find<TrainerController>();
+    final SessionController sessionController = Get.find<SessionController>();
+    final resourceController = Get.find<ResourceController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F1114),
@@ -116,11 +122,8 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
         ),
       ),
       body: Obx(() {
-        // 1. Pull live total values from controllers
         int totalSessions = sessionController.totalSessionsCount.value;
-        int totalActiveDays = traineeController.activeDaysCount.value;
-
-        // --- RESOURCE SYNC LOGIC ---
+        int totalActiveDays = trainerController.activeDaysCount.value;
         int localResources = resourceController.viewedResourceIds.length;
         int backendResources = 0;
 
@@ -135,12 +138,10 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           print("Error finding backend resources: $e");
         }
 
-        // Use the higher number (Winner Takes All)
         int resourcesOpened = (localResources > backendResources)
             ? localResources
             : backendResources;
 
-        // --- PERCENTAGE SYNC LOGIC ---
         int getSyncedPercentage(String beltLabel) {
           try {
             var b = ringController.detailedBeltData.firstWhereOrNull((belt) {
@@ -253,21 +254,17 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     );
   }
 
-  /// Helper helper to build the list of BeltTasks from Requirement.dart
   List<BeltTask> _buildBeltTasks({
     required String beltId,
     required int totalSessions,
     required int totalActiveDays,
     required int resourcesOpened,
   }) {
-    // 1. Get the Requirement Definition
     final requirement = BeltRequirementsData.getFor(beltId);
 
-    // 2. Map definition tasks to UI BeltTasks
     return requirement.tasks.map((taskDef) {
       String valueText = "";
 
-      // 3. Logic to determine the value string based on type
       switch (taskDef.type) {
         case RequirementType.session:
           int calculated = (totalSessions - requirement.cumulativeSessionOffset)
@@ -282,12 +279,10 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           break;
 
         case RequirementType.resource:
-          // Uses the specific Resource Sync logic passed in
           valueText = "$resourcesOpened Resources";
           break;
 
         case RequirementType.recommendation:
-          // Matches your "3 Times" or "10 Times" style
           valueText = "${taskDef.target} Times";
           break;
 
@@ -300,19 +295,18 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           break;
 
         case RequirementType.forumPost:
-          // Handles variation between "1 time" vs "1 Coach" based on context if needed
-          // Using a general rule to match your requested output
-          if (beltId == BeltDefinitions.blue && taskDef.target == 1 && taskDef.dashboardLabel.contains("Reply")) {
-             valueText = "${taskDef.target} Coach";
+          if (beltId == BeltDefinitions.blue &&
+              taskDef.target == 1 &&
+              taskDef.dashboardLabel.contains("Reply")) {
+            valueText = "${taskDef.target} Coach";
           } else {
-             valueText = "${taskDef.target} time"; 
+            valueText = "${taskDef.target} time";
           }
           break;
 
         case RequirementType.shareTip:
-           // Handles "Tip/ Res" suffix
-           valueText = "${taskDef.target} Tip/ Res";
-           break;
+          valueText = "${taskDef.target} Tip/ Res";
+          break;
       }
 
       return BeltTask(

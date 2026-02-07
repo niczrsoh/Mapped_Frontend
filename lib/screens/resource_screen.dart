@@ -34,7 +34,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   );
 
   static const double borderThickness = 1.5;
-  static const Color innerCardBackgroundColor =  Color(0xFF141823);
+  static const Color innerCardBackgroundColor = Color(0xFF141823);
   static const Color filterChipSolidColor = Color(0xFF3d4154);
   static const Color accentColor = Color(0xFF00ff9f);
 
@@ -449,17 +449,19 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
         ? resource['description']
         : (resource['date'] ?? '');
     final String type = resource['type'] ?? 'Text';
-
-    // UPDATED LOGIC: Handle multiple URLs, show only index 0
     String? resourceUrl;
-    // Check specific fields first
-    if (resource['imageUrls'] != null && (resource['imageUrls'] as List).isNotEmpty) {
+    final String resourceId = resource['_id'] ?? resource['title'];
+
+    if (resource['imageUrls'] != null &&
+        (resource['imageUrls'] as List).isNotEmpty) {
       resourceUrl = resource['imageUrls'][0];
-    } else if (resource['videoUrls'] != null && (resource['videoUrls'] as List).isNotEmpty) {
+    } else if (resource['videoUrls'] != null &&
+        (resource['videoUrls'] as List).isNotEmpty) {
       resourceUrl = resource['videoUrls'][0];
-    } else if (resource['linkUrl'] != null && resource['linkUrl'].toString().isNotEmpty) {
+    } else if (resource['linkUrl'] != null &&
+        resource['linkUrl'].toString().isNotEmpty) {
       resourceUrl = resource['linkUrl'];
-    } 
+    }
     // Fallback to generic 'urls' or 'url' if backend legacy
     else {
       List<dynamic> urls = resource['urls'] ?? [];
@@ -472,6 +474,7 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
 
     return GestureDetector(
       onTap: () {
+        _resourceController.markResourceAsViewed(resourceId);
         Navigator.push(
           context,
           MaterialPageRoute(

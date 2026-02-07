@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import 'package:mapped_frontend/screens/main_navigation_screen.dart';
-import 'package:mapped_frontend/screens/session_upcoming_screen.dart';
+import 'package:mapped_frontend/session/session_upcoming_screen.dart';
 import 'session_current_screen.dart';
 import 'session_history_screen.dart';
-// Import Controller
-import '../controller/controller/session_controller.dart';
+import 'session_controller.dart';
 
 class SessionDashboardScreen extends StatelessWidget {
   const SessionDashboardScreen({super.key});
+
+  String _formatDuration(dynamic duration) {
+    if (duration == null) return '0 Mins';
+    final d = duration.toString();
+    if (d.toLowerCase().contains('min')) return d;
+    return '$d Mins';
+  }
 
   Widget _sessionCard({
     required String title,
@@ -18,7 +23,8 @@ class SessionDashboardScreen extends StatelessWidget {
     required String venue,
     required String trainees,
     required String trainer,
-    bool isEmpty = false, // Added param to handle empty states
+    bool isEmpty = false,
+    int? notificationCount,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 20),
@@ -50,14 +56,40 @@ class SessionDashboardScreen extends StatelessWidget {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ UNCOMMENTED TITLE HERE
-                  Text(
-                    title,
-                    style: GoogleFonts.roboto(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.roboto(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (notificationCount != null && notificationCount > 0)
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 24,
+                            minHeight: 24,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$notificationCount',
+                              style: GoogleFonts.roboto(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -178,14 +210,7 @@ class SessionDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeBg = const Color(0xFF141823);
-
-    // Inject Controller
     final SessionController controller = Get.put(SessionController());
-
-    // 2. 🛑 FORCE REFRESH: Ensure we get fresh data every time this screen loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.fetchDashboardData();
-    });
 
     return Scaffold(
       backgroundColor: themeBg,
@@ -245,10 +270,8 @@ class SessionDashboardScreen extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-                  // --- CURRENT SESSION CARD ---
                   GestureDetector(
                     onTap: () {
-                      // Navigates to the full list screen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -258,34 +281,27 @@ class SessionDashboardScreen extends StatelessWidget {
                     },
                     child: _sessionCard(
                       title: 'Current',
-                      // ✅ THIS VARIABLE (currentSession.value) NOW ONLY HOLDS THE SINGLE LATEST SESSION
                       isEmpty: controller.currentList.isEmpty,
-                      // date: controller.currentSession.value?['uiDate'] ?? '-',
-                      // time: controller.currentSession.value?['time'] ?? '-',
-                      // venue: controller.currentSession.value?['venue'] ?? '-',
-                      // trainees:
-                      //     '${controller.currentSession.value?['totalTrainees'] ?? 0} Trainees',
-                      // trainer:
-                      //     'Trainer: Sir ${controller.currentSession.value?['trainer'] ?? '-'}',
                       date: controller.currentList.isNotEmpty
-                          ? controller.currentList[0]['uiDate'] ?? '-'
+                          ? controller.currentList[0].uiDate ??
+                                controller.currentList[0].date ??
+                                '-'
                           : '-',
                       time: controller.currentList.isNotEmpty
-                          ? controller.currentList[0]['time'] ?? '-'
+                          ? _formatDuration(controller.currentList[0].duration)
                           : '-',
                       venue: controller.currentList.isNotEmpty
-                          ? controller.currentList[0]['venue'] ?? '-'
+                          ? controller.currentList[0].venue ?? '-'
                           : '-',
                       trainees: controller.currentList.isNotEmpty
-                          ? '${controller.currentList[0]['totalTrainees']} Trainees'
+                          ? '${controller.currentList[0].totalTrainees} Trainees'
                           : '0 Trainees',
                       trainer: controller.currentList.isNotEmpty
-                          ? 'Trainer: Sir ${controller.currentList[0]['trainer'] ?? '-'}'
-                          : 'Trainer: Sir -',
+                          ? 'Coach: Sir ${controller.currentList[0].trainer ?? '-'}'
+                          : 'Coach: Sir -',
                     ),
                   ),
 
-                  // --- UPCOMING SESSION CARD ---
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -298,17 +314,19 @@ class SessionDashboardScreen extends StatelessWidget {
                     child: _sessionCard(
                       title: 'Upcoming',
                       isEmpty: controller.upcomingSession.value == null,
-                      date: controller.upcomingSession.value?['uiDate'] ?? '-',
-                      time: controller.upcomingSession.value?['time'] ?? '-',
-                      venue: controller.upcomingSession.value?['venue'] ?? '-',
+                      notificationCount: controller.upcomingList.length,
+                      date: controller.upcomingSession.value?.uiDate ?? '-',
+                      time: _formatDuration(
+                        controller.upcomingSession.value?.duration,
+                      ),
+                      venue: controller.upcomingSession.value?.venue ?? '-',
                       trainees:
-                          '${controller.upcomingSession.value?['totalTrainees'] ?? 0} Trainees',
+                          '${controller.upcomingSession.value?.totalTrainees ?? 0} Trainees',
                       trainer:
-                          'Trainer: Sir ${controller.upcomingSession.value?['trainer'] ?? '-'}',
+                          'Coach: Sir ${controller.upcomingSession.value?.trainer ?? '-'}',
                     ),
                   ),
 
-                  // --- HISTORY SESSION CARD ---
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -321,13 +339,15 @@ class SessionDashboardScreen extends StatelessWidget {
                     child: _sessionCard(
                       title: 'History',
                       isEmpty: controller.historySession.value == null,
-                      date: controller.historySession.value?['uiDate'] ?? '-',
-                      time: controller.historySession.value?['time'] ?? '-',
-                      venue: controller.historySession.value?['venue'] ?? '-',
+                      date: controller.historySession.value?.uiDate ?? '-',
+                      time: _formatDuration(
+                        controller.historySession.value?.duration,
+                      ),
+                      venue: controller.historySession.value?.venue ?? '-',
                       trainees:
-                          '${controller.historySession.value?['totalTrainees'] ?? 0} Trainees',
+                          '${controller.historySession.value?.totalTrainees ?? 0} Trainees',
                       trainer:
-                          'Trainer: Sir ${controller.historySession.value?['trainer'] ?? '-'}',
+                          'Coach: Sir ${controller.historySession.value?.trainer ?? '-'}',
                     ),
                   ),
 

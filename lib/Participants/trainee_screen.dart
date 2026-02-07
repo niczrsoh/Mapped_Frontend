@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'; // Import Get
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:io'; // Needed for FileImage
-import '../controller/controller/trainee_controller.dart'; // Import your controller
+import 'dart:io';
+import 'trainee_controller.dart';
 import 'add_trainee.dart';
 import 'trainee_detail_screen.dart';
+import '../TProgress/data/belt_definitions.dart';
 
 class TraineesScreen extends StatefulWidget {
   const TraineesScreen({Key? key}) : super(key: key);
@@ -15,8 +16,8 @@ class TraineesScreen extends StatefulWidget {
 
 class _TraineesScreenState extends State<TraineesScreen> {
   String selectedFilter = 'All';
+  String searchQuery = '';
 
-  // Inject Controller
   final TraineeController traineeController = Get.put(TraineeController());
 
   static const double borderThickness = 1.5;
@@ -28,27 +29,9 @@ class _TraineesScreenState extends State<TraineesScreen> {
   static const Color innerCardBackgroundColor = Color(0x8A72777A);
   static const Color accentColor = Color(0xFF00FFB9);
 
-String _getNextBelt(String currentBelt) {
-    switch (currentBelt) {
-      case 'White':
-        return 'Yellow';
-      case 'Yellow':
-        return 'Green';
-      case 'Green':
-        return 'Blue';
-      case 'Blue':
-        return 'Brown';
-      case 'Brown':
-        return 'Black';
-      default:
-        return 'White';
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    // Ensure data is fresh when screen loads
     traineeController.fetchTrainees();
   }
 
@@ -62,7 +45,6 @@ String _getNextBelt(String currentBelt) {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- Header ---
               Row(
                 children: [
                   IconButton(
@@ -81,7 +63,6 @@ String _getNextBelt(String currentBelt) {
               ),
               const SizedBox(height: 20),
 
-              // --- Trainees Header Card ---
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -109,7 +90,7 @@ String _getNextBelt(String currentBelt) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Trainees',
+                            'Participants',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 22,
@@ -188,9 +169,9 @@ String _getNextBelt(String currentBelt) {
               ),
               const SizedBox(height: 20),
 
-              // --- Search Bar ---
               Container(
                 width: double.infinity,
+                height: 50,
                 decoration: BoxDecoration(
                   gradient: customGradient,
                   borderRadius: BorderRadius.circular(30),
@@ -208,9 +189,15 @@ String _getNextBelt(String currentBelt) {
                     color: const Color(0xFF141823),
                     borderRadius: BorderRadius.circular(30 - borderThickness),
                   ),
-                  padding: EdgeInsets.all(16 - borderThickness),
+                  alignment: Alignment.center,
                   child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        searchQuery = value;
+                      });
+                    },
                     style: const TextStyle(color: Colors.white, fontSize: 16),
+                    textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
                       hintText: 'Search by name ...',
                       hintStyle: TextStyle(
@@ -224,7 +211,6 @@ String _getNextBelt(String currentBelt) {
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20,
-                        vertical: 16,
                       ),
                     ),
                   ),
@@ -232,30 +218,23 @@ String _getNextBelt(String currentBelt) {
               ),
               const SizedBox(height: 20),
 
-              // --- Filter Chips ---
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
                     _buildFilterChip('All'),
                     const SizedBox(width: 12),
-                    _buildFilterChip('White'),
-                    const SizedBox(width: 12),
-                    _buildFilterChip('Yellow'),
-                    const SizedBox(width: 12),
-                    _buildFilterChip('Green'),
-                    const SizedBox(width: 12),
-                    _buildFilterChip('Blue'),
-                    const SizedBox(width: 12),
-                    _buildFilterChip('Brown'),
-                    const SizedBox(width: 12),
-                    _buildFilterChip('Black'),
+                    ...BeltDefinitions.belts.map(
+                      (b) => Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: _buildFilterChip(b.name),
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // --- Reactive Trainees List ---
               Expanded(
                 child: Obx(() {
                   if (traineeController.loading.value) {
@@ -264,16 +243,23 @@ String _getNextBelt(String currentBelt) {
                     );
                   }
 
-                  // Filter logic (optional, basic client-side filtering)
-                  final displayList = selectedFilter == 'All'
-                      ? traineeController.traineeList
-                      : traineeController.traineeList
-                            .where(
-                              (t) =>
-                                  t['belt'].toString().toLowerCase() ==
-                                  selectedFilter.toLowerCase(),
-                            )
-                            .toList();
+                  var displayList = traineeController.traineeList.toList();
+                  if (selectedFilter != 'All') {
+                    displayList = displayList
+                        .where(
+                          (t) =>
+                              t['belt'].toString().toLowerCase() ==
+                              selectedFilter.toLowerCase(),
+                        )
+                        .toList();
+                  }
+
+                  if (searchQuery.isNotEmpty) {
+                    displayList = displayList.where((t) {
+                      final name = (t['name'] ?? '').toString().toLowerCase();
+                      return name.contains(searchQuery.toLowerCase());
+                    }).toList();
+                  }
 
                   if (displayList.isEmpty) {
                     return const Center(
@@ -358,33 +344,24 @@ String _getNextBelt(String currentBelt) {
 
   Widget _buildTraineeCard(Map<String, dynamic> trainee) {
     final String belt = trainee['belt'] ?? 'White';
-    // final Color beltColor = _getBeltColor(belt);
-    final String nextBelt = _getNextBelt(belt);
+    String? imgData = trainee['image'];
+    if (imgData == null || imgData.isEmpty) {
+      imgData = trainee['imagePath'];
+    }
 
-    // Handle Image: Check if it's a network URL, local file path, or asset
-    // Since backend might return full object, we usually store image path/url
-    // For this example, if 'image' is null, show default icon
-    final String? imgData = trainee['image'];
     ImageProvider? avatarImage;
 
     if (imgData != null && imgData.isNotEmpty) {
       if (imgData.startsWith('http')) {
         avatarImage = NetworkImage(imgData);
       } else if (imgData.startsWith('assets/')) {
-        //else if (imgData.contains('/')) {
-        // Assuming it's a local file path captured from camera
-        //avatarImage = FileImage(File(imgData));
         avatarImage = AssetImage(imgData);
       } else {
-        // Fallback for your hardcoded assets if mixed data
-        // avatarImage = AssetImage(imgData);
         try {
           final file = File(imgData);
-          // Check if file actually exists to prevent crash/error loop
           if (file.existsSync()) {
             avatarImage = FileImage(file);
           } else {
-            // File path exists in DB but file is gone from phone cache
             avatarImage = null;
           }
         } catch (e) {
@@ -394,18 +371,10 @@ String _getNextBelt(String currentBelt) {
     }
 
     return GestureDetector(
-      // --- UPDATE THIS ONTAP SECTION ---
       onTap: () {
-        // Use Get.to() so the Controller knows this screen exists
         Get.to(() => TraineeDetailScreen(trainee: trainee));
       },
-      // return GestureDetector(
-      //   onTap: () {
-      //     // Pass ID or Trainee Object to detail screen
-      //     Navigator.of(
-      //       context,
-      //     ).push(MaterialPageRoute(builder: (_) => const TraineeRayyanScreen()));
-      //   },
+
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 16),
@@ -438,11 +407,11 @@ String _getNextBelt(String currentBelt) {
                     : null,
               ),
               const SizedBox(width: 16),
-              // --- UPDATED ROW STRUCTURE TO FIX DISPLAY ---
               Expanded(
                 child: Row(
                   children: [
                     Expanded(
+                      flex: 4,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -453,7 +422,7 @@ String _getNextBelt(String currentBelt) {
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
-                            overflow: TextOverflow.ellipsis, // Prevents overflow
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 6),
                           Container(
@@ -478,25 +447,73 @@ String _getNextBelt(String currentBelt) {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // --- DISPLAY NEXT BELT HERE ---
                     Expanded(
-                      child: Text(
-                        'Note : Next $nextBelt\nBelt in 3 criteria',
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          height: 1.4,
-                        ),
+                      flex: 3,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Note : ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              height: 1.2,
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              () {
+                                var conditions = trainee['conditions'];
+                                if (conditions == null) return 'None';
+
+                                if (conditions is List) {
+                                  if (conditions.isEmpty) return 'None';
+                                  return conditions.join(", ");
+                                }
+
+                                // Handle String data with required formatting
+                                String text = conditions.toString().trim();
+                                if (text.isEmpty || text == 'null')
+                                  return 'None';
+
+                                // Detect and format bullet points ( -item )
+                                if (text.contains('-')) {
+                                  final parts = text
+                                      .split('-')
+                                      .map((e) => e.trim())
+                                      .where((e) => e.isNotEmpty)
+                                      .toList();
+
+                                  if (parts.isNotEmpty) {
+                                    return parts.join(", ");
+                                  }
+                                }
+
+                                return text;
+                              }(),
+                              textAlign: TextAlign.start,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                height: 1.2,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
   }
+}

@@ -4,10 +4,12 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart' as img;
-import '../controller/controller/trainee_controller.dart';
+import 'trainee_controller.dart';
+import 'trainee_model.dart';
+import '../controller/controller/trainer_controller.dart';
 
 class AddTraineeScreen extends StatefulWidget {
-  const AddTraineeScreen({Key? key}) : super(key: key);
+  const AddTraineeScreen({super.key});
 
   @override
   State<AddTraineeScreen> createState() => _AddTraineeScreenState();
@@ -24,7 +26,6 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
   static const Color innerCardBackgroundColor = Color(0xFF141823);
   static const double boxedFieldInnerHeight = 30.0;
 
-  // Controllers
   final _nameCtrl = TextEditingController();
   final _beltCtrl = TextEditingController();
   final _dobCtrl = TextEditingController();
@@ -36,7 +37,10 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
   final _guardianContactCtrl = TextEditingController();
   final _guardianAddressCtrl = TextEditingController();
 
-  // Focus Nodes
+  final _goalsCtrl = TextEditingController();
+  final _conditionsCtrl = TextEditingController();
+  final _competencyCtrl = TextEditingController();
+
   final FocusNode _nameFocus = FocusNode();
   final FocusNode _beltFocus = FocusNode();
   final FocusNode _genderFocus = FocusNode();
@@ -47,18 +51,21 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
   final FocusNode _guardianContactFocus = FocusNode();
   final FocusNode _guardianAddressFocus = FocusNode();
 
-  // Error State
+  final _goalsFocus = FocusNode();
+  final _conditionsFocus = FocusNode();
+  final _competencyFocus = FocusNode();
+
   final Map<String, String?> _errors = {};
 
   img.XFile? _pickedImage;
   final img.ImagePicker _picker = img.ImagePicker();
 
   final TraineeController traineeController = Get.find<TraineeController>();
+  final TrainerController trainerController = Get.find<TrainerController>();
 
   @override
   void initState() {
     super.initState();
-    // Clear any previous controller errors
     traineeController.error.value = '';
 
     _nameFocus.addListener(
@@ -100,6 +107,17 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
         _guardianAddressCtrl.text,
       ),
     );
+    _goalsFocus.addListener(
+      () => _onFocusChange(_goalsFocus, 'goals', _goalsCtrl.text),
+    );
+    _conditionsFocus.addListener(
+      () =>
+          _onFocusChange(_conditionsFocus, 'conditions', _conditionsCtrl.text),
+    );
+    _competencyFocus.addListener(
+      () =>
+          _onFocusChange(_competencyFocus, 'competency', _competencyCtrl.text),
+    );
   }
 
   void _onFocusChange(FocusNode node, String fieldKey, String value) {
@@ -108,7 +126,6 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     }
   }
 
-  // --- UPDATED VALIDATION LOGIC ---
   void _validateField(String key, String value) {
     String? error;
     final trimmedValue = value.trim();
@@ -117,14 +134,11 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     if (trimmedValue.isEmpty) {
       error = 'This field is required to fill';
     } else {
-      // 1. Gender Validation
       if (key == 'gender') {
         if (lowerCaseValue != 'male' && lowerCaseValue != 'female') {
           error = 'Must be Male or Female';
         }
-      }
-      // 2. Belt Validation
-      else if (key == 'belt') {
+      } else if (key == 'belt') {
         const allowedBelts = [
           'white',
           'yellow',
@@ -136,14 +150,10 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
         if (!allowedBelts.contains(lowerCaseValue)) {
           error = 'Invalid belt color';
         }
-      }
-      // Email Validation
-      else if (key == 'email' && !GetUtils.isEmail(trimmedValue)) {
+      } else if (key == 'email' && !GetUtils.isEmail(trimmedValue)) {
         error = 'Invalid Email';
-      }
-      // Phone Validation
-      else if ((key == 'phone' || key == 'guardianContact') &&
-          trimmedValue.length < 9) {
+      } else if ((key == 'phone' || key == 'guardianContact') &&
+          (trimmedValue.length < 9 || trimmedValue.length > 12)) {
         error = 'Invalid Phone';
       }
     }
@@ -166,6 +176,10 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     _guardianContactCtrl.dispose();
     _guardianAddressCtrl.dispose();
 
+    _goalsCtrl.dispose();
+    _conditionsCtrl.dispose();
+    _competencyCtrl.dispose();
+
     _nameFocus.dispose();
     _beltFocus.dispose();
     _genderFocus.dispose();
@@ -175,6 +189,10 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     _guardianNameFocus.dispose();
     _guardianContactFocus.dispose();
     _guardianAddressFocus.dispose();
+
+    _goalsFocus.dispose();
+    _conditionsFocus.dispose();
+    _competencyFocus.dispose();
     super.dispose();
   }
 
@@ -218,13 +236,15 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
   }
 
   Widget _boxedField(
-    String label,
+    String? label,
     TextEditingController ctrl,
     FocusNode focusNode,
     String fieldKey, {
     String? hint,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? formatters,
+    int maxLines = 1,
+    double? height,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -235,19 +255,25 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(color: Colors.grey[350], fontSize: 13),
-          ),
-          const SizedBox(height: 4),
+          if (label != null)
+            Text(
+              label,
+              style: GoogleFonts.poppins(color: Colors.grey[350], fontSize: 13),
+            ),
+          if (label != null) const SizedBox(height: 4),
           SizedBox(
-            height: boxedFieldInnerHeight,
+            height: height ?? (maxLines > 1 ? null : boxedFieldInnerHeight),
             child: TextField(
               controller: ctrl,
               focusNode: focusNode,
-              keyboardType: keyboardType,
+              keyboardType: maxLines > 1
+                  ? TextInputType.multiline
+                  : keyboardType,
               inputFormatters: formatters,
-              textAlignVertical: TextAlignVertical.center,
+              maxLines: maxLines,
+              textAlignVertical: maxLines > 1
+                  ? TextAlignVertical.top
+                  : TextAlignVertical.center,
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 16,
@@ -257,10 +283,9 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
               ),
               decoration: InputDecoration(
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 0,
-                  vertical: 6,
-                ),
+                contentPadding: maxLines > 1
+                    ? const EdgeInsets.symmetric(vertical: 8)
+                    : const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
                 hintText: hint ?? '',
                 hintStyle: GoogleFonts.poppins(
                   color: Colors.white70,
@@ -344,7 +369,9 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
         _pickedImage = picked;
         setState(() {});
       }
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
   }
 
   void _showImageSourceActionSheet() {
@@ -382,26 +409,15 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                 _pickImage(img.ImageSource.camera);
               },
             ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingDialog() {
-    return const Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircularProgressIndicator(),
-        SizedBox(height: 16),
-        Text('Adding Trainee...'),
-      ],
-    );
-  }
-
   Future<void> _submitTraineeData() async {
-    // 1. Run validation on ALL fields immediately
+    if (traineeController.loading.value) return;
+
     _validateField('name', _nameCtrl.text);
     _validateField('belt', _beltCtrl.text);
     _validateField('gender', _genderCtrl.text);
@@ -411,14 +427,14 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     _validateField('guardianName', _guardianNameCtrl.text);
     _validateField('guardianContact', _guardianContactCtrl.text);
     _validateField('guardianAddress', _guardianAddressCtrl.text);
+    _validateField('goals', _goalsCtrl.text);
+    _validateField('conditions', _conditionsCtrl.text);
+    _validateField('competency', _competencyCtrl.text);
     if (_dobCtrl.text.isEmpty) {
       setState(() => _errors['dob'] = 'This field is required to fill');
     }
 
-    // 2. Check if there are any errors in the map
     bool hasErrors = _errors.values.any((e) => e != null);
-
-    // 3. If there are errors, STOP
     if (hasErrors) {
       traineeController.error.value = 'Please correct the invalid fields above';
       return;
@@ -434,8 +450,8 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
       return;
     }
 
-    // 4. Proceed to Add (Use await to wait for result)
-    await traineeController.addTrainee(
+    final newTrainee = TraineeModel(
+      trainerId: trainerController.currentUserId.value,
       name: _nameCtrl.text,
       belt: _beltCtrl.text,
       dateOfBirth: _dobCtrl.text,
@@ -446,217 +462,141 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
       guardianName: _guardianNameCtrl.text,
       guardianContact: _guardianContactCtrl.text,
       guardianAddress: _guardianAddressCtrl.text,
+      goals: _goalsCtrl.text,
+      conditions: _conditionsCtrl.text,
+      competency: _competencyCtrl.text,
       imagePath: _pickedImage?.path,
     );
 
-    // 5. Check success status from controller
-    if (traineeController.success.value) {
-      // Close the "Confirm Add" dialog (the one with the warning icon)
-      if (mounted && Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
+    await traineeController.addTrainee(newTrainee);
 
-      // Show the Success Dialog
-      _showSuccessDialog();
+    if (traineeController.success.value) {
+      Get.back();
+      Get.back();
+
+      Get.snackbar(
+        "Success",
+        "Participant has been added successfully",
+        backgroundColor: const Color(0xFF00FFA6),
+        colorText: Colors.black,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      );
     }
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00FFA6).withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: Color(0xFF00FFA6),
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Success!',
-                style: GoogleFonts.roboto(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Trainee has been added to the list.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.roboto(color: Colors.black54),
-              ),
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: () {
-                  // 1. Close the Success Dialog
-                  Navigator.of(ctx).pop();
-
-                  // 2. Close the Add Trainee Screen (Go back to list)
-                  Get.back();
-
-                  // NOTE: Since we used GetX Obx on the previous screen,
-                  // it will automatically show the new trainee!
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00FFA6),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'GO TO LIST',
-                    style: GoogleFonts.roboto(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _showAddConfirmDialog() async {
-    // Reset any previous dialog errors when opening
     traineeController.error.value = '';
 
     await showDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (ctx) {
-        return Obx(
-          () => Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 24,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 24,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-              child: traineeController.loading.value
-                  ? _buildLoadingDialog()
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.red,
-                            size: 48,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Are you sure want to add a Trainee?',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.roboto(
-                            color: Colors.black87,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => Navigator.of(ctx).pop(),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF00FFA6),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    'CANCEL',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.black87,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: _submitTraineeData, // Validates on click
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF00FFA6),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    'OK',
-                                    style: GoogleFonts.roboto(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Error message shown inside dialog if validation fails
-                        if (traineeController.error.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Text(
-                              traineeController.error.value,
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                      ],
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            child: Obx(
+              () => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
                     ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Are you sure want to add a Participant?',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.roboto(
+                      color: Colors.black87,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(ctx).pop(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00FFA6),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'CANCEL',
+                              style: GoogleFonts.roboto(
+                                color: Colors.black87,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _submitTraineeData,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00FFA6),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'OK',
+                              style: GoogleFonts.roboto(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (traineeController.error.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(
+                        traineeController.error.value,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         );
@@ -717,7 +657,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Trainee Dashboard',
+          'Participant Dashboard',
           style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 16,
@@ -736,7 +676,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Add Trainee',
+                        'Add Participant',
                         style: GoogleFonts.roboto(
                           color: Colors.white,
                           fontSize: 16,
@@ -777,7 +717,6 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       ),
                     ),
                     GestureDetector(
-                      // We open the dialog first, but validate only when OK is clicked inside
                       onTap: _showAddConfirmDialog,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -793,7 +732,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.22),
+                              color: Colors.black.withValues(alpha: 0.22),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -1115,6 +1054,85 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       _guardianAddressFocus,
                       'guardianAddress',
                       hint: 'Address ...',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              _gradientBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Aim / Goals',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _boxedField(
+                      'Goals',
+                      _goalsCtrl,
+                      _goalsFocus,
+                      'goals',
+                      hint: 'I want ...',
+                      maxLines: 3,
+                      height: 60,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              _gradientBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Disability & Medical Concern',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _boxedField(
+                      'Conditions',
+                      _conditionsCtrl,
+                      _conditionsFocus,
+                      'conditions',
+                      hint:
+                          'List all the disabilities & medical concern, e.g.\n\n-high blood pressure\n-Pregnant\n-Leg joint problem\n-Heart Attack\n-Autism\n-ADHD\n-PTSD\n-Chest pain',
+                      maxLines: 8,
+                      height: 140,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              _gradientBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Competency',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _boxedField(
+                      'Competency',
+                      _competencyCtrl,
+                      _competencyFocus,
+                      'competency',
+                      hint: 'I want ...',
+                      maxLines: 3,
+                      height: 60,
                     ),
                   ],
                 ),

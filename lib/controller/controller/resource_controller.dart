@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../services/api_service.dart';
-import 'trainee_controller.dart';
-
+import 'trainer_controller.dart';
+import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 
 class ResourceController extends GetxController {
   final ApiService _apiService = ApiService();
 
-  final TraineeController traineeController = Get.find<TraineeController>();
+  final TrainerController trainerController = Get.find<TrainerController>();
 
   var loading = false.obs;
   var resourceList = <dynamic>[].obs;
@@ -24,10 +24,9 @@ class ResourceController extends GetxController {
     fetchOpenResourceCount();
   }
 
-Future<void> fetchOpenResourceCount() async {
+  Future<void> fetchOpenResourceCount() async {
     try {
-      // Get the ID from the TraineeController
-      String userId = traineeController.currentUserId.value;
+      String userId = trainerController.currentUserId.value;
       if (userId.isEmpty) return;
 
       final result = await _apiService.getUserResourceProgress(userId);
@@ -40,15 +39,22 @@ Future<void> fetchOpenResourceCount() async {
     }
   }
 
- // Update this in ResourceController
-void markResourceAsViewed(String id) async {
-    String userId = traineeController.currentUserId.value;
-    
+  // Update this in ResourceController
+  void markResourceAsViewed(String id) async {
+    String userId = trainerController.currentUserId.value;
+
     if (!viewedResourceIds.contains(id)) {
       viewedResourceIds.add(id); // Update UI immediately
       try {
         // Record to DB so it persists after logout
-        await _apiService.recordResourceView(id, userId); 
+        final result = await _apiService.recordResourceView(id, userId);
+
+        // Also refresh belt progress so the home screen chart updates
+        if (result['success'] == true) {
+          if (Get.isRegistered<BeltProgressRingController>()) {
+            Get.find<BeltProgressRingController>().fetchBeltProgress();
+          }
+        }
       } catch (e) {
         debugPrint("Failed to record view: $e");
       }
@@ -104,12 +110,11 @@ void markResourceAsViewed(String id) async {
     }
   }
 
-  // UPDATED: Now accepts List<String> urls
   Future<void> addResource({
     required String title,
     required String description,
     required String type,
-   List<String>? imageUrls,
+    List<String>? imageUrls,
     List<String>? videoUrls,
     String? linkUrl,
     String author = 'Lieyza Wahab',

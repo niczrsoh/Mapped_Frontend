@@ -43,18 +43,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     super.dispose();
   }
 
-  Future<void> _openCamera() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CustomCameraScreen()),
-    );
+  // Future<void> _openCamera() async {
+  //   final result = await Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => const CustomCameraScreen()),
+  //   );
 
-    if (result != null && result is String) {
-      setState(() {
-        _selectedGalleryImages.add(result);
-      });
-    }
-  }
+  //   if (result != null && result is String) {
+  //     setState(() {
+  //       _selectedGalleryImages.add(result);
+  //     });
+  //   }
+  // }
 
   void _onNextPressed() {
     if (_titleController.text.trim().isEmpty &&
@@ -233,11 +233,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // Camera
-                          _buildActionIcon(
-                            Icons.camera_alt_outlined,
-                            'Camera',
-                            _openCamera,
-                          ),
+                          // _buildActionIcon(
+                          //   Icons.camera_alt_outlined,
+                          //   // 'Camera',
+                          //   // _openCamera,
+                          // ),
 
                           // Gallery
                           _buildActionIcon(
