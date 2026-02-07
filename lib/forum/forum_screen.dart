@@ -391,49 +391,74 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== POST IMAGES ==========
+  // ========== POST IMAGES WITH INSTAGRAM-STYLE GALLERY ==========
   Widget _buildPostImages(ForumPost post) {
-    return Column(
-      children: post.images.map((imgUrl) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              controller.getFullImageUrl(imgUrl),
-              width: double.infinity,
-              fit: BoxFit.fitWidth,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.grey[800],
-                  child: const Center(
-                    child: Icon(Icons.broken_image, color: Colors.white54),
+    // Single image - display normally
+    if (post.images.length == 1) {
+      return GestureDetector(
+        onTap: () => _openImageViewer(
+          controller.getFullImageUrl(post.images[0]),
+          0,
+          post.images.map((img) => controller.getFullImageUrl(img)).toList(),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            controller.getFullImageUrl(post.images[0]),
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[800],
+                child: const Center(
+                  child: Icon(Icons.broken_image, color: Colors.white54),
+                ),
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[900],
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: const Color(0xFF09FACA),
                   ),
-                );
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.grey[900],
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                          : null,
-                      color: const Color(0xFF09FACA),
-                    ),
-                  ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
-        );
-      }).toList(),
+        ),
+      );
+    }
+
+    // Multiple images - Instagram-style swipeable gallery
+    return PostImageGallery(
+      images: post.images,
+      controller: controller,
+      onImageTap: (index) => _openImageViewer(
+        controller.getFullImageUrl(post.images[index]),
+        index,
+        post.images.map((img) => controller.getFullImageUrl(img)).toList(),
+      ),
+    );
+  }
+
+  // ========== IMAGE VIEWER ==========
+  void _openImageViewer(String imageUrl, int initialIndex, List<String> allImages) {
+    Get.to(
+      () => FullScreenImageViewer(
+        imageUrls: allImages,
+        initialIndex: initialIndex,
+      ),
+      transition: Transition.fade,
     );
   }
 
@@ -940,6 +965,305 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
             child: CircularProgressIndicator(color: Color(0xFF09FACA)),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ========== INSTAGRAM-STYLE IMAGE GALLERY WIDGET ==========
+class PostImageGallery extends StatefulWidget {
+  final List<String> images;
+  final ForumController controller;
+  final Function(int)? onImageTap;
+
+  const PostImageGallery({
+    super.key,
+    required this.images,
+    required this.controller,
+    this.onImageTap,
+  });
+
+  @override
+  State<PostImageGallery> createState() => _PostImageGalleryState();
+}
+
+class _PostImageGalleryState extends State<PostImageGallery> {
+  late PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.black,
+      ),
+      child: Stack(
+        children: [
+          // Image PageView
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemCount: widget.images.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => widget.onImageTap?.call(index),
+                  child: Image.network(
+                    widget.controller.getFullImageUrl(widget.images[index]),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[800],
+                        child: const Center(
+                          child: Icon(Icons.broken_image, color: Colors.white54, size: 50),
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: Colors.grey[900],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                            color: const Color(0xFF09FACA),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Page Indicator at the top right
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${_currentPage + 1}/${widget.images.length}',
+                style: GoogleFonts.roboto(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+
+          // Dot Indicators at the bottom
+          Positioned(
+            bottom: 12,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.images.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index
+                        ? const Color(0xFF09FACA)
+                        : Colors.white.withOpacity(0.5),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ========== FULL SCREEN IMAGE VIEWER ==========
+class FullScreenImageViewer extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
+
+  const FullScreenImageViewer({
+    super.key,
+    required this.imageUrls,
+    this.initialIndex = 0,
+  });
+
+  @override
+  State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
+}
+
+class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Image PageView with Zoom
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemCount: widget.imageUrls.length,
+            itemBuilder: (context, index) {
+              return InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Center(
+                  child: Image.network(
+                    widget.imageUrls[index],
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: const Color(0xFF09FACA),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.broken_image, color: Colors.white54, size: 80),
+                            SizedBox(height: 16),
+                            Text(
+                              'Failed to load image',
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Close Button
+          SafeArea(
+            child: Positioned(
+              top: 16,
+              left: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+            ),
+          ),
+
+          // Page Counter (if multiple images)
+          if (widget.imageUrls.length > 1)
+            SafeArea(
+              child: Positioned(
+                top: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_currentIndex + 1} / ${widget.imageUrls.length}',
+                    style: GoogleFonts.roboto(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Dot Indicators (if multiple images)
+          if (widget.imageUrls.length > 1)
+            Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  widget.imageUrls.length,
+                  (index) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentIndex == index
+                          ? const Color(0xFF09FACA)
+                          : Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -76,6 +76,18 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
     return content.replaceAll(RegExp(r'#\w+'), '').trim();
   }
 
+  // Open fullscreen image viewer
+  void _openImageViewer(int initialIndex) {
+    final imageUrls = widget.resource.images.map((img) => _getFixedUrl(img)).toList();
+    Get.to(
+      () => FullScreenImageViewer(
+        imageUrls: imageUrls,
+        initialIndex: initialIndex,
+      ),
+      transition: Transition.fade,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -239,7 +251,6 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
 
   Widget _buildMediaSection() {
     // 1. VIDEO PLAYER
-    // We check if controller is NOT null to prevent crashes
     if (_youtubeController != null) {
       return Container(
         height: 220,
@@ -270,8 +281,46 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
         ),
       );
     }
-    // 2. IMAGE GALLERY
-    else if (widget.resource.images.isNotEmpty) {
+    // 2. IMAGE GALLERY - Single Image
+    else if (widget.resource.images.length == 1) {
+      return GestureDetector(
+        onTap: () => _openImageViewer(0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.network(
+            _getFixedUrl(widget.resource.images[0]),
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (ctx, err, stack) => Container(
+              height: 400,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.black,
+              ),
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.broken_image,
+                      color: Colors.white24,
+                      size: 50,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Image not found",
+                      style: TextStyle(color: Colors.white24),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    // 3. IMAGE GALLERY - Multiple Images (Instagram-style)
+    else if (widget.resource.images.length > 1) {
       return Container(
         height: 400,
         width: double.infinity,
@@ -281,6 +330,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
         ),
         child: Stack(
           children: [
+            // Image PageView
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: PageView.builder(
@@ -288,25 +338,27 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                 onPageChanged: (index) => currentImageIndex.value = index,
                 itemCount: widget.resource.images.length,
                 itemBuilder: (context, index) {
-                  return Image.network(
-                    // Use helper to fix relative URLs
-                    _getFixedUrl(widget.resource.images[index]),
-                    fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) => const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.broken_image,
-                            color: Colors.white24,
-                            size: 50,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            "Image not found",
-                            style: TextStyle(color: Colors.white24),
-                          ),
-                        ],
+                  return GestureDetector(
+                    onTap: () => _openImageViewer(index),
+                    child: Image.network(
+                      _getFixedUrl(widget.resource.images[index]),
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, stack) => const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              color: Colors.white24,
+                              size: 50,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              "Image not found",
+                              style: TextStyle(color: Colors.white24),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -314,33 +366,63 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
               ),
             ),
 
-            // Page Indicator
-            if (widget.resource.images.length > 1)
-              Positioned(
-                top: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Obx(
-                    () => Text(
-                      '${currentImageIndex.value + 1}/${widget.resource.images.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+            // Page Counter Badge (Top Right)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Obx(
+                  () => Text(
+                    '${currentImageIndex.value + 1}/${widget.resource.images.length}',
+                    style: GoogleFonts.roboto(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
               ),
+            ),
+
+            // Dot Indicators (Bottom Center) - Instagram Style
+            Positioned(
+              bottom: 12,
+              left: 0,
+              right: 0,
+              child: Obx(
+                () => Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    widget.resource.images.length,
+                    (index) => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: currentImageIndex.value == index
+                            ? const Color(0xFF09FACA)
+                            : Colors.white.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       );
-    } else if (widget.resource.videoUrl != null && _youtubeController == null) {
-      // Fallback if video URL exists but ID extraction failed
+    } 
+    // 4. Fallback if video URL exists but ID extraction failed
+    else if (widget.resource.videoUrl != null && _youtubeController == null) {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -364,5 +446,165 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
     }
 
     return const SizedBox.shrink();
+  }
+}
+
+// ========== FULL SCREEN IMAGE VIEWER ==========
+class FullScreenImageViewer extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
+
+  const FullScreenImageViewer({
+    super.key,
+    required this.imageUrls,
+    this.initialIndex = 0,
+  });
+
+  @override
+  State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
+}
+
+class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Image PageView with Zoom
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemCount: widget.imageUrls.length,
+            itemBuilder: (context, index) {
+              return InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Center(
+                  child: Image.network(
+                    widget.imageUrls[index],
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: const Color(0xFF09FACA),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.broken_image, color: Colors.white54, size: 80),
+                            SizedBox(height: 16),
+                            Text(
+                              'Failed to load image',
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Close Button
+          SafeArea(
+            child: Positioned(
+              top: 16,
+              left: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+            ),
+          ),
+
+          // Page Counter (if multiple images)
+          if (widget.imageUrls.length > 1)
+            SafeArea(
+              child: Positioned(
+                top: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_currentIndex + 1} / ${widget.imageUrls.length}',
+                    style: GoogleFonts.roboto(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Dot Indicators (if multiple images)
+          if (widget.imageUrls.length > 1)
+            Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  widget.imageUrls.length,
+                  (index) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentIndex == index
+                          ? const Color(0xFF09FACA)
+                          : Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
