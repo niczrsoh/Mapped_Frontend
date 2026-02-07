@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../controller/controller/forum_searchtags_controller.dart';
+import 'package:flutter/gestures.dart';
+import 'package:mapped_frontend/forum/forum_model.dart';
+import 'forum_searchtags_controller.dart';
 
 class ForumSearchtagsScreen extends StatelessWidget {
   ForumSearchtagsScreen({super.key});
-  final ForumSearchtagsController controller = Get.put(ForumSearchtagsController());
+  final ForumSearchtagsController controller = Get.put(
+    ForumSearchtagsController(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -102,57 +106,74 @@ class ForumSearchtagsScreen extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: controller.loadAllTags,
-                child: Text(
-                  'View All',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF09FACA),
+                onTap: controller
+                    .toggleTagsExpanded,
+                child: Obx(
+                  () => Text(
+                    controller.isTagsExpanded.value ? 'Show Less' : 'View All',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF09FACA),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Obx(() => Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: controller.popularTags.map((tag) {
-                  final isSelected = controller.selectedTag.value == tag;
-                  return GestureDetector(
-                    onTap: () => controller.selectTag(tag),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
+
+          Obx(() {
+            if (controller.popularTags.isEmpty) {
+              return Text(
+                "No tags found",
+                style: GoogleFonts.roboto(color: Colors.grey),
+              );
+            }
+
+            final tagsToShow = controller.isTagsExpanded.value
+                ? controller.popularTags.toList()
+                : controller.popularTags.take(3).toList();
+
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: tagsToShow.map((tag) {
+                final isSelected = controller.selectedTag.value == tag;
+                return GestureDetector(
+                  onTap: () => controller.selectTag(tag),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF09FACA)
+                          : const Color(0xFF252836),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
                         color: isSelected
                             ? const Color(0xFF09FACA)
-                            : const Color(0xFF252836),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected
-                              ? const Color(0xFF09FACA)
-                              : const Color(0xFF09FACA).withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        tag,
-                        style: GoogleFonts.roboto(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: isSelected
-                              ? const Color(0xFF1A1D29)
-                              : Colors.white,
-                        ),
+                            : const Color(0xFF09FACA).withOpacity(0.3),
+                        width: 1,
                       ),
                     ),
-                  );
-                }).toList(),
-              )),
+                    child: Text(
+                      tag,
+                      style: GoogleFonts.roboto(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected
+                            ? const Color(0xFF1A1D29)
+                            : Colors.white,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          }),
         ],
       ),
     );
@@ -265,9 +286,11 @@ class ForumSearchtagsScreen extends StatelessWidget {
               CircleAvatar(
                 radius: 22,
                 backgroundColor: Colors.grey[300],
-                backgroundImage: post.authorImage != null &&
-                        post.authorImage!.isNotEmpty
-                    ? NetworkImage(controller.getFullImageUrl(post.authorImage!))
+                backgroundImage:
+                    post.authorImage != null && post.authorImage!.isNotEmpty
+                    ? NetworkImage(
+                        controller.getFullImageUrl(post.authorImage!),
+                      )
                     : null,
                 child: post.authorImage == null || post.authorImage!.isEmpty
                     ? const Icon(Icons.person, color: Colors.grey)
@@ -301,41 +324,20 @@ class ForumSearchtagsScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Post Content
-          Text(
-            post.content,
-            style: GoogleFonts.roboto(
-              fontSize: 14,
-              color: Colors.white,
-              height: 1.5,
+          RichText(
+            text: TextSpan(
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                color: Colors.white,
+                height: 1.5,
+              ),
+              children: _parseContent(post.content),
             ),
           ),
 
           const SizedBox(height: 12),
 
-          // Hashtags
-          if (post.hashtags.isNotEmpty)
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: post.hashtags.map((tag) {
-                return GestureDetector(
-                  onTap: () => controller.selectTag(tag),
-                  child: Text(
-                    tag,
-                    style: GoogleFonts.roboto(
-                      fontSize: 13,
-                      color: const Color(0xFF09FACA),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-          const SizedBox(height: 12),
-
-          // --- Post Images (Now Full Width & Vertical) ---
+          // Post Images
           if (post.images.isNotEmpty)
             Column(
               children: post.images.map((imgUrl) {
@@ -345,38 +347,13 @@ class ForumSearchtagsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     child: Image.network(
                       controller.getFullImageUrl(imgUrl),
-                      width: double.infinity, // Forces full width
-                      fit: BoxFit.fitWidth,   // Scales height automatically
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 200,
-                          width: double.infinity,
-                          color: Colors.grey[800],
-                          child: const Center(
-                            child: Icon(
-                              Icons.broken_image, 
-                              color: Colors.white54
-                            ),
-                          ),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          height: 200,
-                          width: double.infinity,
-                          color: Colors.grey[900],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              color: const Color(0xFF09FACA),
-                            ),
-                          ),
-                        );
-                      },
+                      width: double.infinity,
+                      fit: BoxFit.fitWidth,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 200,
+                        color: Colors.grey[800],
+                        child: const Icon(Icons.broken_image),
+                      ),
                     ),
                   ),
                 );
@@ -385,5 +362,39 @@ class ForumSearchtagsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<TextSpan> _parseContent(String text) {
+    List<TextSpan> spans = [];
+
+    // Finds words starting with #
+    text.splitMapJoin(
+      RegExp(r"\B#\w+"),
+      onMatch: (m) {
+        final tag = m.group(0)!;
+        spans.add(
+          TextSpan(
+            text: tag,
+            style: const TextStyle(
+              color: Color(0xFF09FACA),
+              fontWeight: FontWeight.w600,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => controller.selectTag(tag),
+          ),
+        );
+        return "";
+      },
+      onNonMatch: (n) {
+        spans.add(
+          TextSpan(
+            text: n,
+            style: const TextStyle(color: Colors.white),
+          ),
+        );
+        return "";
+      },
+    );
+    return spans;
   }
 }

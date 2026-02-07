@@ -4,11 +4,13 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../controller/controller/create_post_controller.dart';
+import 'create_resource_controller.dart';
 
-class CreatePostScreen extends StatelessWidget {
-  CreatePostScreen({super.key});
-  final CreatePostController controller = Get.put(CreatePostController());
+class CreateResourceScreen extends StatelessWidget {
+  CreateResourceScreen({super.key});
+  final CreateResourceController controller = Get.put(
+    CreateResourceController(),
+  );
 
   String _getAvatarUrl(String path) {
     if (path.isEmpty) return '';
@@ -40,7 +42,7 @@ class CreatePostScreen extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Forum Dashboard',
+          'Resource Dashboard',
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -53,34 +55,104 @@ class CreatePostScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Avatar and Name
             Row(
               children: [
-                Obx(() => CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Colors.grey[800],
-                  backgroundImage: controller.userAvatar.value.isNotEmpty
-                      ? NetworkImage(_getAvatarUrl(controller.userAvatar.value))
-                      : null,
-                  child: controller.userAvatar.value.isEmpty
-                      ? const Icon(Icons.person, color: Colors.white, size: 28)
-                      : null,
-                )),
-                const SizedBox(width: 12),
-                Obx(() => Text(
-                  controller.userName.value, // Shows "Loading..." or Real Name
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                Obx(
+                  () => CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.grey[800],
+                    backgroundImage: controller.userAvatar.value.isNotEmpty
+                        ? NetworkImage(
+                            _getAvatarUrl(controller.userAvatar.value),
+                          )
+                        : null,
+                    child: controller.userAvatar.value.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 28,
+                          )
+                        : null,
                   ),
-                )),
+                ),
+                const SizedBox(width: 12),
+                Obx(
+                  () => Text(
+                    controller.userName.value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
 
-            // Text Input Area
+            // EDIT MODE - Title Section Fix
+            Obx(
+              () => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF252836),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        // Border color updates dynamically now because it's inside Obx
+                        color: controller.showTitleError.value
+                            ? Colors.redAccent
+                            : const Color(0xFF09FACA).withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    child: TextField(
+                      controller: controller.titleController,
+                      onChanged: (val) {
+                        // Clears the error state as the user types
+                        if (val.isNotEmpty)
+                          controller.showTitleError.value = false;
+                      },
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Resource Title',
+                        hintStyle: TextStyle(color: Colors.white54),
+                        border: InputBorder.none,
+                        counterText: "",
+                      ),
+                    ),
+                  ),
+
+                  // The reminder text logic
+                  if (controller.showTitleError.value)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, left: 4),
+                      child: Text(
+                        "* Title is required to continue",
+                        style: GoogleFonts.roboto(
+                          color: Colors.redAccent,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox.shrink(),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF252836),
@@ -94,33 +166,15 @@ class CreatePostScreen extends StatelessWidget {
               child: TextField(
                 controller: controller.textController,
                 maxLines: 8,
+                maxLength: 2000,
                 style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
                 decoration: InputDecoration(
                   hintText: 'What\'s on your mind?',
                   hintStyle: GoogleFonts.roboto(color: Colors.white54),
                   border: InputBorder.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Tags Input
-            TextField(
-              controller: controller.tagsController,
-              style: GoogleFonts.roboto(
-                color: const Color(0xFF09FACA),
-                fontSize: 14,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Insert your hashtags here (e.g. #Taekwondo, #MartialArts)',
-                hintStyle: GoogleFonts.roboto(color: Colors.white54, fontSize: 14),
-                border: InputBorder.none,
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white10),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF09FACA)),
+                  counterStyle: GoogleFonts.roboto(
+                    color: Colors.white54,
+                  ), // Style the 0/2000 text
                 ),
               ),
             ),
@@ -140,7 +194,7 @@ class CreatePostScreen extends StatelessWidget {
             Obx(() {
               if (controller.selectedImages.isNotEmpty) {
                 return SizedBox(
-                  height: 120, // Fixed height for the thumbnail list
+                  height: 120,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: controller.selectedImages.length,
@@ -161,10 +215,7 @@ class CreatePostScreen extends StatelessWidget {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: kIsWeb
-                                  ? Image.network(
-                                      file.path,
-                                      fit: BoxFit.cover,
-                                    )
+                                  ? Image.network(file.path, fit: BoxFit.cover)
                                   : Image.file(
                                       File(file.path),
                                       fit: BoxFit.cover,
@@ -174,7 +225,7 @@ class CreatePostScreen extends StatelessWidget {
                           // Remove Button (X)
                           Positioned(
                             top: 4,
-                            right: 16, // Adjust padding relative to container margin
+                            right: 16,
                             child: GestureDetector(
                               onTap: () => controller.removeImage(index),
                               child: Container(
@@ -201,13 +252,12 @@ class CreatePostScreen extends StatelessWidget {
             }),
 
             Obx(() {
-               // We listen to videoUrl changes
-               if (controller.videoUrl.value.isNotEmpty && controller.ytPlayerController != null) {
-                 return _buildVideoPlayer(isEditable: true);
-               }
-               return const SizedBox.shrink();
+              if (controller.videoUrl.value.isNotEmpty &&
+                  controller.ytPlayerController != null) {
+                return _buildVideoPlayer(isEditable: true);
+              }
+              return const SizedBox.shrink();
             }),
-
           ],
         ),
       ),
@@ -254,37 +304,76 @@ class CreatePostScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Obx(() => CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.grey[800],
-                        backgroundImage: controller.userAvatar.value.isNotEmpty
-                            ? NetworkImage(_getAvatarUrl(controller.userAvatar.value))
-                            : null,
-                        child: controller.userAvatar.value.isEmpty
-                            ? const Icon(Icons.person, color: Colors.white)
-                            : null,
-                      )),
+                      Obx(
+                        () => CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Colors.grey[800],
+                          backgroundImage:
+                              controller.userAvatar.value.isNotEmpty
+                              ? NetworkImage(
+                                  _getAvatarUrl(controller.userAvatar.value),
+                                )
+                              : null,
+                          child: controller.userAvatar.value.isEmpty
+                              ? const Icon(Icons.person, color: Colors.white)
+                              : null,
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Obx(() => Text(
-                              controller.userName.value, // Shows Real Name
-                              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
-                            )),
-                            Text('Just now', style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54)),
+                            Obx(
+                              () => Text(
+                                controller.userName.value,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'Just now',
+                              style: GoogleFonts.roboto(
+                                fontSize: 12,
+                                color: Colors.white54,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
+
+                  // Title
+                  controller.titleController.text.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            controller.titleController.text,
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF09FACA),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+
                   // Content
-                  Text(controller.textController.text, style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5)),
+                  Text(
+                    controller.textController.text,
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      color: Colors.white,
+                      height: 1.5,
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  if (controller.tagsController.text.isNotEmpty)
-                    Text(controller.tagsController.text, style: GoogleFonts.roboto(fontSize: 13, color: const Color(0xFF09FACA), fontWeight: FontWeight.w500)),
+
                   // Images Stack
                   if (controller.selectedImages.isNotEmpty) ...[
                     const SizedBox(height: 12),
@@ -294,9 +383,17 @@ class CreatePostScreen extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 8.0),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: kIsWeb 
-                                ? Image.network(file.path, width: double.infinity, fit: BoxFit.fitWidth)
-                                : Image.file(File(file.path), width: double.infinity, fit: BoxFit.fitWidth),
+                            child: kIsWeb
+                                ? Image.network(
+                                    file.path,
+                                    width: double.infinity,
+                                    fit: BoxFit.fitWidth,
+                                  )
+                                : Image.file(
+                                    File(file.path),
+                                    width: double.infinity,
+                                    fit: BoxFit.fitWidth,
+                                  ),
                           ),
                         );
                       }).toList(),
@@ -304,16 +401,24 @@ class CreatePostScreen extends StatelessWidget {
                   ],
 
                   Obx(() {
-                     if (controller.videoUrl.value.isNotEmpty && controller.ytPlayerController != null) {
-                       return _buildVideoPlayer(isEditable: false);
-                     }
-                     return const SizedBox.shrink();
+                    if (controller.videoUrl.value.isNotEmpty &&
+                        controller.ytPlayerController != null) {
+                      return _buildVideoPlayer(isEditable: false);
+                    }
+                    return const SizedBox.shrink();
                   }),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            Obx(() => _buildActionRow(buttonLabel: 'Post', onButtonTap: controller.submitPost, isLoading: controller.isPosting.value, disableMedia: controller.isPosting.value)),
+            Obx(
+              () => _buildActionRow(
+                buttonLabel: 'Post',
+                onButtonTap: controller.submitPost,
+                isLoading: controller.isPosting.value,
+                disableMedia: controller.isPosting.value,
+              ),
+            ),
           ],
         ),
       ),
@@ -339,7 +444,7 @@ class CreatePostScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Close Button (Only in Edit Mode)
           if (isEditable)
             Positioned(
@@ -361,7 +466,7 @@ class CreatePostScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildActionRow({
     required String buttonLabel,
     required VoidCallback onButtonTap,
@@ -393,28 +498,31 @@ class CreatePostScreen extends StatelessWidget {
                   ? null
                   : () {
                       // Show Input Dialog
-          TextEditingController linkController = TextEditingController();
-          Get.defaultDialog(
-            title: "Add Video Link",
-            titleStyle: GoogleFonts.inter(fontWeight: FontWeight.bold),
-            content: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: linkController,
-                decoration: const InputDecoration(
-                  hintText: "Paste YouTube URL here",
-                ),
-              ),
-            ),
-            textConfirm: "Add",
-            textCancel: "Cancel",
-            confirmTextColor: Colors.white,
-            buttonColor: const Color(0xFF09FACA),
-            onConfirm: () {
-              controller.addVideoLink(linkController.text);
-            },
-          );
-        },
+                      TextEditingController linkController =
+                          TextEditingController();
+                      Get.defaultDialog(
+                        title: "Add Video Link",
+                        titleStyle: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        content: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: TextField(
+                            controller: linkController,
+                            decoration: const InputDecoration(
+                              hintText: "Paste YouTube URL here",
+                            ),
+                          ),
+                        ),
+                        textConfirm: "Add",
+                        textCancel: "Cancel",
+                        confirmTextColor: Colors.white,
+                        buttonColor: const Color(0xFF09FACA),
+                        onConfirm: () {
+                          controller.addVideoLink(linkController.text);
+                        },
+                      );
+                    },
             ),
           ],
         ),

@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'account_controller.dart';
+import '../../account/account_controller.dart';
 
 class SecurityController extends GetxController {
   var biometricEnabled = true.obs;
