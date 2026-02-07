@@ -12,13 +12,8 @@ class ResourcePost {
   final String? videoUrl;
   final List<String> tags;
   final String resourceType;
-  final int viewCount;
   final DateTime createdAt;
   final DateTime updatedAt;
-
-  // Reactive properties
-  var isPinned = false.obs;
-  var isReported = false.obs;
 
   ResourcePost({
     required this.id,
@@ -32,15 +27,9 @@ class ResourcePost {
     this.videoUrl,
     this.tags = const [],
     required this.resourceType,
-    bool isPinned = false,
-    bool isReported = false,
-    this.viewCount = 0,
     required this.createdAt,
     required this.updatedAt,
-  }) {
-    this.isPinned.value = isPinned;
-    this.isReported.value = isReported;
-  }
+  });
 
   // Factory constructor to create ResourcePost from JSON
   factory ResourcePost.fromJson(
@@ -184,32 +173,12 @@ class ResourcePost {
       videoUrl: extractVideoUrl(),
       tags: _extractTags(json['tags']),
       resourceType: determineResourceType(),
-      isPinned: json['isPinned'] ?? json['is_pinned'] ?? false,
-      isReported: _checkIfReported(json, currentUserId),
-      viewCount: json['viewCount'] ?? json['view_count'] ?? 0,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : DateTime.now(),
-    );
-  }
-
-  // Check if current user has reported this resource
-  static bool _checkIfReported(
-    Map<String, dynamic> json,
-    String currentUserId,
-  ) {
-    if (currentUserId.isEmpty) return false;
-
-    final reports = json['reports'] as List<dynamic>?;
-    if (reports == null) return false;
-
-    return reports.any(
-      (report) =>
-          report['userId']?.toString() == currentUserId ||
-          report['user_id']?.toString() == currentUserId,
     );
   }
 
@@ -256,9 +225,6 @@ class ResourcePost {
       'videoUrl': videoUrl,
       'tags': tags,
       'resourceType': resourceType,
-      'isPinned': isPinned.value,
-      'isReported': isReported.value,
-      'viewCount': viewCount,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };

@@ -246,12 +246,6 @@ class ResourceScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF252836),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: resource.isPinned.value
-                ? const Color(0xFF09FACA).withOpacity(0.5)
-                : const Color(0xFF09FACA).withOpacity(0.2),
-            width: 1,
-          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,16 +286,6 @@ class ResourceScreen extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (resource.isPinned.value)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8),
-                                child: _buildPinnedBadge(),
-                              ),
-                            if (resource.isReported.value)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8),
-                                child: _buildReportedBadge(),
-                              ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -462,57 +446,6 @@ class ResourceScreen extends StatelessWidget {
               fontSize: 10,
               color: Colors.white54,
               fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ========== BADGES ==========
-  Widget _buildPinnedBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFF09FACA).withOpacity(0.2),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.push_pin, size: 10, color: Color(0xFF09FACA)),
-          const SizedBox(width: 4),
-          Text(
-            "Pinned",
-            style: GoogleFonts.roboto(
-              fontSize: 10,
-              color: const Color(0xFF09FACA),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReportedBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.flag, size: 10, color: Colors.red),
-          const SizedBox(width: 4),
-          Text(
-            "Reported",
-            style: GoogleFonts.roboto(
-              fontSize: 10,
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
             ),
           ),
         ],

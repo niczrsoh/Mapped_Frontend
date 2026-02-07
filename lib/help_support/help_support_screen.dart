@@ -97,22 +97,6 @@ class HelpSupportScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Success Icon
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF09FACA),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.mail_outline,
-                  size: 40,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 24),
-
               // Checkmark Badge
               Container(
                 width: 40,
@@ -156,7 +140,7 @@ class HelpSupportScreen extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: Text(
-                    'SUBMIT',
+                    'OK',
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

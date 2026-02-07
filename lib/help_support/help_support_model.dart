@@ -3,7 +3,7 @@ class SupportTicket {
   final String title;
   final String description;
   final String userId;
-  final String status; // 'pending', 'in_progress', 'resolved'
+  final String status;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -18,11 +18,20 @@ class SupportTicket {
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory SupportTicket.fromJson(Map<String, dynamic> json) {
+    String userIdValue;
+    if (json['userId'] is String) {
+      userIdValue = json['userId'];
+    } else if (json['userId'] is Map) {
+      userIdValue = json['userId']['_id'] ?? json['userId']['id'] ?? '';
+    } else {
+      userIdValue = '';
+    }
+
     return SupportTicket(
       id: json['_id'] ?? json['id'],
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-      userId: json['userId'] ?? '',
+      userId: userIdValue,
       status: json['status'] ?? 'pending',
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
@@ -49,8 +58,6 @@ class SupportTicket {
     switch (status) {
       case 'pending':
         return 'Pending';
-      case 'in_progress':
-        return 'In Progress';
       case 'resolved':
         return 'Resolved';
       default:
