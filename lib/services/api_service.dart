@@ -9,7 +9,6 @@ class ApiService {
 
   Future<Map<String, dynamic>> registerUser({
     required String fullName,
-    required String fullName,
     required String email,
     required String password,
   }) async {
@@ -18,7 +17,6 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode({
           'name': fullName,
@@ -36,17 +34,10 @@ class ApiService {
         final String errorMsg =
             responseBody['msg'] ??
             'Registration failed with status ${response.statusCode}';
-        final String errorMsg =
-            responseBody['msg'] ??
-            'Registration failed with status ${response.statusCode}';
         return {'success': false, 'error': errorMsg};
       }
     } catch (e) {
       print('API Error during registration: $e');
-      return {
-        'success': false,
-        'error': 'Network Error. Check server connection.',
-      };
       return {
         'success': false,
         'error': 'Network Error. Check server connection.',
@@ -65,7 +56,6 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode({
           'uid': uid,
@@ -87,17 +77,11 @@ class ApiService {
       } else {
         final String errorMsg =
             responseBody['msg'] ??
-        final String errorMsg =
-            responseBody['msg'] ??
             'Google registration failed with status ${response.statusCode}';
         return {'success': false, 'error': errorMsg};
       }
     } catch (e) {
       print('API Error during Google registration: $e');
-      return {
-        'success': false,
-        'error': 'Network Error. Check server connection.',
-      };
       return {
         'success': false,
         'error': 'Network Error. Check server connection.',
@@ -117,8 +101,6 @@ class ApiService {
         url,
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode({'email': email, 'password': password}),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({'email': email, 'password': password}),
       );
 
       print('Login Response Status: ${response.statusCode}');
@@ -131,18 +113,12 @@ class ApiService {
       } else {
         final String errorMsg =
             responseBody['msg'] ??
-        final String errorMsg =
-            responseBody['msg'] ??
             responseBody['message'] ??
             'Login failed with status ${response.statusCode}';
         return {'success': false, 'error': errorMsg};
       }
     } catch (e) {
       print('API Error during login: $e');
-      return {
-        'success': false,
-        'error': 'Network Error. Check server connection.',
-      };
       return {
         'success': false,
         'error': 'Network Error. Check server connection.',
@@ -158,7 +134,6 @@ class ApiService {
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
       print('Get Profile Response Status: ${response.statusCode}');
@@ -171,17 +146,11 @@ class ApiService {
         final Map<String, dynamic> responseBody = json.decode(response.body);
         final String errorMsg =
             responseBody['msg'] ??
-        final String errorMsg =
-            responseBody['msg'] ??
             'Failed to load profile with status ${response.statusCode}';
         return {'success': false, 'error': errorMsg};
       }
     } catch (e) {
       print('API Error during profile fetch: $e');
-      return {
-        'success': false,
-        'error': 'Network Error. Check server connection.',
-      };
       return {
         'success': false,
         'error': 'Network Error. Check server connection.',
