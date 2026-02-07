@@ -77,10 +77,42 @@ class CreatePostController extends GetxController {
   }
 
   // --- IMAGES ---
+  // Constants for image validation
+  static const int maxImages = 4;
+  static const int maxImageSizeMB = 1;
+  static const int maxImageSizeBytes = maxImageSizeMB * 1024 * 1024; // 1MB
+
   Future<void> pickImageFromGallery() async {
     try {
       final List<XFile> images = await _picker.pickMultiImage();
-      if (images.isNotEmpty) selectedImages.addAll(images);
+      if (images.isNotEmpty) {
+        for (var image in images) {
+          if (selectedImages.length >= maxImages) {
+            Get.snackbar(
+              "Limit Reached",
+              "Maximum $maxImages images allowed",
+              backgroundColor: Colors.orange,
+              colorText: Colors.white,
+            );
+            break;
+          }
+
+          // Check file size
+          final fileSize = await image.length();
+          if (fileSize > maxImageSizeBytes) {
+            Get.snackbar(
+              "File Too Large",
+              "Image must be less than ${maxImageSizeMB}MB. File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB",
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+              duration: const Duration(seconds: 3),
+            );
+            continue;
+          }
+
+          selectedImages.add(image);
+        }
+      }
     } catch (e) {
       Get.snackbar("Error", "Failed to pick images");
     }
@@ -88,8 +120,33 @@ class CreatePostController extends GetxController {
 
   Future<void> pickImageFromCamera() async {
     try {
+      if (selectedImages.length >= maxImages) {
+        Get.snackbar(
+          "Limit Reached",
+          "Maximum $maxImages images allowed",
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
       final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-      if (image != null) selectedImages.add(image);
+      if (image != null) {
+        // Check file size
+        final fileSize = await image.length();
+        if (fileSize > maxImageSizeBytes) {
+          Get.snackbar(
+            "File Too Large",
+            "Image must be less than ${maxImageSizeMB}MB. File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB",
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+          return;
+        }
+
+        selectedImages.add(image);
+      }
     } catch (e) {
       Get.snackbar("Error", "Failed to take photo");
     }

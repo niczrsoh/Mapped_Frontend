@@ -55,28 +55,38 @@ class CreatePostScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Obx(() => CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Colors.grey[800],
-                  backgroundImage: controller.userAvatar.value.isNotEmpty
-                      ? NetworkImage(_getAvatarUrl(controller.userAvatar.value))
-                      : null,
-                  child: controller.userAvatar.value.isEmpty
-                      ? const Icon(Icons.person, color: Colors.white, size: 28)
-                      : null,
-                )),
-                const SizedBox(width: 12),
-                Obx(() => Text(
-                  controller.userName.value, 
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                Obx(
+                  () => CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.grey[800],
+                    backgroundImage: controller.userAvatar.value.isNotEmpty
+                        ? NetworkImage(
+                            _getAvatarUrl(controller.userAvatar.value),
+                          )
+                        : null,
+                    child: controller.userAvatar.value.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 28,
+                          )
+                        : null,
                   ),
-                )),
+                ),
+                const SizedBox(width: 12),
+                Obx(
+                  () => Text(
+                    controller.userName.value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
 
             Container(
@@ -92,13 +102,15 @@ class CreatePostScreen extends StatelessWidget {
               child: TextField(
                 controller: controller.textController,
                 maxLines: 8,
-                maxLength: 2000, 
+                maxLength: 2000,
                 style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
                 decoration: InputDecoration(
                   hintText: 'What\'s on your mind?',
                   hintStyle: GoogleFonts.roboto(color: Colors.white54),
                   border: InputBorder.none,
-                  counterStyle: GoogleFonts.roboto(color: Colors.white54), // Style the 0/2000 text
+                  counterStyle: GoogleFonts.roboto(
+                    color: Colors.white54,
+                  ), // Style the 0/2000 text
                 ),
               ),
             ),
@@ -114,77 +126,96 @@ class CreatePostScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Selected Image Preview
+            // Image Counter and Preview
             Obx(() {
               if (controller.selectedImages.isNotEmpty) {
-                return SizedBox(
-                  height: 120, 
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.selectedImages.length,
-                    itemBuilder: (context, index) {
-                      final file = controller.selectedImages[index];
-                      return Stack(
-                        children: [
-                          Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white12,
-                                width: 1,
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Image Counter
+                    Text(
+                      'Images: ${controller.selectedImages.length}/${CreatePostController.maxImages}',
+                      style: GoogleFonts.roboto(
+                        color:
+                            controller.selectedImages.length >=
+                                CreatePostController.maxImages
+                            ? Colors.orange
+                            : Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Image Preview
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: controller.selectedImages.length,
+                        itemBuilder: (context, index) {
+                          final file = controller.selectedImages[index];
+                          return Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white12,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: kIsWeb
+                                      ? Image.network(
+                                          file.path,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(file.path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
                               ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: kIsWeb
-                                  ? Image.network(
-                                      file.path,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Image.file(
-                                      File(file.path),
-                                      fit: BoxFit.cover,
+                              // Remove Button (X)
+                              Positioned(
+                                top: 4,
+                                right: 16,
+                                child: GestureDetector(
+                                  onTap: () => controller.removeImage(index),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
                                     ),
-                            ),
-                          ),
-                          // Remove Button (X)
-                          Positioned(
-                            top: 4,
-                            right: 16, 
-                            child: GestureDetector(
-                              onTap: () => controller.removeImage(index),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 16,
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 );
               }
               return const SizedBox.shrink();
             }),
 
             Obx(() {
-               if (controller.videoUrl.value.isNotEmpty && controller.ytPlayerController != null) {
-                 return _buildVideoPlayer(isEditable: true);
-               }
-               return const SizedBox.shrink();
+              if (controller.videoUrl.value.isNotEmpty &&
+                  controller.ytPlayerController != null) {
+                return _buildVideoPlayer(isEditable: true);
+              }
+              return const SizedBox.shrink();
             }),
-
           ],
         ),
       ),
@@ -231,37 +262,61 @@ class CreatePostScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Obx(() => CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.grey[800],
-                        backgroundImage: controller.userAvatar.value.isNotEmpty
-                            ? NetworkImage(_getAvatarUrl(controller.userAvatar.value))
-                            : null,
-                        child: controller.userAvatar.value.isEmpty
-                            ? const Icon(Icons.person, color: Colors.white)
-                            : null,
-                      )),
+                      Obx(
+                        () => CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Colors.grey[800],
+                          backgroundImage:
+                              controller.userAvatar.value.isNotEmpty
+                              ? NetworkImage(
+                                  _getAvatarUrl(controller.userAvatar.value),
+                                )
+                              : null,
+                          child: controller.userAvatar.value.isEmpty
+                              ? const Icon(Icons.person, color: Colors.white)
+                              : null,
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Obx(() => Text(
-                              controller.userName.value, 
-                              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
-                            )),
-                            Text('Just now', style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54)),
+                            Obx(
+                              () => Text(
+                                controller.userName.value,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'Just now',
+                              style: GoogleFonts.roboto(
+                                fontSize: 12,
+                                color: Colors.white54,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Content
-                  Text(controller.textController.text, style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5)),
+                  Text(
+                    controller.textController.text,
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      color: Colors.white,
+                      height: 1.5,
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                                    
+
                   // Images Stack
                   if (controller.selectedImages.isNotEmpty) ...[
                     const SizedBox(height: 12),
@@ -271,9 +326,17 @@ class CreatePostScreen extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 8.0),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: kIsWeb 
-                                ? Image.network(file.path, width: double.infinity, fit: BoxFit.fitWidth)
-                                : Image.file(File(file.path), width: double.infinity, fit: BoxFit.fitWidth),
+                            child: kIsWeb
+                                ? Image.network(
+                                    file.path,
+                                    width: double.infinity,
+                                    fit: BoxFit.fitWidth,
+                                  )
+                                : Image.file(
+                                    File(file.path),
+                                    width: double.infinity,
+                                    fit: BoxFit.fitWidth,
+                                  ),
                           ),
                         );
                       }).toList(),
@@ -281,16 +344,24 @@ class CreatePostScreen extends StatelessWidget {
                   ],
 
                   Obx(() {
-                      if (controller.videoUrl.value.isNotEmpty && controller.ytPlayerController != null) {
-                        return _buildVideoPlayer(isEditable: false);
-                      }
-                      return const SizedBox.shrink();
+                    if (controller.videoUrl.value.isNotEmpty &&
+                        controller.ytPlayerController != null) {
+                      return _buildVideoPlayer(isEditable: false);
+                    }
+                    return const SizedBox.shrink();
                   }),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            Obx(() => _buildActionRow(buttonLabel: 'Post', onButtonTap: controller.submitPost, isLoading: controller.isPosting.value, disableMedia: controller.isPosting.value)),
+            Obx(
+              () => _buildActionRow(
+                buttonLabel: 'Post',
+                onButtonTap: controller.submitPost,
+                isLoading: controller.isPosting.value,
+                disableMedia: controller.isPosting.value,
+              ),
+            ),
           ],
         ),
       ),
@@ -316,7 +387,7 @@ class CreatePostScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Close Button (Only in Edit Mode)
           if (isEditable)
             Positioned(
@@ -338,7 +409,7 @@ class CreatePostScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildActionRow({
     required String buttonLabel,
     required VoidCallback onButtonTap,
@@ -370,10 +441,13 @@ class CreatePostScreen extends StatelessWidget {
                   ? null
                   : () {
                       // Show Input Dialog
-                      TextEditingController linkController = TextEditingController();
+                      TextEditingController linkController =
+                          TextEditingController();
                       Get.defaultDialog(
                         title: "Add Video Link",
-                        titleStyle: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                        titleStyle: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                        ),
                         content: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: TextField(

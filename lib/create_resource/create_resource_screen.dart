@@ -190,62 +190,84 @@ class CreateResourceScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Selected Image Preview
+            // Image Counter and Preview
             Obx(() {
               if (controller.selectedImages.isNotEmpty) {
-                return SizedBox(
-                  height: 120,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.selectedImages.length,
-                    itemBuilder: (context, index) {
-                      final file = controller.selectedImages[index];
-                      return Stack(
-                        children: [
-                          Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white12,
-                                width: 1,
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Image Counter
+                    Text(
+                      'Images: ${controller.selectedImages.length}/${CreateResourceController.maxImages}',
+                      style: GoogleFonts.roboto(
+                        color:
+                            controller.selectedImages.length >=
+                                CreateResourceController.maxImages
+                            ? Colors.orange
+                            : Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Image Preview
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: controller.selectedImages.length,
+                        itemBuilder: (context, index) {
+                          final file = controller.selectedImages[index];
+                          return Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white12,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: kIsWeb
+                                      ? Image.network(
+                                          file.path,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(file.path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
                               ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: kIsWeb
-                                  ? Image.network(file.path, fit: BoxFit.cover)
-                                  : Image.file(
-                                      File(file.path),
-                                      fit: BoxFit.cover,
+                              // Remove Button (X)
+                              Positioned(
+                                top: 4,
+                                right: 16,
+                                child: GestureDetector(
+                                  onTap: () => controller.removeImage(index),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
                                     ),
-                            ),
-                          ),
-                          // Remove Button (X)
-                          Positioned(
-                            top: 4,
-                            right: 16,
-                            child: GestureDetector(
-                              onTap: () => controller.removeImage(index),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 16,
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 );
               }
               return const SizedBox.shrink();
