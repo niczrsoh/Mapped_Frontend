@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
 import '../screens/home_screen.dart';
 import '../forum/forum_screen.dart';
-import '../screens/coachBot_screen.dart';
+import '../coachBot/coachBot_screen.dart';
 import '../screens/account_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {

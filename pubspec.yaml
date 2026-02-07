@@ -42,6 +42,8 @@ dependencies:
   youtube_player_flutter: ^9.0.1
   google_sign_in: ^6.2.0
   camera: ^0.11.0
+  flutter_markdown_plus: ^1.0.0 # Use the latest version available
+
 dev_dependencies:
 
   # The "flutter_lints" package below contains a set of recommended lints to

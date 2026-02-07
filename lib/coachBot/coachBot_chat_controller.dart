@@ -1,0 +1,386 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:mapped_frontend/controller/user_controller';
+import 'package:mapped_frontend/helper/constants.dart';
+
+class CoachBotChatController extends GetxController {
+  // Dependencies
+  UserController get userController => Get.find<UserController>();
+
+  // Controllers
+  final messageController = TextEditingController();
+  final scrollController = ScrollController();
+
+  // State
+  var messages = <ChatMessage>[].obs;
+  var isLoading = false.obs;
+  var suggestions = <String>[].obs;
+  var insights = Rx<CoachInsights?>(null);
+  
+  // Track if we are viewing a specific historical conversation
+  bool isHistoryView = false;
+
+  // API Configuration
+  static const String baseUrl = apiBaseUrl;
+  static const String apiPath = '/api/coachbot';
+
+  @override
+  void onInit() {
+    super.onInit();
+    
+    // Check arguments BEFORE loading welcome message
+    if (Get.arguments != null) {
+      _handleArguments();
+    }
+
+    // Only load welcome message if we aren't viewing history and list is empty
+    if (!isHistoryView && messages.isEmpty) {
+      _loadWelcomeMessage();
+    }
+    
+    _loadSuggestions();
+    _loadInsights();
+  }
+
+  /// Handle arguments passed from other screens (e.g. History Screen)
+  void _handleArguments() {
+    final args = Get.arguments;
+
+    // Case 1: Viewing History (Map passed from HistoryController)
+    if (args is Map<String, dynamic> && args['resumeConversation'] == true) {
+      isHistoryView = true;
+      
+      final String userMsg = args['userMessage'] ?? '';
+      final String botResp = args['botResponse'] ?? '';
+      final DateTime timestamp = args['timestamp'] ?? DateTime.now();
+      final String? model = args['model'];
+      final int tokens = args['tokens'] ?? 0;
+
+      // Add the historical interaction
+      if (userMsg.isNotEmpty) {
+        messages.add(ChatMessage(
+          text: userMsg,
+          isUser: true,
+          timestamp: timestamp,
+        ));
+      }
+
+      if (botResp.isNotEmpty) {
+        messages.add(ChatMessage(
+          text: botResp,
+          isUser: false,
+          timestamp: timestamp, // or timestamp.add(Duration(seconds: 1))
+          model: model,
+          tokens: tokens,
+          cached: args['cached'] ?? false,
+          preset: args['preset'] ?? false,
+        ));
+      }
+      
+      // Scroll to bottom after a slight delay to ensure UI builds
+      Future.delayed(const Duration(milliseconds: 300), _scrollToBottom);
+    } 
+    // Case 2: Draft Message (String passed as a shortcut)
+    else if (args is String) {
+      messageController.text = args;
+      // We don't send immediately here, let the user press send
+    }
+  }
+
+  // ==================== API CALLS ====================
+
+  /// Send message to CoachBot API
+  Future<void> sendMessage() async {
+    
+    final text = messageController.text.trim();
+    if (text.isEmpty || isLoading.value) return;
+
+    // Add user message to UI
+    final userMessage = ChatMessage(
+      text: text,
+      isUser: true,
+      timestamp: DateTime.now(),
+    );
+    messages.add(userMessage);
+    messageController.clear();
+
+    // Scroll to bottom
+    _scrollToBottom();
+
+    // Set loading state
+    isLoading.value = true;
+
+    try {
+      // Prepare conversation history (last 10 messages)
+      final history = _prepareHistory();
+
+      // Prepare user context
+      final userContext = {
+        'beltLevel': userController.userData['beltLevel'] ?? null,
+        'role': userController.userData['role'] ?? 'coach',
+        'sessionCount': userController.userData['sessions']?.length ?? 0,
+      };
+
+      // Make API request
+      final response = await http.post(
+        Uri.parse('$baseUrl$apiPath/chat'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userController.userData['_id'],
+          'message': text,
+          'history': history,
+          'userContext': userContext,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Add bot response to UI
+        final botMessage = ChatMessage(
+          text: data['response'],
+          isUser: false,
+          timestamp: DateTime.now(),
+          cached: data['cached'] ?? false,
+          preset: data['preset'] ?? false,
+          model: data['model'],
+          tokens: data['usage']?['total_tokens'] ?? 0,
+        );
+        messages.add(botMessage);
+
+        // Show badge if response was instant
+        if (data['cached'] == true || data['preset'] == true) {
+          _showSuccessSnackbar('⚡ Instant response!');
+        }
+
+        // Refresh insights periodically
+        if (messages.length % 5 == 0) {
+          _loadInsights();
+        }
+      } else if (response.statusCode == 400) {
+        final error = jsonDecode(response.body);
+        _showErrorMessage(error['error'] ?? 'Invalid request');
+      } else if (response.statusCode == 429) {
+        _showErrorMessage('Too many requests. Please wait a moment.');
+      } else {
+        _showErrorMessage('Failed to get response. Please try again.');
+      }
+    } catch (e) {
+      print('CoachBot Error: $e');
+      _showErrorMessage('Network error. Please check your connection.');
+    } finally {
+      isLoading.value = false;
+      _scrollToBottom();
+    }
+  }
+
+  /// Load quick suggestions from API
+  Future<void> _loadSuggestions() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl$apiPath/suggestions?context=general'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        suggestions.value = data.cast<String>();
+      }
+    } catch (e) {
+      suggestions.value = [
+        "Help me plan a beginner session",
+        "What are the belt requirements?",
+        "Show me a warm-up routine",
+        "How do I teach roundhouse kicks?"
+      ];
+    }
+  }
+
+  /// Load coaching insights/analytics
+  Future<void> _loadInsights() async {
+    try {
+      final userId = userController.userData['_id'];
+      if (userId == null) return;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl$apiPath/insights/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        insights.value = CoachInsights.fromJson(data);
+      }
+    } catch (e) {
+      debugPrint('Failed to load insights: $e');
+    }
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  List<Map<String, String>> _prepareHistory() {
+    final historyLimit = 10;
+    final recentMessages = messages.length > historyLimit
+        ? messages.sublist(messages.length - historyLimit)
+        : messages;
+
+    return recentMessages.map((msg) {
+      return {
+        'role': msg.isUser ? 'user' : 'assistant',
+        'content': msg.text,
+      };
+    }).toList();
+  }
+
+  void _loadWelcomeMessage() {
+    final userName = userController.userData['name'] ?? 'Coach';
+    messages.add(
+      ChatMessage(
+        text: "Hello $userName! 🥋 I'm CoachBot, your Taekwondo coaching assistant.\n\nI can help you with:\n• Planning training sessions\n• Explaining techniques and forms\n• Belt requirements and progression\n• Sparring strategies\n• Safety tips\n\nWhat would you like to know?",
+        isUser: false,
+        timestamp: DateTime.now(),
+        preset: true,
+      ),
+    );
+  }
+
+  void _showErrorMessage(String error) {
+    messages.add(
+      ChatMessage(
+        text: "Sorry, I encountered an error: $error\n\nPlease try again or contact support if the problem persists.",
+        isUser: false,
+        timestamp: DateTime.now(),
+        isError: true,
+      ),
+    );
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _showSuccessSnackbar(String message) {
+    Get.snackbar(
+      'Success',
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: const Color(0xFF09FACA),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+      margin: const EdgeInsets.all(16),
+      borderRadius: 8,
+    );
+  }
+
+  // ==================== UI ACTIONS ====================
+
+  void onSuggestionTapped(String suggestion) {
+    messageController.text = suggestion;
+    messageController.selection = TextSelection.fromPosition(
+      TextPosition(offset: messageController.text.length),
+    );
+  }
+
+  void startVoiceInput() {
+    Get.snackbar(
+      'Voice Input',
+      'Voice input coming soon!',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFF09FACA),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  void clearConversation() {
+    Get.defaultDialog(
+      title: 'Clear Chat',
+      middleText: 'Are you sure you want to clear all messages?',
+      textConfirm: 'Clear',
+      textCancel: 'Cancel',
+      confirmTextColor: Colors.white,
+      onConfirm: () {
+        messages.clear();
+        isHistoryView = false; // Reset history mode so welcome message comes back
+        _loadWelcomeMessage();
+        Get.back();
+      },
+    );
+  }
+
+  @override
+  void onClose() {
+    messageController.dispose();
+    scrollController.dispose();
+    super.onClose();
+  }
+}
+
+// ==================== DATA MODELS ====================
+
+class ChatMessage {
+  final String text;
+  final bool isUser;
+  final DateTime timestamp;
+  final bool cached;
+  final bool preset;
+  final String? model;
+  final int tokens;
+  final bool isError;
+
+  ChatMessage({
+    required this.text,
+    required this.isUser,
+    required this.timestamp,
+    this.cached = false,
+    this.preset = false,
+    this.model,
+    this.tokens = 0,
+    this.isError = false,
+  });
+}
+
+class CoachInsights {
+  final int totalQueries;
+  final List<TopicCount> topTopics;
+  final double avgTokensPerQuery;
+
+  CoachInsights({
+    required this.totalQueries,
+    required this.topTopics,
+    required this.avgTokensPerQuery,
+  });
+
+  factory CoachInsights.fromJson(Map<String, dynamic> json) {
+    return CoachInsights(
+      totalQueries: json['totalQueries'] ?? 0,
+      topTopics: (json['topTopics'] as List?)
+              ?.map((t) => TopicCount.fromJson(t))
+              .toList() ??
+          [],
+      avgTokensPerQuery: (json['avgTokensPerQuery'] ?? 0).toDouble(),
+    );
+  }
+}
+
+class TopicCount {
+  final String topic;
+  final int count;
+
+  TopicCount({required this.topic, required this.count});
+
+  factory TopicCount.fromJson(Map<String, dynamic> json) {
+    return TopicCount(
+      topic: json['topic'] ?? '',
+      count: json['count'] ?? 0,
+    );
+  }
+}
