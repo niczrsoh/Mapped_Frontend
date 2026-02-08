@@ -78,7 +78,9 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
 
   // Open fullscreen image viewer
   void _openImageViewer(int initialIndex) {
-    final imageUrls = widget.resource.images.map((img) => _getFixedUrl(img)).toList();
+    final imageUrls = widget.resource.images
+        .map((img) => _getFixedUrl(img))
+        .toList();
     Get.to(
       () => FullScreenImageViewer(
         imageUrls: imageUrls,
@@ -301,11 +303,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.broken_image,
-                      color: Colors.white24,
-                      size: 50,
-                    ),
+                    Icon(Icons.broken_image, color: Colors.white24, size: 50),
                     SizedBox(height: 8),
                     Text(
                       "Image not found",
@@ -420,7 +418,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
           ],
         ),
       );
-    } 
+    }
     // 4. Fallback if video URL exists but ID extraction failed
     else if (widget.resource.videoUrl != null && _youtubeController == null) {
       return Container(
@@ -521,7 +519,11 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.broken_image, color: Colors.white54, size: 80),
+                            Icon(
+                              Icons.broken_image,
+                              color: Colors.white54,
+                              size: 80,
+                            ),
                             SizedBox(height: 16),
                             Text(
                               'Failed to load image',
@@ -537,11 +539,11 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             },
           ),
 
-          // Close Button
-          SafeArea(
-            child: Positioned(
-              top: 16,
-              left: 16,
+          // Close Button - LEFT
+          Positioned(
+            top: 15,
+            left: 16,
+            child: SafeArea(
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.5),
@@ -555,24 +557,30 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             ),
           ),
 
-          // Page Counter (if multiple images)
+          // Page Counter (if multiple images) - RIGHT
           if (widget.imageUrls.length > 1)
-            SafeArea(
-              child: Positioned(
-                top: 16,
-                right: 16,
+            Positioned(
+              top: 20,
+              right: 16,
+              child: SafeArea(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(20),
+                  height: 48, // Match the IconButton height
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-                  child: Text(
-                    '${_currentIndex + 1} / ${widget.imageUrls.length}',
-                    style: GoogleFonts.roboto(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${_currentIndex + 1} / ${widget.imageUrls.length}',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),

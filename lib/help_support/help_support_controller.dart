@@ -30,8 +30,8 @@ class HelpSupportController extends GetxController {
 
   // Get user ID
   String get userId {
-    final userData = userController.userData.value;
-    return userData['_id'] ?? userData['id'] ?? '';
+    final userData = userController.userData;
+    return userData['_id']?.toString() ?? userData['id']?.toString() ?? '';
   }
 
   @override
@@ -114,7 +114,7 @@ class HelpSupportController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
-        
+
         // Handle both response formats
         SupportTicket createdTicket;
         if (responseData['success'] == true && responseData['data'] != null) {
@@ -174,7 +174,7 @@ class HelpSupportController extends GetxController {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        
+
         List<dynamic> ticketsData;
         if (responseData['success'] == true && responseData['data'] != null) {
           ticketsData = responseData['data'];

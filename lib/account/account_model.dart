@@ -25,10 +25,7 @@ class AccountSection {
   final List<AccountMenuItem> items;
   final bool isDark;
 
-  AccountSection({
-    required this.items,
-    this.isDark = true,
-  });
+  AccountSection({required this.items, this.isDark = true});
 }
 
 /// Model for user profile header data
@@ -48,7 +45,7 @@ class AccountHeaderData {
   /// Format the created date for display
   String get formattedCreatedDate {
     if (createdAt == null || createdAt!.isEmpty) return '';
-    
+
     try {
       final date = DateTime.parse(createdAt!).toLocal();
       return 'Member since ${date.day}/${date.month}/${date.year}';
@@ -57,9 +54,21 @@ class AccountHeaderData {
     }
   }
 
-  /// Get full avatar URL
+  /// Get full avatar URL with cache-busting parameter
   String get avatarUrl {
     if (avatar.isEmpty) return '';
-    return 'https://mapped-backend-node-js.onrender.com/$avatar';
+
+    // Check if avatar is already a full URL (Cloudinary)
+    if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+      // Already a full URL, just add cache-busting timestamp
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final separator = avatar.contains('?') ? '&' : '?';
+      return '$avatar${separator}t=$timestamp';
+    }
+
+    // Relative path, prepend backend URL
+    final baseUrl = 'https://mapped-backend-node-js.onrender.com/$avatar';
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return '$baseUrl?t=$timestamp';
   }
 }

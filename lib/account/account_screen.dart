@@ -126,6 +126,8 @@ class AccountScreen extends StatelessWidget {
     required String avatarUrl,
     required String fallbackAsset,
   }) {
+    print('🎨 Building avatar with URL: "$avatarUrl"');
+
     return Container(
       width: 96,
       height: 96,
@@ -144,8 +146,25 @@ class AccountScreen extends StatelessWidget {
         child: avatarUrl.isNotEmpty
             ? Image.network(
                 avatarUrl,
+                key: ValueKey(avatarUrl), // Force rebuild when URL changes
                 fit: BoxFit.cover,
+                // Add cache-busting to force image reload
+                headers: {'Cache-Control': 'no-cache'},
+                cacheWidth: 96 * 3, // 3x for high DPI screens
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: Color(0xFF09FACA),
+                    ),
+                  );
+                },
                 errorBuilder: (context, error, stackTrace) {
+                  print('❌ Error loading avatar: $error');
                   return Image.asset(fallbackAsset, fit: BoxFit.cover);
                 },
               )

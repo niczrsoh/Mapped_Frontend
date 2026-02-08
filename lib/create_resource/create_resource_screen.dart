@@ -114,20 +114,23 @@ class CreateResourceScreen extends StatelessWidget {
                     ),
                     child: TextField(
                       controller: controller.titleController,
+                      maxLines: 2,
+                      maxLength: 100,
                       onChanged: (val) {
                         // Clears the error state as the user types
-                        if (val.isNotEmpty)
-                          controller.showTitleError.value = false;
+                        if (val.isNotEmpty) {controller.showTitleError.value = false;}
                       },
                       style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 16,
                       ),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Resource Title',
-                        hintStyle: TextStyle(color: Colors.white54),
+                        hintStyle: const TextStyle(color: Colors.white54),
                         border: InputBorder.none,
-                        counterText: "",
+                        counterStyle: GoogleFonts.roboto(
+                          color: Colors.white54,
+                        ), // Style the 0/100 text
                       ),
                     ),
                   ),
@@ -169,7 +172,7 @@ class CreateResourceScreen extends StatelessWidget {
                 maxLength: 2000,
                 style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
                 decoration: InputDecoration(
-                  hintText: 'What\'s on your mind?',
+                  hintText: 'Share your resource details here...',
                   hintStyle: GoogleFonts.roboto(color: Colors.white54),
                   border: InputBorder.none,
                   counterStyle: GoogleFonts.roboto(

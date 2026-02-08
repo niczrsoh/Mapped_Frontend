@@ -7,7 +7,7 @@ import 'profile_editor_controller.dart';
 
 class ProfileEditorScreen extends StatefulWidget {
   final Map<dynamic, dynamic>? userData;
-  
+
   const ProfileEditorScreen({super.key, this.userData});
 
   @override
@@ -24,7 +24,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       ProfileEditorController(),
       tag: 'profile_editor_${widget.userData?['_id'] ?? 'default'}',
     );
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.initializeWithUserData(widget.userData);
     });
@@ -42,6 +42,15 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'Profile Editor',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.of(context).pop(),
@@ -49,10 +58,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
         ),
         body: SingleChildScrollView(
           child: Column(
-            children: [
-              _buildGradientHeader(),
-              _buildFormContent(),
-            ],
+            children: [_buildGradientHeader(), _buildFormContent()],
           ),
         ),
       ),
@@ -88,22 +94,24 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
   Widget _buildProfileAvatar() {
     return Stack(
       children: [
-        Obx(() => Container(
-          width: 96,
-          height: 96,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        Obx(
+          () => Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipOval(child: _buildProfileImage()),
           ),
-          child: ClipOval(child: _buildProfileImage()),
-        )),
+        ),
         Positioned(
           bottom: 0,
           right: 0,
@@ -117,11 +125,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),
-              child: const Icon(
-                Icons.edit,
-                color: Colors.white,
-                size: 16,
-              ),
+              child: const Icon(Icons.edit, color: Colors.white, size: 16),
             ),
           ),
         ),
@@ -161,7 +165,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           child: CircularProgressIndicator(
             value: loadingProgress.expectedTotalBytes != null
                 ? loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!
+                      loadingProgress.expectedTotalBytes!
                 : null,
             color: const Color(0xFF09FACA),
           ),
@@ -208,41 +212,34 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Profile Editor',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 24),
-            
             _buildTextField(
               controller: controller.nameController,
               label: 'Full name',
               hint: 'Enter your full name',
+              maxLength: 50,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: controller.usernameController,
               label: 'Username',
               hint: 'Enter your username',
+              maxLength: 50,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: controller.emailController,
               label: 'Email',
               hint: 'Enter your email',
               keyboardType: TextInputType.emailAddress,
+              maxLength: 50,
             ),
             const SizedBox(height: 16),
-            
+
             _buildPhoneField(),
             const SizedBox(height: 16),
-            
+
             Row(
               children: [
                 Expanded(child: _buildCountryDropdown()),
@@ -251,15 +248,16 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: controller.addressController,
               label: 'Address',
               hint: 'Enter your address',
               maxLines: 2,
+              maxLength: 100,
             ),
             const SizedBox(height: 32),
-            
+
             _buildCancelButton(),
             const SizedBox(height: 12),
             _buildSaveButton(),
@@ -277,6 +275,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     required String hint,
     TextInputType? keyboardType,
     int maxLines = 1,
+    int? maxLength,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,6 +294,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
+          maxLength: maxLength,
           style: GoogleFonts.roboto(
             fontSize: 14,
             fontWeight: FontWeight.w400,
@@ -303,17 +303,21 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.roboto(
-              fontSize: 14,
-              color: Colors.white38,
-            ),
+            hintStyle: GoogleFonts.roboto(fontSize: 14, color: Colors.white38),
             filled: true,
             fillColor: const Color(0xFF252836),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            counterStyle: GoogleFonts.roboto(
+              fontSize: 12,
+              color: Colors.white38,
+            ),
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
@@ -344,6 +348,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
         TextFormField(
           controller: controller.phoneController,
           keyboardType: TextInputType.phone,
+          maxLength: 20,
           style: GoogleFonts.roboto(
             fontSize: 14,
             fontWeight: FontWeight.w400,
@@ -362,17 +367,21 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
               ),
             ),
             hintText: 'Enter phone number',
-            hintStyle: GoogleFonts.roboto(
-              fontSize: 14,
-              color: Colors.white38,
-            ),
+            hintStyle: GoogleFonts.roboto(fontSize: 14, color: Colors.white38),
             filled: true,
             fillColor: const Color(0xFF252836),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            counterStyle: GoogleFonts.roboto(
+              fontSize: 12,
+              color: Colors.white38,
+            ),
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
@@ -400,41 +409,46 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Obx(() => Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF252836),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: DropdownButtonFormField<String>(
-            value: controller.selectedCountry.value,
-            dropdownColor: const Color(0xFF252836),
-            style: GoogleFonts.roboto(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
-              letterSpacing: 0.25,
+        Obx(
+          () => Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF252836),
+              borderRadius: BorderRadius.circular(12),
             ),
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+            child: DropdownButtonFormField<String>(
+              value: controller.selectedCountry.value,
+              dropdownColor: const Color(0xFF252836),
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+                letterSpacing: 0.25,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+              items: controller.countries.map((String country) {
+                return DropdownMenuItem<String>(
+                  value: country,
+                  child: Text(country),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  controller.selectedCountry.value = value;
+                }
+              },
             ),
-            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-            items: controller.countries.map((String country) {
-              return DropdownMenuItem<String>(
-                value: country,
-                child: Text(country),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                controller.selectedCountry.value = value;
-              }
-            },
           ),
-        )),
+        ),
       ],
     );
   }
@@ -454,41 +468,46 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Obx(() => Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF252836),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: DropdownButtonFormField<String>(
-            value: controller.selectedGender.value,
-            dropdownColor: const Color(0xFF252836),
-            style: GoogleFonts.roboto(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Colors.white,
-              letterSpacing: 0.25,
+        Obx(
+          () => Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF252836),
+              borderRadius: BorderRadius.circular(12),
             ),
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+            child: DropdownButtonFormField<String>(
+              value: controller.selectedGender.value,
+              dropdownColor: const Color(0xFF252836),
+              style: GoogleFonts.roboto(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+                letterSpacing: 0.25,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+              items: controller.genders.map((String gender) {
+                return DropdownMenuItem<String>(
+                  value: gender,
+                  child: Text(gender),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  controller.selectedGender.value = value;
+                }
+              },
             ),
-            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-            items: controller.genders.map((String gender) {
-              return DropdownMenuItem<String>(
-                value: gender,
-                child: Text(gender),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                controller.selectedGender.value = value;
-              }
-            },
           ),
-        )),
+        ),
       ],
     );
   }
@@ -506,10 +525,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           foregroundColor: const Color(0xFF09FACA),
-          side: const BorderSide(
-            color: Color(0xFF09FACA),
-            width: 2,
-          ),
+          side: const BorderSide(color: Color(0xFF09FACA), width: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -531,34 +547,36 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
     return SizedBox(
       width: double.infinity,
       height: 50,
-      child: Obx(() => ElevatedButton(
-        onPressed: controller.isSaving.value ? null : _handleSave,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF09FACA),
-          foregroundColor: const Color(0xFF1A1D29),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      child: Obx(
+        () => ElevatedButton(
+          onPressed: controller.isSaving.value ? null : _handleSave,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF09FACA),
+            foregroundColor: const Color(0xFF1A1D29),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
           ),
-          elevation: 0,
+          child: controller.isSaving.value
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFF1A1D29),
+                  ),
+                )
+              : Text(
+                  'SAVE',
+                  style: GoogleFonts.roboto(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                  ),
+                ),
         ),
-        child: controller.isSaving.value
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFF1A1D29),
-                ),
-              )
-            : Text(
-                'SAVE',
-                style: GoogleFonts.roboto(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1,
-                ),
-              ),
-      )),
+      ),
     );
   }
 
@@ -643,7 +661,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
   // ========== HANDLERS ==========
   Future<void> _handleSave() async {
     final success = await controller.saveProfile();
-    
+
     if (success) {
       Navigator.of(context).pop();
     }

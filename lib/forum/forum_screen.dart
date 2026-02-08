@@ -9,10 +9,12 @@ import '../forum/forum_model.dart';
 import '../forum_searchtags/forum_searchtags_screen.dart';
 import '../comment/comment_screen.dart';
 import '../create_post/create_post_screen.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
 class ForumScreen extends StatelessWidget {
   ForumScreen({super.key});
   final ForumController controller = Get.put(ForumController());
+  final UserController userController = Get.find<UserController>();
 
   @override
   Widget build(BuildContext context) {
@@ -52,14 +54,6 @@ class ForumScreen extends StatelessWidget {
       floating: false,
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: Text(
-        'Home',
-        style: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(70.0),
         child: Container(
@@ -106,11 +100,23 @@ class ForumScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 22,
-            backgroundColor: Colors.grey,
-            child: Icon(Icons.person, color: Colors.white),
-          ),
+          Obx(() {
+            final avatar = userController.userAvatar;
+            return CircleAvatar(
+              radius: 22,
+              backgroundColor: Colors.grey[300],
+              backgroundImage: avatar.isNotEmpty
+                  ? NetworkImage(
+                      avatar.startsWith('http')
+                          ? avatar
+                          : 'https://mapped-backend-node-js.onrender.com/$avatar',
+                    )
+                  : null,
+              child: avatar.isEmpty
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
+            );
+          }),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
@@ -208,8 +214,8 @@ class ForumScreen extends StatelessWidget {
         children: [
           _buildPostHeader(post),
           const SizedBox(height: 12),
-          
-          _buildPostContent(post), 
+
+          _buildPostContent(post),
 
           if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -230,7 +236,11 @@ class ForumScreen extends StatelessWidget {
   Widget _buildPostContent(ForumPost post) {
     return RichText(
       text: TextSpan(
-        style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5),
+        style: GoogleFonts.roboto(
+          fontSize: 14,
+          color: Colors.white,
+          height: 1.5,
+        ),
         children: _parseContent(post.content),
       ),
     );
@@ -239,25 +249,30 @@ class ForumScreen extends StatelessWidget {
   List<TextSpan> _parseContent(String text) {
     List<TextSpan> spans = [];
     text.splitMapJoin(
-      RegExp(r"\B#\w+"), 
+      RegExp(r"\B#\w+"),
       onMatch: (m) {
         final tag = m.group(0)!;
-        spans.add(TextSpan(
-          text: tag,
-          style: const TextStyle(
-            color: Color(0xFF09FACA),
-            fontWeight: FontWeight.w600,
+        spans.add(
+          TextSpan(
+            text: tag,
+            style: const TextStyle(
+              color: Color(0xFF09FACA),
+              fontWeight: FontWeight.w600,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () =>
+                  Get.to(() => ForumSearchtagsScreen(), arguments: tag),
           ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () => Get.to(() => ForumSearchtagsScreen(), arguments: tag),
-        ));
+        );
         return "";
       },
       onNonMatch: (n) {
-        spans.add(TextSpan(
-          text: n,
-          style: const TextStyle(color: Colors.white),
-        ));
+        spans.add(
+          TextSpan(
+            text: n,
+            style: const TextStyle(color: Colors.white),
+          ),
+        );
         return "";
       },
     );
@@ -319,8 +334,7 @@ class ForumScreen extends StatelessWidget {
           ),
         ),
 
-        if (post.authorId == controller.currentUserId) 
-          _buildPostMenu(post),
+        if (post.authorId == controller.currentUserId) _buildPostMenu(post),
       ],
     );
   }
@@ -452,7 +466,11 @@ class ForumScreen extends StatelessWidget {
   }
 
   // ========== IMAGE VIEWER ==========
-  void _openImageViewer(String imageUrl, int initialIndex, List<String> allImages) {
+  void _openImageViewer(
+    String imageUrl,
+    int initialIndex,
+    List<String> allImages,
+  ) {
     Get.to(
       () => FullScreenImageViewer(
         imageUrls: allImages,
@@ -1034,7 +1052,11 @@ class _PostImageGalleryState extends State<PostImageGallery> {
                       return Container(
                         color: Colors.grey[800],
                         child: const Center(
-                          child: Icon(Icons.broken_image, color: Colors.white54, size: 50),
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.white54,
+                            size: 50,
+                          ),
                         ),
                       );
                     },
@@ -1181,7 +1203,11 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.broken_image, color: Colors.white54, size: 80),
+                            Icon(
+                              Icons.broken_image,
+                              color: Colors.white54,
+                              size: 80,
+                            ),
                             SizedBox(height: 16),
                             Text(
                               'Failed to load image',
@@ -1197,11 +1223,11 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             },
           ),
 
-          // Close Button
-          SafeArea(
-            child: Positioned(
-              top: 16,
-              left: 16,
+          // Close Button - LEFT
+          Positioned(
+            top: 15,
+            left: 16,
+            child: SafeArea(
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.5),
@@ -1215,24 +1241,30 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             ),
           ),
 
-          // Page Counter (if multiple images)
+          // Page Counter (if multiple images) - RIGHT
           if (widget.imageUrls.length > 1)
-            SafeArea(
-              child: Positioned(
-                top: 16,
-                right: 16,
+            Positioned(
+              top: 20,
+              right: 16,
+              child: SafeArea(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(20),
+                  height: 48, // Match the IconButton height
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-                  child: Text(
-                    '${_currentIndex + 1} / ${widget.imageUrls.length}',
-                    style: GoogleFonts.roboto(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${_currentIndex + 1} / ${widget.imageUrls.length}',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
