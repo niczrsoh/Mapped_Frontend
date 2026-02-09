@@ -60,6 +60,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
     }
   }
 
+
   Future<void> _refreshData() async {
     ringController.isLoading.value = true;
 
@@ -71,6 +72,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
         }
       }
 
+
       await controller.updateActiveDays();
       await ringController.fetchBeltProgress();
 
@@ -79,28 +81,20 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
           : Get.put(ResourceController());
       await resourceController.fetchOpenResourceCount();
 
-      // 4. RUN CALCULATIONS: Your existing "Self-Healing" logic
-      int maxImpliedDays = 0;
+
       int maxImpliedPosts = 0;
       for (var belt in ringController.detailedBeltData) {
         final req = BeltRequirementsData.getFor(belt.beltColor);
-        if (belt.progress.activeDayCount > 0) {
-          int implied = belt.progress.activeDayCount + req.cumulativeDayOffset;
-          if (implied > maxImpliedDays) maxImpliedDays = implied;
-        }
+        
         if (belt.progress.postCount > 0) {
           int impliedPosts = belt.progress.postCount + req.cumulativePostOffset;
           if (impliedPosts > maxImpliedPosts) maxImpliedPosts = impliedPosts;
         }
       }
 
-      if (maxImpliedDays > controller.activeDaysCount.value) {
-        await controller.forceUpdateActiveCount(maxImpliedDays);
-      }
-
       // 5. FINAL SYNC
       final sessionController = Get.find<SessionController>();
-      await sessionController.fetchDashboardData();
+      await sessionController.fetchDashboardData(); 
       controller.cumulativePostCount.value = maxImpliedPosts;
 
       await _syncAllBelts();
@@ -110,6 +104,8 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
       ringController.isLoading.value = false;
     }
   }
+
+
   Map<String, dynamic> _calculateBeltStats(
     BeltRequirement req,
     int totalSessions,

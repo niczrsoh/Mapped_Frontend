@@ -376,4 +376,18 @@ class CreatePostController extends GetxController {
       print("⚠️ Failed to update share tip count: $e");
     }
   }
+
+  Future<void> removePostFromSharedTips(String postId) async {
+    print("🗑️ Removing post $postId from share tips tracking");
+    
+    if (sharedTipPostIds.contains(postId)) {
+      sharedTipPostIds.remove(postId);
+      print("✅ Removed from local Set. New size: ${sharedTipPostIds.length}");
+      
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        print("🔄 Triggering BeltProgress refresh to sync delete...");
+        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+      }
+    }
+  }
 }

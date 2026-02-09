@@ -28,29 +28,35 @@ final customGradient = const LinearGradient(
   end: Alignment.bottomRight,
 );
 
-class HomeScreen extends GetView<HomeController> {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Initialize controllers
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
     Get.put(TrainerController());
-    final sessionController = Get.put(
-      SessionController(),
-    ); // Assign to variable
+    Get.put(SessionController());
     Get.put(ResourceController());
     Get.put(CommentsController());
     Get.put(CreatePostController());
+    Get.put(BeltProgressRingController());
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final sessionController = Get.find<SessionController>();
     final themeBg = const Color(0xFF141823);
-
     final UserController userController = Get.find<UserController>();
     final TrainerController trainerController = Get.find<TrainerController>();
     final commentsController = Get.find<CommentsController>();
     final createPostController = Get.find<CreatePostController>();
-    final BeltProgressRingController beltController = Get.put(
-      BeltProgressRingController(),
-    );
+    final BeltProgressRingController beltController =
+        Get.find<BeltProgressRingController>();
 
     Widget sectionCard({required Widget child, double radius = 18}) {
       return Container(
@@ -840,11 +846,8 @@ class HomeScreen extends GetView<HomeController> {
       case RequirementType.activeDay:
         final liveActiveDays =
             Get.find<TrainerController>().activeDaysCount.value;
-        return (liveActiveDays - requirement.cumulativeDayOffset).clamp(
-          0,
-          task.target,
-        );
-
+        int calculated = liveActiveDays - requirement.cumulativeDayOffset;
+        return calculated < 0 ? 0 : calculated;
       case RequirementType.resource:
         return data.progress.openResourceCount.clamp(0, task.target);
 
@@ -856,16 +859,17 @@ class HomeScreen extends GetView<HomeController> {
 
       case RequirementType.forumPost:
         int calculated = totalPosts - requirement.cumulativePostOffset;
-        return calculated.clamp(0, task.target);
+        return calculated < 0 ? 0 : calculated;
 
       case RequirementType.shareTip:
         int shareTipOffset = 0;
-        if (requirement.beltId == BeltDefinitions.brown) {
+        if (requirement.beltId == 'Brown' || requirement.beltId == 'R') { 
           shareTipOffset = 1;
-        }
-        // FIX: Ensure totalShareTips comes from the controller passed in build()
-        int calculated = totalShareTips - shareTipOffset;
-        return calculated.clamp(0, task.target);
+       }
+
+  
+  int calculated = totalShareTips - shareTipOffset;
+  return calculated < 0 ? 0 : calculated.clamp(0, task.target);
     }
 
     return 0; // CHANGED: Added return for safety
@@ -907,9 +911,10 @@ class HomeScreen extends GetView<HomeController> {
           break;
         case RequirementType.shareTip:
           int shareTipOffset = 0;
-          if (req.beltId == BeltDefinitions.brown) {
+          if (req.beltId == 'Brown' || req.beltId == 'R') {
             shareTipOffset = 1;
           }
+          
           val = (totalShareTips - shareTipOffset).clamp(0, 999);
           break;
       }
@@ -966,9 +971,10 @@ class HomeScreen extends GetView<HomeController> {
           break;
         case RequirementType.shareTip:
           int shareTipOffset = 0;
-          if (req.beltId == BeltDefinitions.brown) {
+          if (req.beltId == 'Brown' || req.beltId == 'R') {
             shareTipOffset = 1;
           }
+          
           val = (totalShareTips - shareTipOffset).clamp(0, 999);
           break;
       }

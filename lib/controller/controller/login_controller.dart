@@ -5,6 +5,7 @@ import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../global/routes.dart';
+import 'trainer_controller.dart';
 
 class LoginController extends GetxController {
   // Change from username to email to match your backend
@@ -102,6 +103,23 @@ class LoginController extends GetxController {
         
         // Store user data including _id in SharedPreferences
         final prefs = await SharedPreferences.getInstance();
+
+        
+
+        // String? oldUserId = prefs.getString('user_id');
+        String newUserId = responseData['user']['id'] ?? '';
+
+        // if (oldUserId != null && oldUserId != newUserId) {
+        //    print("🧹 Switching users: Clearing old belt and activity data...");
+        //    await prefs.remove('active_days_count');
+        //    await prefs.remove('recommendation_count');
+        //    await prefs.remove('last_active_date');
+        // }
+
+        // // 2. Store new User ID
+        // if (responseData['user']['id'] != null) {
+        //   await prefs.setString('user_id', responseData['user']['id']);
+        // }
         
         // Store user ID (from your MongoDB document - _id)
         if (responseData['user']['id'] != null) {
@@ -136,6 +154,15 @@ class LoginController extends GetxController {
           snackPosition: SnackPosition.BOTTOM,
           duration: const Duration(seconds: 2),
         );
+
+
+        if (Get.isRegistered<TrainerController>()) {
+           final trainerCtrl = Get.find<TrainerController>();
+           trainerCtrl.currentUserId.value = newUserId;
+           
+           print("🔄 Triggering daily check on login...");
+           await trainerCtrl.updateActiveDays(); 
+        }
         
         // Navigate to main screen
         Get.offAllNamed(AppRoutes.main);

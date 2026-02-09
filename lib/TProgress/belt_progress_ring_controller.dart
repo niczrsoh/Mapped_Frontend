@@ -131,35 +131,24 @@ class BeltProgressRingController extends GetxController {
             ) {
               commentsCtrl.submittedPostIds.add('backend_post_$i');
             }
-            print(
-              "✅ Populated post Set to ${commentsCtrl.submittedPostIds.length} items",
-            );
           }
         } else {
           print("⚠️ CommentsController not registered!");
         }
-        if (Get.isRegistered<CreatePostController>()) {
+        
+       if (Get.isRegistered<CreatePostController>()) {
           final postCtrl = Get.find<CreatePostController>();
-          print(
-            "📊 CreatePostController found. Current Set size: ${postCtrl.sharedTipPostIds.length}, Backend count: $backendTotalShareTips",
-          );
-          if (postCtrl.sharedTipPostIds.length < backendTotalShareTips) {
-            for (
-              int i = postCtrl.sharedTipPostIds.length;
-              i < backendTotalShareTips;
-              i++
-            ) {
+          int localShareCount = postCtrl.sharedTipPostIds.length;
+          
+          if (localShareCount < backendTotalShareTips) {
+            for (int i = localShareCount; i < backendTotalShareTips; i++) {
               postCtrl.sharedTipPostIds.add('backend_share_$i');
             }
-            print(
-              "✅ Populated shareTip Set to ${postCtrl.sharedTipPostIds.length} items",
-            );
+          } else if (localShareCount > backendTotalShareTips) {
+             postCtrl.sharedTipPostIds.removeWhere((id) => id.startsWith('backend_share_'));
           }
-        } else {
-          print("⚠️ CreatePostController not registered!");
         }
 
-        // Get current counts from Sets
         int totalPosts = 0;
         int totalShareTips = 0;
         if (Get.isRegistered<CommentsController>()) {

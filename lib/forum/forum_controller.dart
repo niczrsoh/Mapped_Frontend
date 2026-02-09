@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart'; // 1. Import this
 import 'forum_model.dart';
+import '../create_post/create_post_controller.dart';
 
 class ForumController extends GetxController {
   // CONFIGURATION
@@ -258,6 +259,17 @@ class ForumController extends GetxController {
       if (response.statusCode == 200) {
         posts.removeWhere((p) => p.id == post.id);
         Get.snackbar("Success", "Post deleted successfully");
+
+        try {
+          if (Get.isRegistered<CreatePostController>()) {
+            await Get.find<CreatePostController>().removePostFromSharedTips(
+              post.id,
+            );
+          }
+        } catch (e) {
+          print('ForumController: error removing post from shared tips: $e');
+        }
+
         return true;
       } else {
         Get.snackbar("Error", "Could not delete post");
