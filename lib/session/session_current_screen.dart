@@ -27,7 +27,7 @@ class SessionCurrentScreen extends StatelessWidget {
                 child: Text(
                   date,
                   style: GoogleFonts.roboto(
-                    color: Colors.white70,
+                    color: Colors.white,
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                     height: 1.0,
@@ -46,7 +46,7 @@ class SessionCurrentScreen extends StatelessWidget {
                 child: Text(
                   time,
                   style: GoogleFonts.roboto(
-                    color: Colors.white54,
+                    color: Colors.white,
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                     height: 1.0,
@@ -68,7 +68,7 @@ class SessionCurrentScreen extends StatelessWidget {
                 child: Text(
                   venue,
                   style: GoogleFonts.roboto(
-                    color: Colors.white54,
+                    color: Colors.white,
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                     height: 1.0,
@@ -85,7 +85,7 @@ class SessionCurrentScreen extends StatelessWidget {
               Text(
                 trainees,
                 style: GoogleFonts.roboto(
-                  color: Colors.white54,
+                  color: Colors.white,
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
                   height: 1.0,
@@ -100,9 +100,9 @@ class SessionCurrentScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Trainer : $trainer',
+                  'Coach : $trainer',
                   style: GoogleFonts.roboto(
-                    color: Colors.white54,
+                    color: Colors.white,
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                     height: 1.0,
@@ -299,9 +299,7 @@ class SessionCurrentScreen extends StatelessWidget {
                             child: Center(
                               child: Text(
                                 "No Current Sessions Available",
-                                style: GoogleFonts.roboto(
-                                  color: Colors.white54,
-                                ),
+                                style: GoogleFonts.roboto(color: Colors.white),
                               ),
                             ),
                           )
@@ -317,9 +315,32 @@ class SessionCurrentScreen extends StatelessWidget {
                                     if (d != null &&
                                         d.isNotEmpty &&
                                         d != 'null') {
-                                      return d.toLowerCase().contains('min')
-                                          ? d
-                                          : '$d min';
+                                      // Try extract numeric value and pluralize
+                                      final numMatch = RegExp(
+                                        r"(\d+)",
+                                      ).firstMatch(d);
+                                      if (numMatch != null) {
+                                        final n =
+                                            int.tryParse(numMatch.group(0)!) ??
+                                            0;
+                                        return n == 1 ? '$n Min' : '$n Mins';
+                                      }
+                                      // If it already contains 'min' or 'mins', normalize casing
+                                      if (d.toLowerCase().contains('min')) {
+                                        return d.replaceAllMapped(
+                                          RegExp(
+                                            r'mins?',
+                                            caseSensitive: false,
+                                          ),
+                                          (m) {
+                                            final g =
+                                                m.group(0)?.toLowerCase() ?? '';
+                                            return g == 'mins' ? 'Mins' : 'Min';
+                                          },
+                                        );
+                                      }
+                                      // Fallback: append 'Mins'
+                                      return '$d Mins';
                                     }
                                     return '-';
                                   }(),

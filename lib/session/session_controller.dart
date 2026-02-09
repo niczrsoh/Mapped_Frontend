@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import 'package:mapped_frontend/controller/user_controller';
+import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 import 'session_model.dart';
 
 class SessionController extends GetxController {
@@ -9,23 +10,20 @@ class SessionController extends GetxController {
   var isLoading = false.obs;
   var error = ''.obs;
   var success = false.obs;
-
-  // Use SessionModel? instead of dynamic
   var currentSession = Rxn<SessionModel>();
   var upcomingSession = Rxn<SessionModel>();
   var historySession = Rxn<SessionModel>();
-
   var totalSessionsCount = 0.obs;
-
-  // Lists of SessionModel
   var upcomingList = <SessionModel>[].obs;
   var historyList = <SessionModel>[].obs;
   var currentList = <SessionModel>[].obs;
+  var submittedReflectionSessionIds = <String>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
     fetchDashboardData();
+    fetchSubmittedReflections();
   }
 
   Future<void> fetchDashboardData() async {
@@ -51,54 +49,48 @@ class SessionController extends GetxController {
 
       if (result['success'] == true) {
         final data = result['data'];
+        
+        // 1. Parse Current List
         final currentRaw = data['current'];
         if (currentRaw is List) {
-          currentList.assignAll(
-            currentRaw.map((e) => SessionModel.fromJson(e)).toList(),
-          );
+          currentList.assignAll(currentRaw.map((e) => SessionModel.fromJson(e)).toList());
         } else if (currentRaw is Map) {
-          currentList.assignAll([
-            SessionModel.fromJson(currentRaw as Map<String, dynamic>),
-          ]);
+          currentList.assignAll([SessionModel.fromJson(currentRaw as Map<String, dynamic>)]);
         } else {
           currentList.clear();
         }
         currentSession.value = currentList.isNotEmpty ? currentList[0] : null;
 
+        // 2. Parse Upcoming List
         var upcomingRaw = data['upcoming'];
         if (upcomingRaw is List) {
-          upcomingList.assignAll(
-            upcomingRaw.map((e) => SessionModel.fromJson(e)).toList(),
-          );
+          upcomingList.assignAll(upcomingRaw.map((e) => SessionModel.fromJson(e)).toList());
         } else if (upcomingRaw is Map) {
-          upcomingList.assignAll([
-            SessionModel.fromJson(upcomingRaw as Map<String, dynamic>),
-          ]);
+          upcomingList.assignAll([SessionModel.fromJson(upcomingRaw as Map<String, dynamic>)]);
         } else {
           upcomingList.clear();
         }
-        upcomingSession.value = upcomingList.isNotEmpty
-            ? upcomingList[0]
-            : null;
+        upcomingSession.value = upcomingList.isNotEmpty ? upcomingList[0] : null;
 
+        // 3. Parse History List
         var historyRaw = data['history'];
         if (historyRaw is List) {
-          historyList.assignAll(
-            historyRaw.map((e) => SessionModel.fromJson(e)).toList(),
-          );
+          historyList.assignAll(historyRaw.map((e) => SessionModel.fromJson(e)).toList());
         } else if (historyRaw is Map) {
-          historyList.assignAll([
-            SessionModel.fromJson(historyRaw as Map<String, dynamic>),
-          ]);
+          historyList.assignAll([SessionModel.fromJson(historyRaw as Map<String, dynamic>)]);
         } else {
           historyList.clear();
         }
         historySession.value = historyList.isNotEmpty ? historyList[0] : null;
 
-        totalSessionsCount.value =
-            currentList.length + upcomingList.length + historyList.length;
+        // 4. Update Total Count
+        totalSessionsCount.value = currentList.length + upcomingList.length + historyList.length;
 
-        print("✅ Dashboard Data Updated (Model Mode)");
+        // --- THE FIX IS HERE ---
+        // automatically count reflections based on the downloaded data
+        _syncReflectionsFromSessions([...currentList, ...historyList, ...upcomingList]);
+
+        print("✅ Dashboard Data Updated");
       } else {
         print("❌ Failed to load dashboard: ${result['msg']}");
       }
@@ -231,5 +223,84 @@ class SessionController extends GetxController {
     isLoading.value = false;
     error.value = '';
     success.value = false;
+  }
+
+  Future<void> fetchSubmittedReflections() async {
+    try {
+      String userId = '';
+      if (Get.isRegistered<UserController>()) {
+        final userController = Get.find<UserController>();
+        userId = userController.userId.value;
+      }
+
+      if (userId.isEmpty) return;
+
+      final result = await _apiService.getUserReflectionProgress(userId);
+
+      if (result['success'] == true && result['data'] != null) {
+        final List<dynamic> sessionIds = result['data'] as List<dynamic>;
+        // Convert to Set for automatic deduplication
+        submittedReflectionSessionIds.value = sessionIds
+            .map((id) => id.toString())
+            .where((id) => id.isNotEmpty)
+            .toSet();
+      }
+    } catch (e) {
+      // Silent fail - user can still submit reflections
+    }
+  }
+
+  void _syncReflectionsFromSessions(List<SessionModel> sessions) {
+  
+    for (var session in sessions) {
+      if (session.id != null && session.reflection != null) {
+        
+        if (session.reflection!.isNotEmpty) {
+          submittedReflectionSessionIds.add(session.id!);
+        }
+      }
+    }
+
+    submittedReflectionSessionIds.refresh();
+  }
+
+
+  void markReflectionAsSubmitted(String sessionId) async {
+    String userId = '';
+    if (Get.isRegistered<UserController>()) {
+      final userController = Get.find<UserController>();
+      userId = userController.userId.value;
+    }
+
+    if (userId.isEmpty || sessionId.isEmpty) {
+      return;
+    }
+
+    if (submittedReflectionSessionIds.contains(sessionId)) {
+      return; 
+    }
+
+    const int reflectionTarget = 1;
+    if (submittedReflectionSessionIds.length >= reflectionTarget) {
+      return; 
+    }
+    submittedReflectionSessionIds.add(sessionId);
+
+    try {
+      final result = await _apiService.recordReflectionSubmission(
+        sessionId,
+        userId,
+      );
+
+      if (result['success'] == true) {
+        if (Get.isRegistered<BeltProgressRingController>()) {
+          await Get.find<BeltProgressRingController>().fetchBeltProgress();
+        }
+      } else {
+        submittedReflectionSessionIds.remove(sessionId);
+      }
+    } catch (e) {
+      submittedReflectionSessionIds.remove(sessionId);
+    }
   }
 }

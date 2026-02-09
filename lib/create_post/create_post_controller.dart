@@ -8,14 +8,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_controller.dart';
+import '../services/api_service.dart';
+import '../TProgress/belt_progress_ring_controller.dart';
 
 class CreatePostController extends GetxController {
+  final ApiService _apiService = ApiService();
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
       : "http://10.0.2.2:5000";
 
   final TextEditingController textController = TextEditingController();
-  // Removed tagsController since we extract from text now
   final ImagePicker _picker = ImagePicker();
 
   var selectedImages = <XFile>[].obs;
@@ -27,6 +29,10 @@ class CreatePostController extends GetxController {
   var videoUrl = ''.obs;
   var videoThumbnail = ''.obs;
 
+  // Share tip tracking - stores unique post IDs that have been shared
+  // Using Set to automatically prevent duplicate counting
+  var sharedTipPostIds = <String>{}.obs;
+
   String? currentUserId;
 
   YoutubePlayerController? ytPlayerController;
@@ -35,6 +41,7 @@ class CreatePostController extends GetxController {
   void onInit() {
     super.onInit();
     fetchCurrentUser();
+    fetchSharedTips();
   }
 
   @override
@@ -225,7 +232,19 @@ class CreatePostController extends GetxController {
       var responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(responseBody);
+        String postId =
+            responseData['postId'] ??
+            DateTime.now().millisecondsSinceEpoch.toString();
+
+        print("🎉 Post submitted successfully! PostId: $postId");
         postSuccess.value = true;
+
+        // Mark this post as a shared tip for belt progress tracking
+        print("📝 About to mark post as shared tip...");
+        await markShareTipAsSubmitted(postId);
+        print("✅ Marking complete");
+
         await Future.delayed(const Duration(seconds: 1));
 
         // Reset
@@ -254,6 +273,107 @@ class CreatePostController extends GetxController {
       Get.snackbar("Error", "Connection error: $e");
     } finally {
       isPosting.value = false;
+    }
+  }
+
+  // Fetch previously shared tips from backend
+  Future<void> fetchSharedTips() async {
+    try {
+      if (currentUserId == null || currentUserId!.isEmpty) return;
+
+      final result = await _apiService.getUserShareTipProgress(currentUserId!);
+
+      if (result['success'] == true && result['data'] != null) {
+        final List<dynamic> postIds = result['data'] as List<dynamic>;
+        sharedTipPostIds.value = postIds
+            .map((id) => id.toString())
+            .where((id) => id.isNotEmpty)
+            .toSet();
+      }
+    } catch (e) {
+      // Silent fail - user can still share tips
+    }
+  }
+
+  // Mark tip/resource share as submitted with duplicate prevention
+  Future<void> markShareTipAsSubmitted(String postId) async {
+    print("🔵 markShareTipAsSubmitted called with postId: $postId");
+    print("   Current Set size: ${sharedTipPostIds.length}");
+
+    if (currentUserId == null || currentUserId!.isEmpty || postId.isEmpty) {
+      print("❌ Missing userId or postId");
+      return;
+    }
+
+    // CRITICAL CHECK: Prevent duplicate counting of the same post
+    if (sharedTipPostIds.contains(postId)) {
+      print("🚫 DUPLICATE DETECTED - Post already in Set");
+      return; // Exit early - do NOT increment count for same post
+    }
+
+    // First time sharing this tip - add to Set and count it
+    sharedTipPostIds.add(postId);
+    print("✅ Added to Set. New size: ${sharedTipPostIds.length}");
+
+    try {
+      // Try to record individual post ID (optional - for future backend support)
+      try {
+        await _apiService.recordShareTipSubmission(postId, currentUserId!);
+        print("📡 Individual tracking API called successfully");
+      } catch (e) {
+        // If individual tracking fails, that's okay - we'll still update cumulative count
+        print("⚠️ Individual share tip tracking not available: $e");
+      }
+
+      // ALWAYS update the cumulative count using existing backend API
+      print("🔄 Calling _updateShareTipCount...");
+      await _updateShareTipCount();
+      print("✅ Share tip count updated successfully");
+
+      // Refresh belt progress so the home screen chart updates
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        print("🔄 Refreshing belt progress...");
+        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+      }
+    } catch (e) {
+      // Only rollback if the main cumulative count update fails
+      print("❌ Failed to update share tip count: $e");
+      sharedTipPostIds.remove(postId);
+      print("↩️ Rolled back - removed from Set");
+    }
+  }
+
+  Future<void> _updateShareTipCount() async {
+    try {
+      if (currentUserId == null || currentUserId!.isEmpty) {
+        print("⚠️ _updateShareTipCount: No userId available");
+        return;
+      }
+
+      print(
+        "📤 Calling updateBeltProgress API (userId: $currentUserId, belt: B, action: shareTip)",
+      );
+
+      // Update shareTip count for Blue belt (cumulative counting)
+      // Similar to post/reply, this is cumulative across belts
+      await _apiService.updateBeltProgress(
+        userId: currentUserId!,
+        beltColor: 'B',
+        actionType: 'shareTip',
+      );
+
+      print("✅ updateBeltProgress API call succeeded!");
+
+      // Refresh belt progress display
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        print("🔄 Refreshing belt progress display...");
+        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+        print("✅ Belt progress refreshed");
+      }
+
+      print("✅ Share tip count updated (cumulative)");
+    } catch (e) {
+      print("⚠️ Failed to update share tip count: $e");
     }
   }
 }

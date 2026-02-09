@@ -155,6 +155,17 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
         _guardianAddressCtrl.text,
       ),
     );
+    _goalsFocus.addListener(
+      () => _onFocusChange(_goalsFocus, 'goals', _goalsCtrl.text),
+    );
+    _conditionsFocus.addListener(
+      () =>
+          _onFocusChange(_conditionsFocus, 'conditions', _conditionsCtrl.text),
+    );
+    _competencyFocus.addListener(
+      () =>
+          _onFocusChange(_competencyFocus, 'competency', _competencyCtrl.text),
+    );
 
     if (widget.showDeleteDialog) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -263,6 +274,8 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       } else if ((key == 'phone' || key == 'guardianContact') &&
           (trimmedValue.length < 9 || trimmedValue.length > 12)) {
         error = 'Invalid Phone';
+      } else if (key == 'conditions' && !trimmedValue.contains('-')) {
+        error = 'Must use "-" for each different disability';
       }
     }
     setState(() {
@@ -280,6 +293,9 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     _validateField('guardianName', _guardianNameCtrl.text);
     _validateField('guardianContact', _guardianContactCtrl.text);
     _validateField('guardianAddress', _guardianAddressCtrl.text);
+    _validateField('goals', _goalsCtrl.text);
+    _validateField('conditions', _conditionsCtrl.text);
+    _validateField('competency', _competencyCtrl.text);
 
     if (_dobCtrl.text.isEmpty) {
       setState(() => _errors['dob'] = 'This field is required to fill');
@@ -399,7 +415,12 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       'competency': _competencyCtrl.text,
     };
 
-    await traineeController.updateTrainee(widget.trainee['id'], updateData);
+    // Pass the new image path if user picked a new image
+    await traineeController.updateTrainee(
+      widget.trainee['id'],
+      updateData,
+      newImagePath: _pickedImage?.path,
+    );
     if (isPromoted) {
       await Future.delayed(const Duration(milliseconds: 300));
 
@@ -423,6 +444,25 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     try {
       final picked = await _picker.pickImage(source: source, imageQuality: 85);
       if (picked != null) {
+        final fileSize = await File(picked.path).length();
+        const maxSize = 1048576; // 1MB in bytes
+
+        if (fileSize > maxSize) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Image size must be 1MB or less. Selected image is ${(fileSize / 1048576).toStringAsFixed(2)}MB',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+
         setState(() {
           _pickedImage = picked;
         });
@@ -497,6 +537,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     VoidCallback? onTap,
     String? hintText,
     int maxLines = 1,
+    int? maxLength,
   }) {
     return Container(
       padding: const EdgeInsets.all(10),
@@ -526,6 +567,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
               readOnly: readOnly,
               onTap: onTap,
               maxLines: maxLines,
+              maxLength: maxLength,
               textAlignVertical: maxLines > 1
                   ? TextAlignVertical.top
                   : TextAlignVertical.center,
@@ -538,6 +580,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
                 border: InputBorder.none,
+                counterText: '',
                 hintText: hintText,
                 hintStyle: GoogleFonts.poppins(
                   color: Colors.white54,
@@ -825,6 +868,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                                           _nameCtrl,
                                           focusNode: _nameFocus,
                                           fieldKey: 'name',
+                                          maxLength: 50,
                                         ),
                                       ),
                                       const SizedBox(width: 10),
@@ -922,7 +966,9 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                         _addressCtrl,
                         focusNode: _addressFocus,
                         fieldKey: 'address',
-                        height: 48,
+                        maxLines: 3,
+                        height: 60,
+                        maxLength: 2000,
                       ),
                     ]),
                     const SizedBox(height: 12),
@@ -932,6 +978,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                         _guardianNameCtrl,
                         focusNode: _guardianNameFocus,
                         fieldKey: 'guardianName',
+                        maxLength: 50,
                       ),
                       const SizedBox(height: 8),
                       _boxedField(
@@ -946,7 +993,9 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                         _guardianAddressCtrl,
                         focusNode: _guardianAddressFocus,
                         fieldKey: 'guardianAddress',
-                        height: 48,
+                        maxLines: 3,
+                        height: 60,
+                        maxLength: 2000,
                       ),
                     ]),
                     const SizedBox(height: 12),
@@ -959,6 +1008,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                         hintText: 'I want ...',
                         maxLines: 4,
                         height: 80,
+                        maxLength: 2000,
                       ),
                     ]),
                     const SizedBox(height: 12),
@@ -971,6 +1021,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                         hintText: 'List disabilities...',
                         maxLines: 4,
                         height: 80,
+                        maxLength: 2000,
                       ),
                     ]),
                     const SizedBox(height: 12),
@@ -983,6 +1034,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                         hintText: 'I want ...',
                         maxLines: 4,
                         height: 80,
+                        maxLength: 2000,
                       ),
                     ]),
                     const SizedBox(height: 18),

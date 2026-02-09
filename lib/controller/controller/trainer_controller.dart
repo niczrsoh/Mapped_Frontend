@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import '../../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../TProgress/belt_progress_ring_controller.dart';
 
 class TrainerController extends GetxController {
   static const double totalFormCount = 8.0;
@@ -12,7 +14,10 @@ class TrainerController extends GetxController {
 
   var currentUserName = ''.obs;
   var activeDaysCount = 0.obs;
+  var cumulativePostCount = 0.obs;
+  var cumulativeShareTipCount = 0.obs;
   var trainerList = <dynamic>[].obs;
+  var recommendationCount = 0.obs;
 
   var trainerProgressMap = <String, String>{}.obs;
 
@@ -22,110 +27,128 @@ class TrainerController extends GetxController {
   void onInit() {
     super.onInit();
     _loadAuthData().then((_) {
-      fetchTrainers();
+      _loadLocalCounts();
       updateActiveDays();
+      _loadRecommendationCount();
     });
+
+    ever(currentUserId, (String uid) {
+      _onUserChanged(uid);
+    });
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    updateActiveDays();
+  }
+
+  Future<void> _loadLocalCounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    int savedDays = prefs.getInt(_prefKey('active_days_count')) ?? 0;
+    activeDaysCount.value = savedDays;
+    print("🏠 TrainerController: Loaded local days: $savedDays");
+  }
+
+  Future<void> _loadRecommendationCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    int localCount = prefs.getInt(_prefKey('recommendation_count')) ?? 0;
+    recommendationCount.value = localCount;
+  }
+
+  Future<void> incrementRecommendationCount() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String userId = currentUserId.value;
+    if (userId.isEmpty) {
+      userId = prefs.getString('user_id') ?? '';
+    }
+
+    if (userId.isNotEmpty) {
+      int newCount = recommendationCount.value + 1;
+      recommendationCount.value = newCount;
+      await prefs.setInt(_prefKey('recommendation_count', userId), newCount);
+
+      print("📈 Incrementing Recommendation Count to: $newCount");
+
+      try {
+        var url = Uri.parse('${_apiService.baseUrl}/belt-progress/update');
+        var body = jsonEncode({
+          "userId": userId,
+          "actionType": "recommendation",
+          "beltColor": "White", 
+        });
+
+        var response = await http.post(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: body,
+        );
+
+        if (response.statusCode == 200) {
+          print("✅ Success: Database updated");
+
+          // 3. FORCE REFRESH THE BELT UI
+          if (Get.isRegistered<BeltProgressRingController>()) {
+            print("🔄 Refreshing Belt Progress Ring...");
+            await Get.find<BeltProgressRingController>().fetchBeltProgress();
+          }
+        } else {
+          print("❌ Failed: ${response.statusCode} - ${response.body}");
+        }
+      } catch (e) {
+        print("❌ Network Error: $e");
+      }
+    }
   }
 
   Future<void> updateActiveDays() async {
     final prefs = await SharedPreferences.getInstance();
     String today = DateTime.now().toString().split(' ')[0];
-    String? lastDate = prefs.getString('last_active_date');
-
-    // 1. Ensure we have the ID. If GetX var is empty, try Prefs one last time.
+    String? lastDate = prefs.getString(_prefKey('last_active_date'));
+    int currentCount = activeDaysCount.value;
     String userId = currentUserId.value;
+
     if (userId.isEmpty) {
       userId = prefs.getString('user_id') ?? '';
       if (userId.isNotEmpty) currentUserId.value = userId;
     }
 
-    if (userId.isEmpty) {
-      print("⚠️ updateActiveDays skipped: No User ID found.");
-      return;
-    }
-
-    int currentCount = 0;
+    if (userId.isEmpty) return;
 
     try {
-      print("🔄 Fetching Active Count for User: $userId");
-
-      // 2. Fetch from Backend (Source of Truth)
       var profile = await _apiService.getTrainerById(userId);
-
-      // Fallback to profile if trainer endpoint fails
       if (profile['success'] != true) {
         profile = await _apiService.getUserProfile(userId);
       }
 
       if (profile['success'] == true && profile['data'] != null) {
         var userData = profile['data'];
-
-        // Handle nesting
-        if (userData['data'] != null)
-          userData = userData['data'];
-        else if (userData['user'] != null)
-          userData = userData['user'];
-
-        // 3. Parse Backend Count safely
         int backendCount =
-            int.tryParse(
-              userData['activeCount']?.toString() ??
-                  userData['activeDaysCount']?.toString() ??
-                  userData['activeDays']?.toString() ??
-                  '0',
-            ) ??
-            0;
+            int.tryParse(userData['activeCount']?.toString() ?? '0') ?? 0;
 
-        print(
-          "📊 Backend says: $backendCount | Local says: ${prefs.getInt('active_days_count')}",
-        );
-
-        // 4. SYNC LOGIC: Trust Backend if it is higher than 0
-        // We set currentCount to backendCount immediately
-        if (backendCount > 0) {
+        if (backendCount > currentCount) {
           currentCount = backendCount;
-          // Sync local storage to match backend
-          await prefs.setInt('active_days_count', currentCount);
-        } else {
-          // If backend is 0, we check if local is dangerously high (test data)
-          int local = prefs.getInt('active_days_count') ?? 0;
-          if (local > 100) {
-            print(
-              "⚠️ Local count ($local) seems invalid. Resetting to 0 match backend.",
-            );
-            currentCount = 0;
-            await prefs.setInt('active_days_count', 0);
-          } else {
-            currentCount = local;
-          }
+          await prefs.setInt(
+            _prefKey('active_days_count', userId),
+            currentCount,
+          );
         }
       }
     } catch (e) {
-      print("⚠️ Active Count Sync Failed: $e");
-      currentCount = prefs.getInt('active_days_count') ?? 0;
+      currentCount = prefs.getInt('active_days_count') ?? currentCount;
     }
 
-    // 5. Increment Logic (Check if user already logged in today)
     if (lastDate != today) {
-      print("📅 New Day Detected! Incrementing count.");
       currentCount++;
+      await prefs.setInt(_prefKey('active_days_count', userId), currentCount);
+      await prefs.setString(_prefKey('last_active_date', userId), today);
 
-      // Save new values locally
-      await prefs.setInt('active_days_count', currentCount);
-      await prefs.setString('last_active_date', today);
-
-      // Save new value to Backend
-      await _apiService.updateTrainer(userId, {
-        'activeCount': currentCount,
-        'activeDaysCount': currentCount,
-      });
-    } else {
-      print("📅 User already active today. No increment.");
+      _apiService.updateTrainer(userId, {'activeCount': currentCount});
     }
 
-    // 6. Update UI
+
     activeDaysCount.value = currentCount;
-    update();
   }
 
   Future<void> forceUpdateActiveCount(int newCount) async {
@@ -135,7 +158,7 @@ class TrainerController extends GetxController {
       );
       activeDaysCount.value = newCount;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('active_days_count', newCount);
+      await prefs.setInt(_prefKey('active_days_count'), newCount);
       update();
     }
   }
@@ -150,6 +173,7 @@ class TrainerController extends GetxController {
         currentUserId.value = storedId;
         currentUserName.value = storedName;
         print("✅ TrainerController: Auth data restored ($storedName)");
+        _onUserChanged(storedId);
       } else {
         print("⚠️ TrainerController: No stored auth data found");
       }
@@ -158,13 +182,31 @@ class TrainerController extends GetxController {
     }
   }
 
+  String _prefKey(String base, [String? uid]) {
+    final id = uid ?? currentUserId.value;
+    return id.isNotEmpty ? '${base}_$id' : base;
+  }
+
+  void _onUserChanged(String uid) async {
+    if (uid.isEmpty) {
+      activeDaysCount.value = 0;
+      recommendationCount.value = 0;
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    activeDaysCount.value =
+        prefs.getInt(_prefKey('active_days_count', uid)) ?? 0;
+    recommendationCount.value =
+        prefs.getInt(_prefKey('recommendation_count', uid)) ?? 0;
+  }
+
   void setUserInfo(String id, String name) {
     currentUserId.value = id;
     currentUserName.value = name;
     print("👤 Trainer Profile Set: $name ($id)");
   }
 
-  // --- FETCH DATA ---
   Future<void> fetchTrainers() async {
     try {
       loading.value = true;
@@ -173,7 +215,6 @@ class TrainerController extends GetxController {
       if (result['success'] == true) {
         trainerList.assignAll(result['data']);
 
-        // Optional: Trigger progress load for all fetched trainers immediately
         for (var trainer in result['data']) {
           loadTrainerProgress(trainer['id'], trainer['belt'] ?? 'Black');
         }
@@ -205,7 +246,6 @@ class TrainerController extends GetxController {
             totalPercentage += (form['percentage'] ?? 0.0).toDouble();
           }
 
-          // Divide by total form count (8), NOT items count
           double calculatedAvg = totalPercentage / totalFormCount;
 
           if (calculatedAvg > 1.0) calculatedAvg = 1.0;
@@ -217,15 +257,5 @@ class TrainerController extends GetxController {
       print("Error loading progress: $e");
       trainerProgressMap[trainerId] = '0 %';
     }
-  }
-
-  void setTrainerProgressLocally(String id, double value) {
-    trainerProgressMap[id] = '${(value * 100).round()} %';
-  }
-
-  void resetState() {
-    loading.value = false;
-    error.value = '';
-    success.value = false;
   }
 }

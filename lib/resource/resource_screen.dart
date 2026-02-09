@@ -239,6 +239,8 @@ class ResourceScreen extends StatelessWidget {
   Widget _buildResourceCard(ResourcePost resource) {
     return GestureDetector(
       onTap: () {
+        // Mark resource as viewed to increment count
+        controller.markResourceAsViewed(resource.id);
         Get.to(() => ResourceDetailScreen(resource: resource));
       },
       child: Container(

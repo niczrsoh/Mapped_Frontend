@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/session/session_controller.dart';
 import 'session_details.dart';
-import 'session_model.dart'; 
+import 'session_model.dart';
 import '../screens/main_navigation_screen.dart';
 
 class SessionFlowScreen extends StatefulWidget {
@@ -580,6 +580,8 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
           child: TextField(
             controller: ctrl,
             maxLines: 5,
+            maxLength: 2000,
+            maxLengthEnforcement: MaxLengthEnforcement.enforced,
             style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
             decoration: InputDecoration(
               hintText: hint,
@@ -589,6 +591,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
               ),
               contentPadding: const EdgeInsets.all(12),
               border: InputBorder.none,
+              counterText: '',
             ),
           ),
         ),
@@ -629,6 +632,8 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                 child: TextField(
                   controller: descCtrl,
                   maxLines: 3,
+                  maxLength: 2000,
+                  maxLengthEnforcement: MaxLengthEnforcement.enforced,
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
                   decoration: InputDecoration(
                     hintText: hint,
@@ -638,6 +643,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                     ),
                     contentPadding: const EdgeInsets.all(12),
                     border: InputBorder.none,
+                    counterText: '',
                   ),
                 ),
               ),

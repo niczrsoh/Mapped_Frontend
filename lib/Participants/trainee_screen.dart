@@ -6,6 +6,7 @@ import 'trainee_controller.dart';
 import 'add_trainee.dart';
 import 'trainee_detail_screen.dart';
 import '../TProgress/data/belt_definitions.dart';
+import '../controller/controller/trainer_controller.dart';
 
 class TraineesScreen extends StatefulWidget {
   const TraineesScreen({Key? key}) : super(key: key);
@@ -19,6 +20,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
   String searchQuery = '';
 
   final TraineeController traineeController = Get.put(TraineeController());
+  final TrainerController trainerController = Get.put(TrainerController());
 
   static const double borderThickness = 1.5;
   final LinearGradient customGradient = const LinearGradient(

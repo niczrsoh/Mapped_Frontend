@@ -4,9 +4,9 @@ import 'package:get/get.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
+import 'package:mapped_frontend/forum/forum_screen.dart';
 import 'package:mapped_frontend/screens/coaching_screen.dart';
 import 'package:mapped_frontend/resource/resource_screen.dart';
-import 'package:mapped_frontend/screens/search_result_screen.dart';
 import 'package:mapped_frontend/Participants/trainee_screen.dart';
 import 'package:mapped_frontend/session/session_planner.dart';
 import 'package:mapped_frontend/session/session_dashboard_screen.dart';
@@ -14,9 +14,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../controller/home_controller/controller/home_controller.dart';
 import 'package:mapped_frontend/controller/controller/trainer_controller.dart';
 import 'package:mapped_frontend/session/session_controller.dart';
-import 'package:mapped_frontend/controller/controller/resource_controller.dart';
-
-// - Importing to access belt logic
+import 'package:mapped_frontend/resource/resource_controller.dart';
+import 'package:mapped_frontend/comment/comment_controller.dart';
+import 'package:mapped_frontend/create_post/create_post_controller.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
@@ -33,20 +33,23 @@ class HomeScreen extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    final TrainerController trainerController = Get.put(TrainerController());
+    // Initialize controllers
+    Get.put(TrainerController());
+    final sessionController = Get.put(
+      SessionController(),
+    ); // Assign to variable
+    Get.put(ResourceController());
+    Get.put(CommentsController());
+    Get.put(CreatePostController());
 
     final themeBg = const Color(0xFF141823);
 
     final UserController userController = Get.find<UserController>();
+    final TrainerController trainerController = Get.find<TrainerController>();
+    final commentsController = Get.find<CommentsController>();
+    final createPostController = Get.find<CreatePostController>();
     final BeltProgressRingController beltController = Get.put(
       BeltProgressRingController(),
-    );
-    final SessionController sessionController = Get.put(SessionController());
-    final ResourceController resourceController = Get.put(ResourceController());
-
-    final chartDrawHeight = min(
-      140.0,
-      max(100.0, MediaQuery.of(context).size.height * 0.20),
     );
 
     Widget sectionCard({required Widget child, double radius = 18}) {
@@ -54,14 +57,14 @@ class HomeScreen extends GetView<HomeController> {
         width: double.infinity,
         padding: const EdgeInsets.all(1.0),
         decoration: BoxDecoration(
-          gradient: customGradient, 
+          gradient: customGradient,
           borderRadius: BorderRadius.circular(radius),
         ),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF141823), 
+            color: const Color(0xFF141823),
             borderRadius: BorderRadius.circular(radius - 1),
           ),
           child: child,
@@ -74,7 +77,11 @@ class HomeScreen extends GetView<HomeController> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            await beltController.fetchBeltProgress();
+            await Get.find<TrainerController>().updateActiveDays();
+            await Future.wait([
+              beltController.fetchBeltProgress(),
+              sessionController.fetchDashboardData(),
+            ]);
           },
           color: const Color.fromARGB(255, 255, 255, 255),
           child: SingleChildScrollView(
@@ -86,8 +93,6 @@ class HomeScreen extends GetView<HomeController> {
                 // Greeting - Using actual user name
                 Obx(() {
                   final userName = userController.userName;
-                  print('👤 HomeScreen - User name: $userName');
-
                   return Text(
                     'Welcome back, Coach $userName',
                     style: GoogleFonts.poppins(
@@ -112,13 +117,18 @@ class HomeScreen extends GetView<HomeController> {
                     const SizedBox(width: 12),
                     const Text(' - ', style: TextStyle(color: Colors.white24)),
                     const SizedBox(width: 8),
-                    Text(
-                      '3 sessions today',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                    ),
+                    Obx(() {
+                      final count = sessionController.currentList.length;
+                      final label =
+                          "$count ${count == 1 ? 'session' : 'sessions'} today";
+                      return Text(
+                        label,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      );
+                    }),
                   ],
                 ),
 
@@ -126,10 +136,10 @@ class HomeScreen extends GetView<HomeController> {
                 // Search bar
                 GestureDetector(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SearchResultsScreen(),
-                      ),
+                    Get.snackbar(
+                      'Coming Soon',
+                      'Search feature will be available soon',
+                      snackPosition: SnackPosition.BOTTOM,
                     );
                   },
 
@@ -169,11 +179,10 @@ class HomeScreen extends GetView<HomeController> {
                               ),
                               readOnly: true,
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const SearchResultsScreen(),
-                                  ),
+                                Get.snackbar(
+                                  'Coming Soon',
+                                  'Search feature will be available soon',
+                                  snackPosition: SnackPosition.BOTTOM,
                                 );
                               },
                             ),
@@ -181,11 +190,10 @@ class HomeScreen extends GetView<HomeController> {
                           const SizedBox(width: 12),
                           GestureDetector(
                             onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SearchResultsScreen(),
-                                ),
+                              Get.snackbar(
+                                'Coming Soon',
+                                'Search feature will be available soon',
+                                snackPosition: SnackPosition.BOTTOM,
                               );
                             },
                             child: SizedBox(
@@ -209,20 +217,24 @@ class HomeScreen extends GetView<HomeController> {
                 const SizedBox(height: 18),
                 GestureDetector(
                   onTap: () {
-                    // Navigate to detailed dashboard on tap
                     Get.to(() => const BeltDashboardScreen());
                   },
                   child: sectionCard(
                     child: Obx(() {
+                      final dummyVar = trainerController.activeDaysCount.value;
                       final belts = BeltDefinitions.belts;
                       final beltOrder = belts.map((b) => b.id).toList();
 
-                      final int totalSessions =
-                          sessionController.totalSessionsCount.value;
-                      final int totalDays =
-                          trainerController.activeDaysCount.value;
-                      final int totalResources =
-                          resourceController.viewedResourceIds.length;
+                      // Get data from controllers
+                      int totalPosts =
+                          commentsController.submittedPostIds.length;
+                      int totalShareTips =
+                          createPostController.sharedTipPostIds.length;
+
+                      // Explicitly get reflection count here to trigger Obx update
+                      int totalReflections = sessionController
+                          .submittedReflectionSessionIds
+                          .length;
 
                       BeltProgressModelV2? currentBeltData;
                       String currentBeltCode = BeltDefinitions.white;
@@ -233,16 +245,21 @@ class HomeScreen extends GetView<HomeController> {
                         final beltDef = belts[i];
                         final code = beltDef.id;
 
-                        // Get backend data object if exists (for some metadata)
                         final data = beltController.detailedBeltData
                             .firstWhereOrNull((b) => b.beltColor == code);
+
                         bool isPassed = false;
                         if (data != null) {
                           final reqCheck = BeltRequirementsData.getFor(code);
-                          isPassed = _isBeltStrictlyPassed(reqCheck, data);
+                          isPassed = _isBeltStrictlyPassed(
+                            reqCheck,
+                            data,
+                            totalPosts,
+                            totalShareTips,
+                            totalReflections, // Pass reflections
+                          );
                         }
 
-                        // If NOT passed, this is our current belt.
                         if (!isPassed) {
                           currentBeltData = data;
                           currentBeltCode = code;
@@ -256,7 +273,6 @@ class HomeScreen extends GetView<HomeController> {
                         }
                       }
 
-                      // --- CALCULATE PROGRESS FROM MODEL DATA ---
                       final requirement = BeltRequirementsData.getFor(
                         currentBeltCode,
                       );
@@ -266,6 +282,9 @@ class HomeScreen extends GetView<HomeController> {
                         progress = _calculateProgressPercentageFromModel(
                           requirement,
                           currentBeltData,
+                          totalPosts,
+                          totalShareTips,
+                          totalReflections, // Pass reflections
                         );
                       }
 
@@ -283,7 +302,6 @@ class HomeScreen extends GetView<HomeController> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // A. Header Title
                           Text(
                             'My Certification Progress',
                             style: GoogleFonts.poppins(
@@ -293,8 +311,6 @@ class HomeScreen extends GetView<HomeController> {
                             ),
                           ),
                           const SizedBox(height: 12),
-
-                          // B. Current Belt Indicator (Icon + Name)
                           Row(
                             children: [
                               const Icon(
@@ -325,16 +341,32 @@ class HomeScreen extends GetView<HomeController> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: List.generate(beltOrder.length, (index) {
                               final code = beltOrder[index];
-                              final isActive = index == currentBeltIndex;
+
+                              bool isLocked = false;
+                              if (code == BeltDefinitions.black &&
+                                  currentBeltCode != BeltDefinitions.black) {
+                                isLocked = true;
+                              }
 
                               return GestureDetector(
                                 onTap: () {
-                                  Get.to(
-                                    () => BeltProgressScreen(
-                                      beltName: _getBeltName(code),
-                                      beltColor: _getBeltColor(code),
-                                    ),
-                                  );
+                                  if (isLocked) {
+                                    Get.snackbar(
+                                      "Locked",
+                                      "Complete the Brown Belt to unlock Mastery.",
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      backgroundColor: Colors.white12,
+                                      colorText: Colors.white,
+                                      margin: const EdgeInsets.all(16),
+                                    );
+                                  } else {
+                                    Get.to(
+                                      () => BeltProgressScreen(
+                                        beltName: _getBeltName(code),
+                                        beltColor: _getBeltColor(code),
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: Column(
                                   children: [
@@ -357,7 +389,6 @@ class HomeScreen extends GetView<HomeController> {
                               );
                             }),
                           ),
-
                           const SizedBox(height: 20),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -375,7 +406,7 @@ class HomeScreen extends GetView<HomeController> {
                                 ),
                               ),
                               Text(
-                                '${progress.toInt()}%',
+                                '${progress.round()}%',
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -387,7 +418,7 @@ class HomeScreen extends GetView<HomeController> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: LinearProgressIndicator(
-                              value: progress / 100, // Normalized 0.0 to 1.0
+                              value: progress / 100,
                               minHeight: 8,
                               backgroundColor: Colors.grey[800],
                               valueColor: AlwaysStoppedAnimation<Color>(
@@ -395,87 +426,106 @@ class HomeScreen extends GetView<HomeController> {
                               ),
                             ),
                           ),
-
-                          const SizedBox(height: 20),
-
-                          // E. Requirements Section
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              Text(
-                                'Remaining Requirements',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 13,
+                          if (currentBeltCode != BeltDefinitions.black) ...[
+                            const SizedBox(height: 20),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                Text(
+                                  'Remaining Requirements',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
-
-                              Builder(
-                                builder: (context) {
-                                  String nextCode;
-                                  if (currentBeltIndex < beltOrder.length - 1) {
-                                    nextCode = beltOrder[currentBeltIndex + 1];
-                                  } else {
-                                    nextCode = beltOrder.last;
-                                  }
-
-                                  final nextColor = _getBeltColor(nextCode);
-                                  final nextName = _getBeltName(nextCode);
-
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Image.asset(
-                                        _getBeltImage(currentBeltCode),
-                                        width: 18,
-                                        height: 18,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        beltName,
-                                        style: GoogleFonts.poppins(
-                                          color: beltColor,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                Builder(
+                                  builder: (context) {
+                                    String nextCode;
+                                    if (currentBeltIndex <
+                                        beltOrder.length - 1) {
+                                      nextCode =
+                                          beltOrder[currentBeltIndex + 1];
+                                    } else {
+                                      nextCode = beltOrder.last;
+                                    }
+                                    final nextColor = _getBeltColor(nextCode);
+                                    final nextName = _getBeltName(nextCode);
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Image.asset(
+                                          _getBeltImage(currentBeltCode),
+                                          width: 18,
+                                          height: 18,
                                         ),
-                                      ),
-
-                                      const SizedBox(width: 6),
-                                      const Icon(
-                                        Icons.arrow_right_alt_rounded,
-                                        color: Colors.white54,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 6),
-
-                                      Image.asset(
-                                        _getBeltImage(nextCode),
-                                        width: 18,
-                                        height: 18,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        nextName,
-                                        style: GoogleFonts.poppins(
-                                          color: nextColor,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          beltName,
+                                          style: GoogleFonts.poppins(
+                                            color: beltColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-
-                          _buildRequirementText(
-                            currentBeltCode,
-                            currentBeltData,
-                          ),
+                                        const SizedBox(width: 6),
+                                        const Icon(
+                                          Icons.arrow_right_alt_rounded,
+                                          color: Colors.white54,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Image.asset(
+                                          _getBeltImage(nextCode),
+                                          width: 18,
+                                          height: 18,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          nextName,
+                                          style: GoogleFonts.poppins(
+                                            color: nextColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            _buildRequirementText(
+                              currentBeltCode,
+                              currentBeltData,
+                              totalPosts,
+                              totalShareTips,
+                              totalReflections,
+                            ),
+                          ] else ...[
+                            // OPTIONAL: Display Mastery Text when Black Belt is achieved
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Color(0xFF00FF66),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Mastery Achieved",
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF00FF66),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       );
                     }),
@@ -483,7 +533,6 @@ class HomeScreen extends GetView<HomeController> {
                 ),
 
                 const SizedBox(height: 14),
-
                 // Trainee Card
                 GestureDetector(
                   onTap: () {
@@ -561,17 +610,7 @@ class HomeScreen extends GetView<HomeController> {
                 ),
 
                 const SizedBox(height: 12),
-
-              // Quick Actions
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ResourceScreen(),
-                    ),
-                  );
-                },
-                child: _sectionCard(
+                sectionCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -586,50 +625,72 @@ class HomeScreen extends GetView<HomeController> {
                       Row(
                         children: [
                           Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white24,
-                                borderRadius: BorderRadius.circular(28),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Resource',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                    ),
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => ResourceScreen(),
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.book, color: Colors.white),
-                                ],
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white24,
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Resource',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.book, color: Colors.white),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white24,
-                                borderRadius: BorderRadius.circular(28),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Forum',
-                                    style: GoogleFonts.poppins(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => ForumScreen(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white24,
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Forum',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.forum_outlined,
                                       color: Colors.white,
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(
-                                    Icons.forum_outlined,
-                                    color: Colors.white,
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -638,10 +699,8 @@ class HomeScreen extends GetView<HomeController> {
                     ],
                   ),
                 ),
-              ),
 
                 const SizedBox(height: 12),
-
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(1.0),
@@ -711,13 +770,28 @@ class HomeScreen extends GetView<HomeController> {
     return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day} ${now.year}';
   }
 
-  Widget _buildRequirementText(String code, BeltProgressModelV2? data) {
+  Widget _buildRequirementText(
+    String code,
+    BeltProgressModelV2? data,
+    int totalPosts,
+    int totalShareTips,
+    int totalReflections,
+  ) {
     final requirement = BeltRequirementsData.getFor(code);
 
     List<Widget> reqs = [];
 
     for (var task in requirement.tasks) {
-      int currentValue = _getProgressValue(task.type, data);
+      // The 'task' variable here is of type BeltTaskDef
+      int currentValue = _getProgressValue(
+        task,
+        data,
+        requirement,
+        totalPosts,
+        totalShareTips,
+        totalReflections,
+      );
+
       String text = "${task.homeLabel}: $currentValue / ${task.target}";
 
       if (task.type == RequirementType.activeDay) {
@@ -749,40 +823,75 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  int _getProgressValue(RequirementType type, BeltProgressModelV2? data) {
+  int _getProgressValue(
+    BeltTaskDef task, // CHANGED: Use BeltTaskDef (or dynamic)
+    BeltProgressModelV2? data,
+    BeltRequirement requirement,
+    int totalPosts,
+    int totalShareTips,
+    int totalReflections,
+  ) {
     if (data == null) return 0;
 
-    switch (type) {
+    switch (task.type) {
       case RequirementType.session:
-        return data.planSessionCount;
+        return data.planSessionCount.clamp(0, task.target);
+
       case RequirementType.activeDay:
-        return data.progress.activeDayCount;
+        final liveActiveDays =
+            Get.find<TrainerController>().activeDaysCount.value;
+        return (liveActiveDays - requirement.cumulativeDayOffset).clamp(
+          0,
+          task.target,
+        );
+
       case RequirementType.resource:
-        return data.progress.openResourceCount;
+        return data.progress.openResourceCount.clamp(0, task.target);
+
       case RequirementType.recommendation:
-        return data.progress.recommendationCount;
-      case RequirementType.uploadPhoto:
-        return data.progress.sessionPhotoCount;
+        return data.progress.recommendationCount.clamp(0, task.target);
+
       case RequirementType.reflection:
-        return data.progress.writeShortDescriptionCount;
+        return totalReflections.clamp(0, task.target);
+
       case RequirementType.forumPost:
-        return data.progress.postCount;
+        int calculated = totalPosts - requirement.cumulativePostOffset;
+        return calculated.clamp(0, task.target);
+
       case RequirementType.shareTip:
-        return data.progress.shareTipCount;
-      default:
-        return 0;
+        int shareTipOffset = 0;
+        if (requirement.beltId == BeltDefinitions.brown) {
+          shareTipOffset = 1;
+        }
+        // FIX: Ensure totalShareTips comes from the controller passed in build()
+        int calculated = totalShareTips - shareTipOffset;
+        return calculated.clamp(0, task.target);
     }
+
+    return 0; // CHANGED: Added return for safety
   }
 
-  bool _isBeltStrictlyPassed(BeltRequirement req, BeltProgressModelV2 data) {
+  bool _isBeltStrictlyPassed(
+    BeltRequirement req,
+    BeltProgressModelV2 data,
+    int totalPosts,
+    int totalShareTips,
+    int totalReflections,
+  ) {
+    if (req.beltId == BeltDefinitions.black) {
+      return true;
+    }
+
     for (var task in req.tasks) {
       int val = 0;
       switch (task.type) {
+        // ... [Cases remain the same]
         case RequirementType.session:
           val = data.planSessionCount;
           break;
         case RequirementType.activeDay:
-          val = data.progress.activeDayCount;
+          final liveDays = Get.find<TrainerController>().activeDaysCount.value;
+          val = liveDays - req.cumulativeDayOffset;
           break;
         case RequirementType.resource:
           val = data.progress.openResourceCount;
@@ -790,21 +899,20 @@ class HomeScreen extends GetView<HomeController> {
         case RequirementType.recommendation:
           val = data.progress.recommendationCount;
           break;
-        case RequirementType.uploadPhoto:
-          val = data.progress.sessionPhotoCount;
-          break;
         case RequirementType.reflection:
-          val = data.progress.writeShortDescriptionCount;
+          val = totalReflections;
           break;
         case RequirementType.forumPost:
-          val = data.progress.postCount;
+          val = (totalPosts - req.cumulativePostOffset).clamp(0, 999);
           break;
         case RequirementType.shareTip:
-          val = data.progress.shareTipCount;
+          int shareTipOffset = 0;
+          if (req.beltId == BeltDefinitions.brown) {
+            shareTipOffset = 1;
+          }
+          val = (totalShareTips - shareTipOffset).clamp(0, 999);
           break;
       }
-
-      // If any single task is not met, the belt is NOT passed.
       if (val < task.target) {
         return false;
       }
@@ -815,11 +923,20 @@ class HomeScreen extends GetView<HomeController> {
   double _calculateProgressPercentageFromModel(
     BeltRequirement req,
     BeltProgressModelV2 data,
+    int totalPosts,
+    int totalShareTips,
+    int totalReflections,
   ) {
+    // FIX: Black Belt is always 100%
+    if (req.beltId == BeltDefinitions.black) {
+      return 100.0;
+    }
+
     double currentProgressSum = 0;
     double targetProgressSum = 0;
 
     for (var task in req.tasks) {
+      // ... [Calculation logic remains the same]
       targetProgressSum += task.target;
 
       int val = 0;
@@ -828,7 +945,12 @@ class HomeScreen extends GetView<HomeController> {
           val = data.planSessionCount;
           break;
         case RequirementType.activeDay:
-          val = data.progress.activeDayCount;
+          final liveActiveDays =
+              Get.find<TrainerController>().activeDaysCount.value;
+          val = (liveActiveDays - req.cumulativeDayOffset).clamp(
+            0,
+            task.target,
+          );
           break;
         case RequirementType.resource:
           val = data.progress.openResourceCount;
@@ -836,17 +958,18 @@ class HomeScreen extends GetView<HomeController> {
         case RequirementType.recommendation:
           val = data.progress.recommendationCount;
           break;
-        case RequirementType.uploadPhoto:
-          val = data.progress.sessionPhotoCount;
-          break;
         case RequirementType.reflection:
-          val = data.progress.writeShortDescriptionCount;
+          val = totalReflections;
           break;
         case RequirementType.forumPost:
-          val = data.progress.postCount;
+          val = (totalPosts - req.cumulativePostOffset).clamp(0, 999);
           break;
         case RequirementType.shareTip:
-          val = data.progress.shareTipCount;
+          int shareTipOffset = 0;
+          if (req.beltId == BeltDefinitions.brown) {
+            shareTipOffset = 1;
+          }
+          val = (totalShareTips - shareTipOffset).clamp(0, 999);
           break;
       }
       currentProgressSum += val.clamp(0, task.target);
@@ -857,15 +980,7 @@ class HomeScreen extends GetView<HomeController> {
         : 0.0;
   }
 
-  int _getTaskTarget(BeltRequirement req, RequirementType type) {
-    try {
-      return req.tasks.firstWhere((t) => t.type == type).target;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  // --- [MOVED] Constant Helpers for Belt Colors & Data ---
+  // ... [Helpers remain the same]
   String _getBeltName(String code) {
     return BeltDefinitions.getByCode(code).name;
   }
@@ -874,12 +989,12 @@ class HomeScreen extends GetView<HomeController> {
     return BeltDefinitions.getByCode(code).color;
   }
 
-  // Map belt code to your asset images
   String _getBeltImage(String code) {
     return BeltDefinitions.getByCode(code).assetPath;
   }
 }
 
+// ... [BottomNav remains the same]
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
 
@@ -894,7 +1009,6 @@ class _BottomNavState extends State<BottomNav> {
     setState(() {
       _selectedIndex = index;
     });
-    // if Session tab tapped, navigate to Session Dashboard
     if (index == 1) {
       Get.to(() => const SessionDashboardScreen());
     }

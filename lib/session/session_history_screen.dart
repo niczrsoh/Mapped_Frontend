@@ -106,7 +106,7 @@ class SessionHistoryScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Trainer : $trainer',
+                  'Coach : $trainer',
                   style: GoogleFonts.roboto(
                     color: Colors.white,
                     fontSize: 12,

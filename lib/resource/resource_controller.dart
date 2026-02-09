@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'resource_model.dart';
+import '../controller/controller/trainer_controller.dart';
+import '../services/api_service.dart';
+import '../TProgress/belt_progress_ring_controller.dart';
 
 class ResourceController extends GetxController {
   // CONFIGURATION
@@ -11,11 +15,22 @@ class ResourceController extends GetxController {
       ? "http://localhost:5000"
       : "http://10.0.2.2:5000";
 
+  final ApiService _apiService = ApiService();
+
+  TrainerController get trainerController => Get.find<TrainerController>();
+
   String currentUserId = '';
 
   var resources = <ResourcePost>[].obs;
   var isLoading = false.obs;
   var selectedFilter = 'All'.obs;
+  var loading = false.obs;
+  var resourceList = <dynamic>[].obs;
+  var tagList = <String>[].obs;
+  var tagsLoading = false.obs;
+  var selectedTag = ''.obs;
+  var success = false.obs;
+  var viewedResourceIds = <String>{}.obs;
 
   // --- REPORTING STATE ---
   var selectedReason = ''.obs;
@@ -58,11 +73,85 @@ class ResourceController extends GetxController {
   void onInit() {
     super.onInit();
     _initializeController();
+    fetchOpenResourceCount();
   }
 
   Future<void> _initializeController() async {
     await _loadCurrentUser();
     loadResources();
+  }
+
+  Future<void> fetchOpenResourceCount() async {
+    try {
+      String userId = '';
+      try {
+        userId = trainerController.currentUserId.value;
+      } catch (e) {
+        // TrainerController not available, will use local userId
+      }
+
+      if (userId.isEmpty) {
+        userId = currentUserId;
+      }
+
+      if (userId.isEmpty) {
+        return;
+      }
+
+      final result = await _apiService.getUserResourceProgress(userId);
+      if (result['success'] == true) {
+        List<String> savedIds = List<String>.from(result['data'] ?? []);
+        Set<String> uniqueIds = savedIds.toSet();
+        viewedResourceIds.assignAll(uniqueIds);
+      }
+    } catch (e) {
+      // Error fetching resource count
+    }
+  }
+
+  void markResourceAsViewed(String id) async {
+    String userId = '';
+    try {
+      userId = trainerController.currentUserId.value;
+    } catch (e) {
+      // TrainerController not available, will use local userId
+    }
+
+    if (userId.isEmpty) {
+      userId = currentUserId;
+    }
+
+    if (userId.isEmpty) {
+      return;
+    }
+
+    if (viewedResourceIds.contains(id)) {
+      return; 
+    }
+
+    const int resourceTarget = 3;
+    if (viewedResourceIds.length >= resourceTarget) {
+      return; 
+    }
+
+    viewedResourceIds.add(id);
+
+    try {
+      final result = await _apiService.recordResourceView(id, userId);
+
+      if (result['success'] == true) {
+        // Refresh belt progress so the home screen chart updates
+        if (Get.isRegistered<BeltProgressRingController>()) {
+          await Get.find<BeltProgressRingController>().fetchBeltProgress();
+        }
+      } else {
+        // Backend failed to record - rollback by removing from local set
+        viewedResourceIds.remove(id);
+      }
+    } catch (e) {
+      // API call failed - rollback by removing from local set
+      viewedResourceIds.remove(id);
+    }
   }
 
   Future<void> _loadCurrentUser() async {
@@ -210,7 +299,7 @@ class ResourceController extends GetxController {
     }
   }
 
-  // 3. CREATE RESOURCE
+  // 3. CREATE RESOURCE (Combined version with both approaches)
   Future<bool> createResource({
     required String title,
     required String content,

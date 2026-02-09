@@ -102,12 +102,20 @@ class TraineeController extends GetxController {
     }
   }
 
-  Future<void> updateTrainee(String id, Map<String, dynamic> data) async {
+  Future<void> updateTrainee(
+    String id,
+    Map<String, dynamic> data, {
+    String? newImagePath,
+  }) async {
     try {
       loading.value = true;
       error.value = '';
 
-      final result = await _apiService.updateTrainee(id, data);
+      final result = await _apiService.updateTrainee(
+        id,
+        data,
+        imagePath: newImagePath,
+      );
 
       if (result['success'] == true) {
         success.value = true;
@@ -185,7 +193,7 @@ class TraineeController extends GetxController {
 
         await fetchTrainees();
 
-        Get.close(2); 
+        Get.close(2);
 
         Get.snackbar(
           'Deleted',

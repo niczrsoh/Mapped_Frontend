@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:flutter/services.dart';
 import 'session_controller.dart';
 
 class SessionReflectionsScreen extends StatefulWidget {
@@ -235,7 +236,6 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                     );
                     updatePayload['reflection'] = reflectionData;
 
-
                     if (!updatePayload.containsKey('totalTrainees') &&
                         updatePayload.containsKey('pax')) {
                       updatePayload['totalTrainees'] = updatePayload['pax'];
@@ -248,6 +248,9 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                     await controller.updateSessionGeneric(id, updatePayload);
 
                     if (controller.success.value) {
+                      // Mark reflection as submitted for belt progress tracking
+                      controller.markReflectionAsSubmitted(id);
+
                       Get.snackbar(
                         "Success",
                         "Reflection Saved Successfully",
@@ -369,7 +372,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
           final parts = dateStr.split('/');
           if (parts.length == 3) {
             final dt = DateTime(
-              int.parse(parts[2]), 
+              int.parse(parts[2]),
               int.parse(parts[1]),
               int.parse(parts[0]),
             );
@@ -455,6 +458,8 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
           child: TextField(
             controller: controller,
             maxLines: 4,
+            maxLength: 2000,
+            maxLengthEnforcement: MaxLengthEnforcement.enforced,
             style: GoogleFonts.poppins(color: textColor, fontSize: 14),
             decoration: InputDecoration(
               hintText: hint,
@@ -462,6 +467,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
               hintStyle: GoogleFonts.poppins(color: accentYellow, fontSize: 14),
               contentPadding: const EdgeInsets.all(16),
               border: InputBorder.none,
+              counterText: '',
             ),
           ),
         ),
@@ -495,6 +501,8 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
               controller: controller,
               style: GoogleFonts.poppins(color: textColor, fontSize: 14),
               maxLines: null,
+              maxLength: 2000,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
               decoration: InputDecoration(
                 isDense: true,
                 hintMaxLines: 3,
@@ -509,6 +517,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                   right: 16.0,
                 ),
                 border: InputBorder.none,
+                counterText: '',
               ),
             ),
           ),

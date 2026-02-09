@@ -155,6 +155,8 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
       } else if ((key == 'phone' || key == 'guardianContact') &&
           (trimmedValue.length < 9 || trimmedValue.length > 12)) {
         error = 'Invalid Phone';
+      } else if (key == 'conditions' && !trimmedValue.contains('-')) {
+        error = 'Must use "-" for each different disability';
       }
     }
 
@@ -245,6 +247,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     List<TextInputFormatter>? formatters,
     int maxLines = 1,
     double? height,
+    int? maxLength,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -271,6 +274,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   : keyboardType,
               inputFormatters: formatters,
               maxLines: maxLines,
+              maxLength: maxLength,
               textAlignVertical: maxLines > 1
                   ? TextAlignVertical.top
                   : TextAlignVertical.center,
@@ -286,6 +290,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                 contentPadding: maxLines > 1
                     ? const EdgeInsets.symmetric(vertical: 8)
                     : const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+                counterText: '',
                 hintText: hint ?? '',
                 hintStyle: GoogleFonts.poppins(
                   color: Colors.white70,
@@ -366,6 +371,25 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     try {
       final picked = await _picker.pickImage(source: source, imageQuality: 85);
       if (picked != null) {
+        final fileSize = await File(picked.path).length();
+        const maxSize = 1048576; // 1MB in bytes
+
+        if (fileSize > maxSize) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Image size must be 1MB or less. Selected image is ${(fileSize / 1048576).toStringAsFixed(2)}MB',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+
         _pickedImage = picked;
         setState(() {});
       }
@@ -471,9 +495,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
     await traineeController.addTrainee(newTrainee);
 
     if (traineeController.success.value) {
-      Get.back();
-      Get.back();
-
+      // Navigation will be handled by the dialog's OK button
       Get.snackbar(
         "Success",
         "Participant has been added successfully",
@@ -485,7 +507,6 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
       );
     }
   }
-
 
   Future<void> _showAddConfirmDialog() async {
     traineeController.error.value = '';
@@ -561,7 +582,15 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: GestureDetector(
-                          onTap: _submitTraineeData,
+                          onTap: () async {
+                            await _submitTraineeData();
+                            if (traineeController.success.value) {
+                              Navigator.of(ctx).pop(); 
+                              Navigator.of(
+                                context,
+                              ).pop(); 
+                            }
+                          },
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
@@ -823,6 +852,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                       child: TextField(
                                         controller: _nameCtrl,
                                         focusNode: _nameFocus,
+                                        maxLength: 50,
                                         textAlignVertical:
                                             TextAlignVertical.center,
                                         style: GoogleFonts.poppins(
@@ -843,6 +873,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                             fontWeight: FontWeight.w400,
                                           ),
                                           border: InputBorder.none,
+                                          counterText: '',
                                         ),
                                       ),
                                     ),
@@ -1012,6 +1043,8 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       _addressFocus,
                       'address',
                       hint: 'Address ...',
+                      maxLines: 3,
+                      maxLength: 2000,
                     ),
                   ],
                 ),
@@ -1036,6 +1069,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       _guardianNameFocus,
                       'guardianName',
                       hint: 'Name ...',
+                      maxLength: 50,
                     ),
                     const SizedBox(height: 8),
                     _boxedField(
@@ -1054,6 +1088,8 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       _guardianAddressFocus,
                       'guardianAddress',
                       hint: 'Address ...',
+                      maxLines: 3,
+                      maxLength: 2000,
                     ),
                   ],
                 ),
@@ -1080,6 +1116,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       hint: 'I want ...',
                       maxLines: 3,
                       height: 60,
+                      maxLength: 2000,
                     ),
                   ],
                 ),
@@ -1107,6 +1144,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                           'List all the disabilities & medical concern, e.g.\n\n-high blood pressure\n-Pregnant\n-Leg joint problem\n-Heart Attack\n-Autism\n-ADHD\n-PTSD\n-Chest pain',
                       maxLines: 8,
                       height: 140,
+                      maxLength: 2000,
                     ),
                   ],
                 ),
@@ -1133,6 +1171,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                       hint: 'I want ...',
                       maxLines: 3,
                       height: 60,
+                      maxLength: 2000,
                     ),
                   ],
                 ),

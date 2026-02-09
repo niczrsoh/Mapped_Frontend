@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:flutter/services.dart';
 import 'package:mapped_frontend/session/session_flow.dart';
 
 class SessionPrerequisitesScreen extends StatefulWidget {
@@ -14,7 +15,6 @@ class SessionPrerequisitesScreen extends StatefulWidget {
 
 class _SessionPrerequisitesScreenState
     extends State<SessionPrerequisitesScreen> {
-
   final _riskCtrl = TextEditingController();
   final _resourcesCtrl = TextEditingController();
   final _othersCtrl = TextEditingController();
@@ -23,9 +23,7 @@ class _SessionPrerequisitesScreenState
 
   final Color bgColor = const Color(0xFF141823);
   final Color cardColor = const Color(0xFF1C1C1E);
-  final Color inputBg = const Color(
-    0xFF2C2C2E,
-  ); 
+  final Color inputBg = const Color(0xFF2C2C2E);
   final Color primaryGreen = const Color(0xFF00C875);
   final Color greyButton = const Color(0xFF8E8E93);
 
@@ -81,7 +79,7 @@ class _SessionPrerequisitesScreenState
 
     final Map<String, dynamic> accumulatedData = {
       ...widget.previousData,
-      ..._futureData, 
+      ..._futureData,
       ...currentStepData,
     };
 
@@ -336,6 +334,7 @@ class _SessionPrerequisitesScreenState
     required String hint,
     required TextEditingController controller,
     String? error,
+    int maxLength = 2000,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,7 +345,7 @@ class _SessionPrerequisitesScreenState
         ),
         const SizedBox(height: 8),
         Container(
-          height: 100, 
+          height: 100,
           decoration: BoxDecoration(
             color: inputBg,
             borderRadius: BorderRadius.circular(12),
@@ -356,9 +355,12 @@ class _SessionPrerequisitesScreenState
           ),
           child: TextField(
             controller: controller,
-            maxLines: 5,
+            maxLines: 8,
+            maxLength: maxLength,
+            maxLengthEnforcement: MaxLengthEnforcement.enforced,
             style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
             decoration: InputDecoration(
+              counterText: '',
               hintText: hint,
               hintStyle: GoogleFonts.poppins(
                 color: const Color(0xFFB7CDAC),
