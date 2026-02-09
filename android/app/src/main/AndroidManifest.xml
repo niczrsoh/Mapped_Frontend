@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.mapped_frontend">
     <application
-        android:label="mapped_frontend"
+        android:label="Mapped"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
