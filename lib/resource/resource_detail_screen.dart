@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'resource_model.dart';
 import 'resource_controller.dart'; // Import to access baseUrl
@@ -20,6 +21,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
   YoutubePlayerController? _youtubeController;
   PageController? _imagePageController;
   RxInt currentImageIndex = 0.obs;
+  bool? _allImagesSameRatio;
 
   // Access controller to get the baseUrl
   final ResourceController resourceController = Get.find<ResourceController>();
@@ -29,6 +31,65 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
     super.initState();
     _imagePageController = PageController();
     _initializeVideo();
+    _checkImageRatios();
+  }
+
+  Future<void> _checkImageRatios() async {
+    if (widget.resource.images.isEmpty) return;
+    if (widget.resource.images.length == 1) {
+      setState(() {
+        _allImagesSameRatio = true;
+      });
+      return;
+    }
+
+    try {
+      List<double> aspectRatios = [];
+
+      for (var imagePath in widget.resource.images) {
+        final String fullUrl = _getFixedUrl(imagePath);
+        final Image image = Image.network(fullUrl);
+
+        final Completer<double> completer = Completer<double>();
+
+        image.image
+            .resolve(const ImageConfiguration())
+            .addListener(
+              ImageStreamListener((ImageInfo info, bool _) {
+                if (!completer.isCompleted) {
+                  final double ratio = info.image.width / info.image.height;
+                  completer.complete(ratio);
+                }
+              }),
+            );
+
+        aspectRatios.add(await completer.future);
+      }
+
+      // Check if all aspect ratios are similar (within 5% tolerance)
+      if (aspectRatios.isEmpty) {
+        setState(() {
+          _allImagesSameRatio = false;
+        });
+        return;
+      }
+
+      final double firstRatio = aspectRatios[0];
+      const double tolerance = 0.05; // 5% tolerance
+
+      final bool allSame = aspectRatios.every((ratio) {
+        return (ratio - firstRatio).abs() / firstRatio <= tolerance;
+      });
+
+      setState(() {
+        _allImagesSameRatio = allSame;
+      });
+    } catch (e) {
+      print('Error checking aspect ratios: $e');
+      setState(() {
+        _allImagesSameRatio = false; // Default to fixed ratio if error occurs
+      });
+    }
   }
 
   void _initializeVideo() {
@@ -319,8 +380,16 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
     }
     // 3. IMAGE GALLERY - Multiple Images (Instagram-style)
     else if (widget.resource.images.length > 1) {
+      final bool useSameRatio = _allImagesSameRatio ?? false;
+      final BoxFit fitMode = useSameRatio ? BoxFit.contain : BoxFit.cover;
+
       return Container(
-        height: 400,
+        height: useSameRatio ? null : 400,
+        constraints: useSameRatio
+            ? BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.6,
+              )
+            : null,
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -340,7 +409,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                     onTap: () => _openImageViewer(index),
                     child: Image.network(
                       _getFixedUrl(widget.resource.images[index]),
-                      fit: BoxFit.cover,
+                      fit: fitMode,
                       errorBuilder: (ctx, err, stack) => const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
+import 'dart:async';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'create_post_controller.dart';
 
@@ -317,30 +318,10 @@ class CreatePostScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Images Stack
+                  // Images Slider (Preview Mode)
                   if (controller.selectedImages.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    Column(
-                      children: controller.selectedImages.map((file) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: kIsWeb
-                                ? Image.network(
-                                    file.path,
-                                    width: double.infinity,
-                                    fit: BoxFit.fitWidth,
-                                  )
-                                : Image.file(
-                                    File(file.path),
-                                    width: double.infinity,
-                                    fit: BoxFit.fitWidth,
-                                  ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                    _buildImageSlider(),
                   ],
 
                   Obx(() {
@@ -529,5 +510,183 @@ class CreatePostScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Image Slider Widget for Preview Mode
+  Widget _buildImageSlider() {
+    return FutureBuilder<bool>(
+      future: _checkIfAllImagesSameRatio(),
+      builder: (context, snapshot) {
+        final bool useSameRatio = snapshot.data ?? false;
+        final BoxFit fitMode = useSameRatio ? BoxFit.contain : BoxFit.cover;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            int currentPage = 0;
+            final PageController pageController = PageController();
+
+            return Container(
+              height: useSameRatio ? null : 400,
+              constraints: useSameRatio
+                  ? BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.6,
+                    )
+                  : null,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.black,
+              ),
+              child: Stack(
+                children: [
+                  // Image PageView
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: PageView.builder(
+                      controller: pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          currentPage = index;
+                        });
+                      },
+                      itemCount: controller.selectedImages.length,
+                      itemBuilder: (context, index) {
+                        final file = controller.selectedImages[index];
+                        return kIsWeb
+                            ? Image.network(
+                                file.path,
+                                fit: fitMode,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey[800],
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.white54,
+                                        size: 50,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                            : Image.file(
+                                File(file.path),
+                                fit: fitMode,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey[800],
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.white54,
+                                        size: 50,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                      },
+                    ),
+                  ),
+
+                  // Page Counter (if multiple images)
+                  if (controller.selectedImages.length > 1)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${currentPage + 1}/${controller.selectedImages.length}',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Dot Indicators (if multiple images)
+                  if (controller.selectedImages.length > 1)
+                    Positioned(
+                      bottom: 12,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          controller.selectedImages.length,
+                          (index) => Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: currentPage == index
+                                  ? const Color(0xFF09FACA)
+                                  : Colors.white.withOpacity(0.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Helper method to check if all images have the same aspect ratio
+  Future<bool> _checkIfAllImagesSameRatio() async {
+    if (controller.selectedImages.isEmpty) return false;
+    if (controller.selectedImages.length == 1) return true;
+
+    try {
+      List<double> aspectRatios = [];
+
+      for (var file in controller.selectedImages) {
+        final Image image = kIsWeb
+            ? Image.network(file.path)
+            : Image.file(File(file.path));
+
+        final Completer<double> completer = Completer<double>();
+
+        image.image
+            .resolve(const ImageConfiguration())
+            .addListener(
+              ImageStreamListener((ImageInfo info, bool _) {
+                if (!completer.isCompleted) {
+                  final double ratio = info.image.width / info.image.height;
+                  completer.complete(ratio);
+                }
+              }),
+            );
+
+        aspectRatios.add(await completer.future);
+      }
+
+      // Check if all aspect ratios are similar (within 5% tolerance)
+      if (aspectRatios.isEmpty) return false;
+
+      final double firstRatio = aspectRatios[0];
+      const double tolerance = 0.05; // 5% tolerance
+
+      return aspectRatios.every((ratio) {
+        return (ratio - firstRatio).abs() / firstRatio <= tolerance;
+      });
+    } catch (e) {
+      print('Error checking aspect ratios: $e');
+      return false; // Default to fixed ratio if error occurs
+    }
   }
 }

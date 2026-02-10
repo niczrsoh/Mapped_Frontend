@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 import 'package:mapped_frontend/helper/colorConstant.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:flutter/gestures.dart';
@@ -1008,11 +1009,13 @@ class PostImageGallery extends StatefulWidget {
 class _PostImageGalleryState extends State<PostImageGallery> {
   late PageController _pageController;
   int _currentPage = 0;
+  bool? _allImagesSameRatio;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _checkImageRatios();
   }
 
   @override
@@ -1021,10 +1024,74 @@ class _PostImageGalleryState extends State<PostImageGallery> {
     super.dispose();
   }
 
+  Future<void> _checkImageRatios() async {
+    if (widget.images.isEmpty) return;
+    if (widget.images.length == 1) {
+      setState(() {
+        _allImagesSameRatio = true;
+      });
+      return;
+    }
+
+    try {
+      List<double> aspectRatios = [];
+
+      for (var imageUrl in widget.images) {
+        final String fullUrl = widget.controller.getFullImageUrl(imageUrl);
+        final Image image = Image.network(fullUrl);
+
+        final Completer<double> completer = Completer<double>();
+
+        image.image
+            .resolve(const ImageConfiguration())
+            .addListener(
+              ImageStreamListener((ImageInfo info, bool _) {
+                if (!completer.isCompleted) {
+                  final double ratio = info.image.width / info.image.height;
+                  completer.complete(ratio);
+                }
+              }),
+            );
+
+        aspectRatios.add(await completer.future);
+      }
+
+      // Check if all aspect ratios are similar (within 5% tolerance)
+      if (aspectRatios.isEmpty) {
+        setState(() {
+          _allImagesSameRatio = false;
+        });
+        return;
+      }
+
+      final double firstRatio = aspectRatios[0];
+      const double tolerance = 0.05; // 5% tolerance
+
+      final bool allSame = aspectRatios.every((ratio) {
+        return (ratio - firstRatio).abs() / firstRatio <= tolerance;
+      });
+
+      setState(() {
+        _allImagesSameRatio = allSame;
+      });
+    } catch (e) {
+      print('Error checking aspect ratios: $e');
+      setState(() {
+        _allImagesSameRatio = false; // Default to fixed ratio if error occurs
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool useSameRatio = _allImagesSameRatio ?? false;
+    final BoxFit fitMode = useSameRatio ? BoxFit.contain : BoxFit.cover;
+
     return Container(
-      height: 400,
+      height: useSameRatio ? null : 400,
+      constraints: useSameRatio
+          ? BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.6)
+          : null,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.black,
@@ -1047,7 +1114,7 @@ class _PostImageGalleryState extends State<PostImageGallery> {
                   onTap: () => widget.onImageTap?.call(index),
                   child: Image.network(
                     widget.controller.getFullImageUrl(widget.images[index]),
-                    fit: BoxFit.cover,
+                    fit: fitMode,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         color: Colors.grey[800],
