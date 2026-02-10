@@ -169,8 +169,18 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           return ringController.getPercentage(beltLabel);
         }
 
-        int brownPercentage = getSyncedPercentage('Brown');
-        bool isBlackLocked = brownPercentage < 100;
+
+        final brownResult = _buildBeltTasks(
+          beltId: BeltDefinitions.brown,
+          totalSessions: totalSessions,
+          totalActiveDays: totalActiveDays,
+          totalPosts: totalPosts,
+          totalShareTips: totalShareTips,
+          resourcesOpened: resourcesOpened,
+          );
+
+  int realTimeBrownPercentage = brownResult.percentage;
+  bool isBlackLocked = realTimeBrownPercentage < 100;
 
         return SafeArea(
           child: Column(
@@ -235,7 +245,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                       context: context,
                       beltName: 'Brown Belt - Lead by Example',
                       beltId: BeltDefinitions.brown,
-                      percentage: brownPercentage,
+                      percentage: realTimeBrownPercentage,
                       color: const Color(0xFFA52A2A),
                       totalSessions: totalSessions,
                       totalActiveDays: totalActiveDays,
@@ -247,11 +257,9 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                       context: context,
                       beltName: 'Black Belt - Master',
                       beltId: BeltDefinitions.black,
-                      percentage: brownPercentage >= 100
-                          ? 100
-                          : getSyncedPercentage('Black'),
+                      percentage: isBlackLocked ? 0 : 100,
                       color: const Color(0xFF000000),
-                      isLocked: brownPercentage < 100,
+                      isLocked: isBlackLocked,
                     ),
                   ],
                 ),

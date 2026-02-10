@@ -107,61 +107,30 @@ class CommentsController extends GetxController {
 
   // Mark post/comment as submitted with duplicate prevention and target capping
   Future<void> markPostAsSubmitted(String commentId) async {
-    print("🔵 markPostAsSubmitted called with commentId: $commentId");
-    print("   Current Set size: ${submittedPostIds.length}");
     
     final userId = forumController.currentUserId;
-    if (userId.isEmpty || commentId.isEmpty) {
-      print("❌ Missing userId or commentId");
-      return;
-    }
-
-    // CRITICAL CHECK: Prevent duplicate counting of the same comment
-    if (submittedPostIds.contains(commentId)) {
-      print("🚫 DUPLICATE DETECTED - Comment already in Set");
-      return; // Exit early - do NOT increment count for same comment
-    }
-
     submittedPostIds.add(commentId);
-    print("✅ Added to Set. New size: ${submittedPostIds.length}");
 
     try {
-      // Try to record individual comment ID (optional - for future backend support)
       try {
         await _apiService.recordPostSubmission(commentId, userId);
-        print("📡 Individual tracking API called successfully");
       } catch (e) {
-        // If individual tracking fails, that's okay - we'll still update cumulative count
         print("⚠️ Individual post tracking not available: $e");
       }
 
-      // ALWAYS update the cumulative count using existing backend API
-      print("🔄 Calling _updatePostCount...");
       await _updatePostCount();
-      print("✅ Post count updated successfully");
 
-      // Refresh belt progress so the home screen chart updates
       if (Get.isRegistered<BeltProgressRingController>()) {
-        print("🔄 Refreshing belt progress...");
         await Get.find<BeltProgressRingController>().fetchBeltProgress();
       }
     } catch (e) {
-      // Only rollback if the main cumulative count update fails
-      print("❌ Failed to update post count: $e");
       submittedPostIds.remove(commentId);
-      print("↩️ Rolled back - removed from Set");
     }
   }
 
   Future<void> _updatePostCount() async {
     try {
       final userId = forumController.currentUserId;
-      if (userId.isEmpty) {
-        print("⚠️ _updatePostCount: No userId available");
-        return;
-      }
-
-      print("📤 Calling updateBeltProgress API (userId: $userId, belt: G, action: post)");
 
       await _apiService.updateBeltProgress(
         userId: userId,
@@ -169,16 +138,9 @@ class CommentsController extends GetxController {
         actionType: 'post',
       );
 
-      print("✅ updateBeltProgress API call succeeded!");
-
-      // Refresh belt progress display
       if (Get.isRegistered<BeltProgressRingController>()) {
-        print("🔄 Refreshing belt progress display...");
         await Get.find<BeltProgressRingController>().fetchBeltProgress();
-        print("✅ Belt progress refreshed");
       }
-
-      print("✅ Post/reply count updated (cumulative)");
     } catch (e) {
       print("⚠️ Failed to update post count: $e");
     }
@@ -186,7 +148,6 @@ class CommentsController extends GetxController {
 
   @override
   void onClose() {
-    // Clear comments when controller is disposed
     comments.clear();
     _currentPostId = null;
     super.onClose();

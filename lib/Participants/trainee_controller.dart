@@ -168,7 +168,7 @@ class TraineeController extends GetxController {
       loading.value = false;
     }
   }
-
+// Delete Trainee
   Future<void> deleteTrainee(String id) async {
     try {
       loading.value = true;
@@ -182,14 +182,12 @@ class TraineeController extends GetxController {
         print("✅ Progress deleted successfully");
       }
 
-      // 2. Then Delete Trainee
       final result = await _apiService.deleteTrainee(id);
 
       if (result['success'] == true) {
         success.value = true;
-        // Remove from local list immediately
         traineeList.removeWhere((t) => t['id'] == id);
-        update(); // Force UI update
+        update(); 
 
         await fetchTrainees();
 

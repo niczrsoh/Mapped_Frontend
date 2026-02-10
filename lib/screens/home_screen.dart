@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
@@ -11,7 +10,6 @@ import 'package:mapped_frontend/Participants/trainee_screen.dart';
 import 'package:mapped_frontend/session/session_planner.dart';
 import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../controller/home_controller/controller/home_controller.dart';
 import 'package:mapped_frontend/controller/controller/trainer_controller.dart';
 import 'package:mapped_frontend/session/session_controller.dart';
 import 'package:mapped_frontend/resource/resource_controller.dart';
@@ -227,17 +225,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: sectionCard(
                     child: Obx(() {
-                      final dummyVar = trainerController.activeDaysCount.value;
+                      trainerController.activeDaysCount.value;
                       final belts = BeltDefinitions.belts;
                       final beltOrder = belts.map((b) => b.id).toList();
-
-                      // Get data from controllers
                       int totalPosts =
                           commentsController.submittedPostIds.length;
-                      int totalShareTips =
+                      int totalShareTipsBackend =
+                          beltController.backendShareTipCount.value;
+                      int totalShareTipsLocal =
                           createPostController.sharedTipPostIds.length;
-
-                      // Explicitly get reflection count here to trigger Obx update
+                      int totalShareTips =
+                          (totalShareTipsBackend > totalShareTipsLocal)
+                          ? totalShareTipsBackend
+                          : totalShareTipsLocal;
                       int totalReflections = sessionController
                           .submittedReflectionSessionIds
                           .length;
@@ -246,7 +246,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       String currentBeltCode = BeltDefinitions.white;
                       int currentBeltIndex = 0;
 
-                      // Loop through to find the first belt that is NOT 100% completed
                       for (int i = 0; i < belts.length; i++) {
                         final beltDef = belts[i];
                         final code = beltDef.id;
@@ -262,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             data,
                             totalPosts,
                             totalShareTips,
-                            totalReflections, // Pass reflections
+                            totalReflections, 
                           );
                         }
 
@@ -290,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           currentBeltData,
                           totalPosts,
                           totalShareTips,
-                          totalReflections, // Pass reflections
+                          totalReflections, 
                         );
                       }
 
@@ -788,7 +787,6 @@ class _HomeScreenState extends State<HomeScreen> {
     List<Widget> reqs = [];
 
     for (var task in requirement.tasks) {
-      // The 'task' variable here is of type BeltTaskDef
       int currentValue = _getProgressValue(
         task,
         data,
@@ -830,7 +828,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   int _getProgressValue(
-    BeltTaskDef task, // CHANGED: Use BeltTaskDef (or dynamic)
+    BeltTaskDef task,
     BeltProgressModelV2? data,
     BeltRequirement requirement,
     int totalPosts,
@@ -847,7 +845,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final liveActiveDays =
             Get.find<TrainerController>().activeDaysCount.value;
         int calculated = liveActiveDays - requirement.cumulativeDayOffset;
-        return calculated < 0 ? 0 : calculated;
+        return calculated.clamp(0, task.target);
+
       case RequirementType.resource:
         return data.progress.openResourceCount.clamp(0, task.target);
 
@@ -863,16 +862,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       case RequirementType.shareTip:
         int shareTipOffset = 0;
-        if (requirement.beltId == 'Brown' || requirement.beltId == 'R') { 
+        if (requirement.beltId == 'Brown' || requirement.beltId == 'R') {
           shareTipOffset = 1;
-       }
+        }
 
-  
-  int calculated = totalShareTips - shareTipOffset;
-  return calculated < 0 ? 0 : calculated.clamp(0, task.target);
+        int calculated = totalShareTips - shareTipOffset;
+        return calculated < 0 ? 0 : calculated.clamp(0, task.target);
     }
-
-    return 0; // CHANGED: Added return for safety
   }
 
   bool _isBeltStrictlyPassed(
@@ -914,7 +910,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (req.beltId == 'Brown' || req.beltId == 'R') {
             shareTipOffset = 1;
           }
-          
+
           val = (totalShareTips - shareTipOffset).clamp(0, 999);
           break;
       }
@@ -974,7 +970,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (req.beltId == 'Brown' || req.beltId == 'R') {
             shareTipOffset = 1;
           }
-          
+
           val = (totalShareTips - shareTipOffset).clamp(0, 999);
           break;
       }
@@ -986,7 +982,6 @@ class _HomeScreenState extends State<HomeScreen> {
         : 0.0;
   }
 
-  // ... [Helpers remain the same]
   String _getBeltName(String code) {
     return BeltDefinitions.getByCode(code).name;
   }
@@ -1000,7 +995,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ... [BottomNav remains the same]
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
 

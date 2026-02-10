@@ -91,7 +91,6 @@ class TraineeDetailScreen extends StatelessWidget {
       return _DetailRow(text: 'No known medical concerns.');
     }
 
-    // Handle legacy List data
     if (conditions is List) {
       if (conditions.isEmpty) {
         return _DetailRow(text: 'No known medical concerns.');
@@ -177,6 +176,7 @@ class TraineeDetailScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: Obx(() {
+          // ignore: unused_local_variable
           final currentTrainee = controller.traineeList.firstWhere(
             (t) => t['id'] == traineeId,
             orElse: () => trainee,
@@ -201,7 +201,7 @@ class TraineeDetailScreen extends StatelessWidget {
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: null, // Tap handled by inner buttons
+                  onTap: null, 
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -530,7 +530,6 @@ class TraineeDetailScreen extends StatelessWidget {
                                               ),
                                             ),
                                             TextSpan(
-                                              // BIND TO OVERALL AVERAGE
                                               text:
                                                   '${(progressController.overallAverage.value * 100).round()}%',
                                               style: GoogleFonts.roboto(
@@ -761,88 +760,7 @@ class TraineeDetailScreen extends StatelessWidget {
       ),
     );
   }
-
-  void _confirmDelete(
-    BuildContext context,
-    TraineeController controller,
-    String id,
-  ) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF141823),
-        title: Text(
-          'Delete Trainee?',
-          style: GoogleFonts.roboto(color: Colors.white),
-        ),
-        content: Text(
-          'Are you sure you want to delete this trainee? This action cannot be undone.',
-          style: GoogleFonts.roboto(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop(); // Close dialog
-              await controller.deleteTrainee(id);
-              if (controller.success.value) {
-                Get.back(); // Go back to list
-                Get.snackbar(
-                  "Success",
-                  "Trainee deleted",
-                  backgroundColor: const Color(0xFF00FFA6),
-                  colorText: Colors.black,
-                  snackPosition: SnackPosition.BOTTOM,
-                );
-              } else {
-                Get.snackbar(
-                  "Error",
-                  controller.error.value,
-                  backgroundColor: Colors.red,
-                  colorText: Colors.white,
-                  snackPosition: SnackPosition.BOTTOM,
-                );
-              }
-            },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.redAccent),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
-
-// // ... _CheckItem and _DetailRow classes remain exactly the same ...
-// class _CheckItem extends StatelessWidget {
-//   final String text;
-//   const _CheckItem({Key? key, required this.text}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       children: [
-//         const Icon(Icons.check, color: Color(0xFF00FFB9), size: 16),
-//         const SizedBox(width: 8),
-//         Expanded(
-//           child: Text(
-//             text,
-//             style: GoogleFonts.roboto(
-//               color: Colors.grey.shade300,
-//               fontSize: 12,
-//               fontWeight: FontWeight.w400,
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
 
 class _DetailRow extends StatelessWidget {
   final String text;

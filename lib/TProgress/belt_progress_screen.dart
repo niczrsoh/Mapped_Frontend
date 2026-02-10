@@ -60,7 +60,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
     }
   }
 
-
   Future<void> _refreshData() async {
     ringController.isLoading.value = true;
 
@@ -72,7 +71,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
         }
       }
 
-
       await controller.updateActiveDays();
       await ringController.fetchBeltProgress();
 
@@ -81,11 +79,10 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
           : Get.put(ResourceController());
       await resourceController.fetchOpenResourceCount();
 
-
       int maxImpliedPosts = 0;
       for (var belt in ringController.detailedBeltData) {
         final req = BeltRequirementsData.getFor(belt.beltColor);
-        
+
         if (belt.progress.postCount > 0) {
           int impliedPosts = belt.progress.postCount + req.cumulativePostOffset;
           if (impliedPosts > maxImpliedPosts) maxImpliedPosts = impliedPosts;
@@ -94,7 +91,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
 
       // 5. FINAL SYNC
       final sessionController = Get.find<SessionController>();
-      await sessionController.fetchDashboardData(); 
+      await sessionController.fetchDashboardData();
       controller.cumulativePostCount.value = maxImpliedPosts;
 
       await _syncAllBelts();
@@ -104,7 +101,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
       ringController.isLoading.value = false;
     }
   }
-
 
   Map<String, dynamic> _calculateBeltStats(
     BeltRequirement req,
@@ -129,10 +125,8 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
         }
       }
 
-      // 2. Get Brown Requirements
       final brownReq = BeltRequirementsData.getFor(BeltDefinitions.brown);
 
-      // 3. Recursively calculate Brown Status using global counters
       var brownStats = _calculateBeltStats(
         brownReq,
         totalSessions,
@@ -402,7 +396,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
   @override
   Widget build(BuildContext context) {
     final SessionController sessionController = Get.put(SessionController());
-    final TrainerController controller = Get.put(TrainerController());
+    // use the controller field declared on the state class
     final resourceController = Get.isRegistered<ResourceController>()
         ? Get.find<ResourceController>()
         : Get.put(ResourceController());
@@ -467,7 +461,8 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
         int totalActiveDays = tController.activeDaysCount.value;
         int totalPosts = commentsController.submittedPostIds.length;
         int totalShareTips = createPostController.sharedTipPostIds.length;
-        int totalReflections = sessionController.submittedReflectionSessionIds.length;
+        int totalReflections =
+            sessionController.submittedReflectionSessionIds.length;
         int localResources = resourceController.viewedResourceIds.length;
         int backendResources = 0;
 
@@ -561,7 +556,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // The Gradient Bar
                           Container(
                             width: barWidth,
                             height: 16,
@@ -839,8 +833,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                                         task.target,
                                       );
                                       break;
-                                    default:
-                                      currentValue = 0;
                                   }
 
                                   Color displayColor = widget.beltColor;

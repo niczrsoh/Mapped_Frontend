@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import '../screens/main_navigation_screen.dart';
 import 'package:mapped_frontend/session/session_controller.dart';
-import 'package:mapped_frontend/session/session_model.dart';
 import 'session_prerequisite.dart';
 
 class SessionPlannerScreen extends StatefulWidget {
@@ -16,7 +14,6 @@ class SessionPlannerScreen extends StatefulWidget {
 }
 
 class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
-
   final SessionController sessionController = Get.put(SessionController());
   final _dateCtrl = TextEditingController();
   final _venueCtrl = TextEditingController();
@@ -26,8 +23,6 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
   final _ageRangeCtrl = TextEditingController();
   String _selectedLevel = "Beginner";
   DateTime? _selectedDate;
-  // TimeOfDay? _startTx;
-  // TimeOfDay? _endTx;
   String? _dateError;
   String? _venueError;
   String? _paxError;
@@ -54,7 +49,6 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
       if (data['date'] != null) {
         try {
           final dt = DateTime.parse(data['date'].toString());
-          _selectedDate = dt;
           _dateCtrl.text = "${dt.day}/${dt.month}/${dt.year}";
         } catch (_) {
           _dateCtrl.text = data['uiDate'] ?? data['date'].toString();
@@ -159,56 +153,6 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
         _draftData.addAll(result);
       });
     }
-  }
-
-  void _showConfirmationDialog(String tId, String tName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Icon(
-          Icons.warning_amber_rounded,
-          color: Colors.red,
-          size: 50,
-        ),
-        content: Text(
-          'Create this $_selectedLevel session?',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(color: Colors.black),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: primaryGreen),
-            onPressed: () async {
-              Navigator.pop(context);
-
-              final newSession = SessionModel(
-                trainer: tName,
-                date: _dateCtrl.text,
-                venue: _venueCtrl.text,
-                totalTrainees: _paxCtrl.text,
-                duration: _durationCtrl.text,
-                level: _selectedLevel,
-                sessionNo: _sessionNoCtrl.text,
-                ageRange: _ageRangeCtrl.text,
-              );
-
-              await sessionController.createSession(newSession);
-
-              if (sessionController.success.value) {
-                Get.offAll(() => const MainNavigationScreen(initialIndex: 1));
-              }
-            },
-            child: const Text('OK', style: TextStyle(color: Colors.black)),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -435,9 +379,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
               onTap: onTap,
               keyboardType: keyboard,
               inputFormatters: (isNumber)
-                  ? [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ]
+                  ? [FilteringTextInputFormatter.digitsOnly]
                   : [],
               style: GoogleFonts.poppins(color: accentCyan, fontSize: 13),
               decoration: InputDecoration(

@@ -20,6 +20,8 @@ class BeltProgressRingController extends GetxController {
   var beltPercentages = <String, int>{}.obs;
   var detailedBeltData = <BeltProgressModelV2>[].obs;
   var isLoading = true.obs;
+  // Expose backend share tip total so UI can reference authoritative count
+  var backendShareTipCount = 0.obs;
 
   @override
   void onInit() {
@@ -118,6 +120,8 @@ class BeltProgressRingController extends GetxController {
           }
         });
 
+        backendShareTipCount.value = backendTotalShareTips;
+
         if (Get.isRegistered<CommentsController>()) {
           final commentsCtrl = Get.find<CommentsController>();
           print(
@@ -135,17 +139,19 @@ class BeltProgressRingController extends GetxController {
         } else {
           print("⚠️ CommentsController not registered!");
         }
-        
-       if (Get.isRegistered<CreatePostController>()) {
+
+        if (Get.isRegistered<CreatePostController>()) {
           final postCtrl = Get.find<CreatePostController>();
           int localShareCount = postCtrl.sharedTipPostIds.length;
-          
+
           if (localShareCount < backendTotalShareTips) {
             for (int i = localShareCount; i < backendTotalShareTips; i++) {
               postCtrl.sharedTipPostIds.add('backend_share_$i');
             }
           } else if (localShareCount > backendTotalShareTips) {
-             postCtrl.sharedTipPostIds.removeWhere((id) => id.startsWith('backend_share_'));
+            postCtrl.sharedTipPostIds.removeWhere(
+              (id) => id.startsWith('backend_share_'),
+            );
           }
         }
 
@@ -162,11 +168,6 @@ class BeltProgressRingController extends GetxController {
         ['W', 'Y', 'G', 'B', 'R', 'L'].forEach((code) {
           if (beltsData.containsKey(code)) {
             var data = beltsData[code];
-
-            // Debug the specific field parsing
-            if (code == 'W') {
-              int rawOpen = data['openResourceCount'] ?? -1;
-            }
 
             var model = BeltProgressModelV2(
               beltColor: code,
@@ -210,8 +211,6 @@ class BeltProgressRingController extends GetxController {
         isLoading.value = false;
         return;
       }
-
-      // Use the service method
       final result = await _apiService.updateBeltProgress(
         userId: userId,
         beltColor: beltCode,
