@@ -158,6 +158,9 @@ class ResourceController extends GetxController {
             }
           }
 
+          // Sort resources by creation date (newest first)
+          loadedResources.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
           resources.value = loadedResources;
           print('✅ Resources loaded successfully: ${resources.length}');
         } catch (e) {

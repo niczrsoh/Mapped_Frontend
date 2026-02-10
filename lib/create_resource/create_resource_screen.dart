@@ -301,7 +301,7 @@ class CreateResourceScreen extends StatelessWidget {
           onPressed: controller.backToEdit,
         ),
         title: Text(
-          'Forum Dashboard',
+          'Resource Preview',
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
