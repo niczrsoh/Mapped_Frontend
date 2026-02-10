@@ -136,187 +136,176 @@ class CreatePostScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          // Scrollable content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Obx(() => CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.grey[800],
-                        backgroundImage: controller.userAvatar.value.isNotEmpty
-                            ? NetworkImage(_getAvatarUrl(controller.userAvatar.value))
-                            : null,
-                        child: controller.userAvatar.value.isEmpty
-                            ? const Icon(Icons.person, color: Colors.white, size: 28)
-                            : null,
-                      )),
-                      const SizedBox(width: 12),
-                      Obx(() => Text(
-                        controller.userName.value, 
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      )),
-                    ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Obx(
+                  () => CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.grey[800],
+                    backgroundImage: controller.userAvatar.value.isNotEmpty
+                        ? NetworkImage(
+                            _getAvatarUrl(controller.userAvatar.value),
+                          )
+                        : null,
+                    child: controller.userAvatar.value.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 28,
+                          )
+                        : null,
                   ),
-                  
-                  const SizedBox(height: 20),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF252836),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF09FACA).withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: TextField(
-                      controller: controller.textController,
-                      maxLines: 8,
-                      maxLength: 2000, 
-                      style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
-                      decoration: InputDecoration(
-                        hintText: 'What\'s on your mind?',
-                        hintStyle: GoogleFonts.roboto(color: Colors.white54),
-                        border: InputBorder.none,
-                        counterStyle: GoogleFonts.roboto(color: Colors.white54),
-                      ),
+                ),
+                const SizedBox(width: 12),
+                Obx(
+                  () => Text(
+                    controller.userName.value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  Obx(() {
-                    if (controller.selectedImages.isNotEmpty) {
-                      return SizedBox(
-                        height: 120, 
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: controller.selectedImages.length,
-                          itemBuilder: (context, index) {
-                            final file = controller.selectedImages[index];
-                            return Stack(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.white12,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: kIsWeb
-                                        ? Image.network(
-                                            file.path,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : Image.file(
-                                            File(file.path),
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  right: 16, 
-                                  child: GestureDetector(
-                                    onTap: () => controller.removeImage(index),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-
-                  Obx(() {
-                    if (controller.videoUrl.value.isNotEmpty) {
-                      if (controller.ytPlayerController != null) {
-                        return _buildVideoPlayer(isEditable: true);
-                      } else if (controller.isVideoLoading.value) {
-                        return Container(
-                          height: 200,
-                          width: double.infinity,
-                          margin: const EdgeInsets.only(top: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[800],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(
-                                  color: Color(0xFF09FACA),
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Loading video...',
-                                  style: TextStyle(color: Colors.white54),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      } else {
-                        return _buildVideoPreview(isEditable: true);
-                      }
-                    }
-                    return const SizedBox.shrink();
-                  }),
-
-                  const SizedBox(height: 100),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
 
-          SafeArea(
-            top: false,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            const SizedBox(height: 20),
+
+            Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1D29),
-                border: Border(top: BorderSide(color: Colors.white12, width: 1)),
+                color: const Color(0xFF252836),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF09FACA).withOpacity(0.3),
+                  width: 1,
+                ),
               ),
-              child: _buildActionRow(
-                buttonLabel: 'Next',
-                onButtonTap: controller.previewPost,
-                isLoading: false,
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: controller.textController,
+                maxLines: 8,
+                maxLength: 2000,
+                style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
+                decoration: InputDecoration(
+                  hintText: 'What\'s on your mind?',
+                  hintStyle: GoogleFonts.roboto(color: Colors.white54),
+                  border: InputBorder.none,
+                  counterStyle: GoogleFonts.roboto(
+                    color: Colors.white54,
+                  ), // Style the 0/2000 text
+                ),
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 24),
+
+            // Combined Row: Media Icons (Left) + Next Button (Right)
+            _buildActionRow(
+              buttonLabel: 'Next',
+              onButtonTap: controller.previewPost,
+              isLoading: false,
+            ),
+
+                  const SizedBox(height: 20),
+
+            // Image Counter and Preview
+            Obx(() {
+              if (controller.selectedImages.isNotEmpty) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Image Counter
+                    Text(
+                      'Images: ${controller.selectedImages.length}/${CreatePostController.maxImages}',
+                      style: GoogleFonts.roboto(
+                        color:
+                            controller.selectedImages.length >=
+                                CreatePostController.maxImages
+                            ? Colors.orange
+                            : Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Image Preview
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: controller.selectedImages.length,
+                        itemBuilder: (context, index) {
+                          final file = controller.selectedImages[index];
+                          return Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white12,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: kIsWeb
+                                      ? Image.network(
+                                          file.path,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(file.path),
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                              ),
+                              // Remove Button (X)
+                              Positioned(
+                                top: 4,
+                                right: 16,
+                                child: GestureDetector(
+                                  onTap: () => controller.removeImage(index),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+
+            Obx(() {
+              if (controller.videoUrl.value.isNotEmpty &&
+                  controller.ytPlayerController != null) {
+                return _buildVideoPlayer(isEditable: true);
+              }
+              return const SizedBox.shrink();
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -340,116 +329,128 @@ class CreatePostScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Builder(
-        builder: (context) {
-          return Column(
-            children: [
-              // Scrollable content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF252836),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF09FACA).withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF252836),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFF09FACA).withOpacity(0.2),
-                            width: 1,
-                          ),
+                      Obx(
+                        () => CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Colors.grey[800],
+                          backgroundImage:
+                              controller.userAvatar.value.isNotEmpty
+                              ? NetworkImage(
+                                  _getAvatarUrl(controller.userAvatar.value),
+                                )
+                              : null,
+                          child: controller.userAvatar.value.isEmpty
+                              ? const Icon(Icons.person, color: Colors.white)
+                              : null,
                         ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Obx(() => CircleAvatar(
-                                  radius: 22,
-                                  backgroundColor: Colors.grey[800],
-                                  backgroundImage: controller.userAvatar.value.isNotEmpty
-                                      ? NetworkImage(_getAvatarUrl(controller.userAvatar.value))
-                                      : null,
-                                  child: controller.userAvatar.value.isEmpty
-                                      ? const Icon(Icons.person, color: Colors.white)
-                                      : null,
-                                )),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Obx(() => Text(
-                                        controller.userName.value, 
-                                        style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
-                                      )),
-                                      Text('Just now', style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54)),
-                                    ],
-                                  ),
+                            Obx(
+                              () => Text(
+                                controller.userName.value,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            
-                            Text(controller.textController.text, style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5)),
-                            const SizedBox(height: 12),
-                                              
-                            if (controller.selectedImages.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              Column(
-                                children: controller.selectedImages.map((file) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: kIsWeb 
-                                          ? Image.network(file.path, width: double.infinity, fit: BoxFit.fitWidth)
-                                          : Image.file(File(file.path), width: double.infinity, fit: BoxFit.fitWidth),
-                                    ),
-                                  );
-                                }).toList(),
                               ),
-                            ],
-
-                            Obx(() {
-                              if (controller.videoUrl.value.isNotEmpty) {
-                                return _buildVideoPreview(isEditable: false);
-                              }
-                              return const SizedBox.shrink();
-                            }),
+                            ),
+                            Text(
+                              'Just now',
+                              style: GoogleFonts.roboto(
+                                fontSize: 12,
+                                color: Colors.white54,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 100), // Extra space for bottom action row
                     ],
                   ),
-                ),
-              ),
+                  const SizedBox(height: 12),
 
-              // Fixed bottom action row for Preview Mode with MediaQuery
-              Container(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 12,
-                  bottom: MediaQuery.of(context).viewPadding.bottom + 8, // Account for device bottom inset
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1D29),
-                  border: Border(top: BorderSide(color: Colors.white12, width: 1)),
-                ),
-                child: Obx(() => _buildActionRow(
-                  buttonLabel: 'Post', 
-                  onButtonTap: controller.submitPost, 
-                  isLoading: controller.isPosting.value, 
-                  disableMedia: controller.isPosting.value
-                )),
+                  // Content
+                  Text(
+                    controller.textController.text,
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      color: Colors.white,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Images Stack
+                  if (controller.selectedImages.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Column(
+                      children: controller.selectedImages.map((file) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: kIsWeb
+                                ? Image.network(
+                                    file.path,
+                                    width: double.infinity,
+                                    fit: BoxFit.fitWidth,
+                                  )
+                                : Image.file(
+                                    File(file.path),
+                                    width: double.infinity,
+                                    fit: BoxFit.fitWidth,
+                                  ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+
+                  Obx(() {
+                    if (controller.videoUrl.value.isNotEmpty &&
+                        controller.ytPlayerController != null) {
+                      return _buildVideoPlayer(isEditable: false);
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                ],
               ),
-            ],
-          );
-        }
+            ),
+            const SizedBox(height: 24),
+            Obx(
+              () => _buildActionRow(
+                buttonLabel: 'Post',
+                onButtonTap: controller.submitPost,
+                isLoading: controller.isPosting.value,
+                disableMedia: controller.isPosting.value,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -486,7 +487,8 @@ class CreatePostScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
+          // Close Button (Only in Edit Mode)
           if (isEditable)
             Positioned(
               top: 8,
@@ -508,97 +510,6 @@ class CreatePostScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoPreview({required bool isEditable}) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      child: Stack(
-        children: [
-          Container(
-            height: 200,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: controller.videoThumbnail.value.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      controller.videoThumbnail.value,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[800],
-                          child: const Center(
-                            child: Icon(Icons.videocam, color: Colors.white, size: 50),
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                : const Center(
-                    child: Icon(Icons.videocam, color: Colors.white, size: 50),
-                  ),
-          ),
-          
-          Positioned.fill(
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 40,
-                ),
-              ),
-            ),
-          ),
-          
-          Positioned(
-            bottom: 10,
-            left: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'Video',
-                style: GoogleFonts.roboto(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          
-          if (isEditable)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: GestureDetector(
-                onTap: controller.removeVideo,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, size: 18, color: Colors.white),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-  
   Widget _buildActionRow({
     required String buttonLabel,
     required VoidCallback onButtonTap,
@@ -626,7 +537,35 @@ class CreatePostScreen extends StatelessWidget {
             _buildSmallIcon(
               icon: Icons.link,
               label: 'URL Link',
-              onTap: disableMedia ? null : _showVideoLinkDialog,
+              onTap: disableMedia
+                  ? null
+                  : () {
+                      // Show Input Dialog
+                      TextEditingController linkController =
+                          TextEditingController();
+                      Get.defaultDialog(
+                        title: "Add Video Link",
+                        titleStyle: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        content: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: TextField(
+                            controller: linkController,
+                            decoration: const InputDecoration(
+                              hintText: "Paste YouTube URL here",
+                            ),
+                          ),
+                        ),
+                        textConfirm: "Add",
+                        textCancel: "Cancel",
+                        confirmTextColor: Colors.white,
+                        buttonColor: const Color(0xFF09FACA),
+                        onConfirm: () {
+                          controller.addVideoLink(linkController.text);
+                        },
+                      );
+                    },
             ),
           ],
         ),

@@ -60,12 +60,15 @@ class AccountController extends GetxController {
   }
 
   AccountHeaderData get headerData {
-    final user = userController.userData.value;
+    final user = userController.userData;
+    final avatarValue = user['avatar']?.toString() ?? '';
+    print('🖼️ AccountController headerData - avatar value: "$avatarValue"');
+    print('🖼️ Full user data: $user');
     return AccountHeaderData(
       name: userController.userName,
-      email: user['email'] ?? 'No email',
-      avatar: user['avatar'] ?? '',
-      createdAt: user['createdAt'],
+      email: user['email']?.toString() ?? 'No email',
+      avatar: avatarValue,
+      createdAt: user['createdAt']?.toString(),
     );
   }
 
@@ -160,7 +163,7 @@ class AccountController extends GetxController {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) =>
-            ProfileEditorScreen(userData: userController.userData.value),
+            ProfileEditorScreen(userData: userController.userData),
       ),
     );
 

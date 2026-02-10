@@ -9,10 +9,12 @@ import '../forum/forum_model.dart';
 import '../forum_searchtags/forum_searchtags_screen.dart';
 import '../comment/comment_screen.dart';
 import '../create_post/create_post_screen.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
 class ForumScreen extends StatelessWidget {
   ForumScreen({super.key});
   final ForumController controller = Get.put(ForumController());
+  final UserController userController = Get.find<UserController>();
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +53,6 @@ class ForumScreen extends StatelessWidget {
       floating: false,
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: Text(
-        'Home',
-        style: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(70.0),
         child: Container(
@@ -103,11 +97,23 @@ class ForumScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 22,
-            backgroundColor: Colors.grey,
-            child: Icon(Icons.person, color: Colors.white),
-          ),
+          Obx(() {
+            final avatar = userController.userAvatar;
+            return CircleAvatar(
+              radius: 22,
+              backgroundColor: Colors.grey[300],
+              backgroundImage: avatar.isNotEmpty
+                  ? NetworkImage(
+                      avatar.startsWith('http')
+                          ? avatar
+                          : 'https://mapped-backend-node-js.onrender.com/$avatar',
+                    )
+                  : null,
+              child: avatar.isEmpty
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
+            );
+          }),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
@@ -203,8 +209,8 @@ class ForumScreen extends StatelessWidget {
         children: [
           _buildPostHeader(post),
           const SizedBox(height: 12),
-          
-          _buildPostContent(post), 
+
+          _buildPostContent(post),
 
           if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -225,7 +231,11 @@ class ForumScreen extends StatelessWidget {
   Widget _buildPostContent(ForumPost post) {
     return RichText(
       text: TextSpan(
-        style: GoogleFonts.roboto(fontSize: 14, color: Colors.white, height: 1.5),
+        style: GoogleFonts.roboto(
+          fontSize: 14,
+          color: Colors.white,
+          height: 1.5,
+        ),
         children: _parseContent(post.content),
       ),
     );
@@ -234,25 +244,30 @@ class ForumScreen extends StatelessWidget {
   List<TextSpan> _parseContent(String text) {
     List<TextSpan> spans = [];
     text.splitMapJoin(
-      RegExp(r"\B#\w+"), 
+      RegExp(r"\B#\w+"),
       onMatch: (m) {
         final tag = m.group(0)!;
-        spans.add(TextSpan(
-          text: tag,
-          style: const TextStyle(
-            color: Color(0xFF09FACA),
-            fontWeight: FontWeight.w600,
+        spans.add(
+          TextSpan(
+            text: tag,
+            style: const TextStyle(
+              color: Color(0xFF09FACA),
+              fontWeight: FontWeight.w600,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () =>
+                  Get.to(() => ForumSearchtagsScreen(), arguments: tag),
           ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () => Get.to(() => ForumSearchtagsScreen(), arguments: tag),
-        ));
+        );
         return "";
       },
       onNonMatch: (n) {
-        spans.add(TextSpan(
-          text: n,
-          style: const TextStyle(color: Colors.white),
-        ));
+        spans.add(
+          TextSpan(
+            text: n,
+            style: const TextStyle(color: Colors.white),
+          ),
+        );
         return "";
       },
     );
@@ -314,8 +329,7 @@ class ForumScreen extends StatelessWidget {
           ),
         ),
 
-        if (post.authorId == controller.currentUserId) 
-          _buildPostMenu(post),
+        if (post.authorId == controller.currentUserId) _buildPostMenu(post),
       ],
     );
   }
@@ -384,51 +398,82 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
+  // ========== POST IMAGES WITH INSTAGRAM-STYLE GALLERY ==========
   Widget _buildPostImages(ForumPost post) {
-    return Column(
-      children: post.images.map((imgUrl) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              controller.getFullImageUrl(imgUrl),
-              width: double.infinity,
-              fit: BoxFit.fitWidth,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.grey[800],
-                  child: const Center(
-                    child: Icon(Icons.broken_image, color: Colors.white54),
+    // Single image - display normally
+    if (post.images.length == 1) {
+      return GestureDetector(
+        onTap: () => _openImageViewer(
+          controller.getFullImageUrl(post.images[0]),
+          0,
+          post.images.map((img) => controller.getFullImageUrl(img)).toList(),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            controller.getFullImageUrl(post.images[0]),
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[800],
+                child: const Center(
+                  child: Icon(Icons.broken_image, color: Colors.white54),
+                ),
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[900],
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                        : null,
+                    color: const Color(0xFF09FACA),
                   ),
-                );
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.grey[900],
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                          : null,
-                      color: const Color(0xFF09FACA),
-                    ),
-                  ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
-        );
-      }).toList(),
+        ),
+      );
+    }
+
+    // Multiple images - Instagram-style swipeable gallery
+    return PostImageGallery(
+      images: post.images,
+      controller: controller,
+      onImageTap: (index) => _openImageViewer(
+        controller.getFullImageUrl(post.images[index]),
+        index,
+        post.images.map((img) => controller.getFullImageUrl(img)).toList(),
+      ),
     );
   }
 
+  // ========== IMAGE VIEWER ==========
+  void _openImageViewer(
+    String imageUrl,
+    int initialIndex,
+    List<String> allImages,
+  ) {
+    Get.to(
+      () => FullScreenImageViewer(
+        imageUrls: allImages,
+        initialIndex: initialIndex,
+      ),
+      transition: Transition.fade,
+    );
+  }
+
+  // ========== INTERACTION BUTTONS ==========
   Widget _buildInteractionButtons(ForumPost post) {
     return Row(
       children: [
@@ -1062,6 +1107,319 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
             });
           }
         },
+      ),
+    );
+  }
+}
+
+// ========== INSTAGRAM-STYLE IMAGE GALLERY WIDGET ==========
+class PostImageGallery extends StatefulWidget {
+  final List<String> images;
+  final ForumController controller;
+  final Function(int)? onImageTap;
+
+  const PostImageGallery({
+    super.key,
+    required this.images,
+    required this.controller,
+    this.onImageTap,
+  });
+
+  @override
+  State<PostImageGallery> createState() => _PostImageGalleryState();
+}
+
+class _PostImageGalleryState extends State<PostImageGallery> {
+  late PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.black,
+      ),
+      child: Stack(
+        children: [
+          // Image PageView
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemCount: widget.images.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => widget.onImageTap?.call(index),
+                  child: Image.network(
+                    widget.controller.getFullImageUrl(widget.images[index]),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[800],
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.white54,
+                            size: 50,
+                          ),
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: Colors.grey[900],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                            color: const Color(0xFF09FACA),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Page Indicator at the top right
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${_currentPage + 1}/${widget.images.length}',
+                style: GoogleFonts.roboto(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+
+          // Dot Indicators at the bottom
+          Positioned(
+            bottom: 12,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.images.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index
+                        ? const Color(0xFF09FACA)
+                        : Colors.white.withOpacity(0.5),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ========== FULL SCREEN IMAGE VIEWER ==========
+class FullScreenImageViewer extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
+
+  const FullScreenImageViewer({
+    super.key,
+    required this.imageUrls,
+    this.initialIndex = 0,
+  });
+
+  @override
+  State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
+}
+
+class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Image PageView with Zoom
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemCount: widget.imageUrls.length,
+            itemBuilder: (context, index) {
+              return InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Center(
+                  child: Image.network(
+                    widget.imageUrls[index],
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: const Color(0xFF09FACA),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              color: Colors.white54,
+                              size: 80,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'Failed to load image',
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Close Button - LEFT
+          Positioned(
+            top: 15,
+            left: 16,
+            child: SafeArea(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+            ),
+          ),
+
+          // Page Counter (if multiple images) - RIGHT
+          if (widget.imageUrls.length > 1)
+            Positioned(
+              top: 20,
+              right: 16,
+              child: SafeArea(
+                child: Container(
+                  height: 48, // Match the IconButton height
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${_currentIndex + 1} / ${widget.imageUrls.length}',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Dot Indicators (if multiple images)
+          if (widget.imageUrls.length > 1)
+            Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  widget.imageUrls.length,
+                  (index) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentIndex == index
+                          ? const Color(0xFF09FACA)
+                          : Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
