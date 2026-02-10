@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
-import 'package:mapped_frontend/screens/coachBot_screen.dart';
+import 'package:mapped_frontend/coachBot/coachBot_controller.dart';
+import 'package:mapped_frontend/coachBot/coachBot_screen.dart';
 import 'package:mapped_frontend/forum/forum_screen.dart';
 import 'package:mapped_frontend/screens/main_navigation_screen.dart';
 import 'package:mapped_frontend/session/session_dashboard_screen.dart';
@@ -24,6 +25,11 @@ import '../forum/forum_controller.dart';
 import '../create_post/create_post_screen.dart';
 
 class AppRoutes {
+  //chatbot
+  static const String coachBotHealth = '/health';
+  static const String coachBot = '/coach-bot';
+  static const String coachBotChat = '/chat';
+
   static const String splash = '/splash';
   static const String welcome = '/welcome';
   static const String onboarding = '/onboarding';
@@ -45,7 +51,6 @@ class AppRoutes {
   static const String forum = '/forum';
   static const String forumSearchTags = '/forum-search-tags';
   static const String createPost = '/create-post';
-  static const String coachBot = '/coach-bot';
   static const String session = '/session';
   static const main = '/main';
 }
@@ -81,7 +86,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.register,
       page: () => const RegisterScreen(),
-      // Provide the RegisterController when navigating to the register page
       binding: BindingsBuilder(() {
         Get.put(RegisterController());
       }),
@@ -121,7 +125,13 @@ class AppPages {
         Get.put(ForumController());
       }),
     ),
-    GetPage(name: AppRoutes.coachBot, page: () => CoachBotScreen()),
+      GetPage(
+      name: AppRoutes.coachBot,
+      page: () => CoachBotScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(CoachBotController());
+      }),
+    ),
     GetPage(name: AppRoutes.session, page: () => SessionDashboardScreen()),
     GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
     GetPage(name: AppRoutes.forumSearchTags, page: () => ForumSearchtagsScreen()),

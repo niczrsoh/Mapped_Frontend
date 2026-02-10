@@ -18,7 +18,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             _buildSearchBar(),
             const SizedBox(height: 24),
             _buildPopularTagsSection(),
@@ -30,14 +30,14 @@ class ForumSearchtagsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Get.back(),
+            onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
           Text(

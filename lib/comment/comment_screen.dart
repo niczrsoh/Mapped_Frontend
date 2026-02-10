@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/forum/forum_controller.dart';
 import 'comment_controller.dart';
 import '../forum/forum_model.dart';
 import 'comment_model.dart';
@@ -54,7 +55,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Get.back(),
+       onPressed: () {
+            try {
+              Get.find<ForumController>().loadPosts();
+            } catch (e) {
+              print("Forum controller not found: $e");
+            }
+            Navigator.pop(context);
+          },
       ),
       title: Text(
         'Comments',

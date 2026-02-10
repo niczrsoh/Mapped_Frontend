@@ -41,8 +41,11 @@ dependencies:
   image_picker: ^1.0.7
   youtube_player_flutter: ^9.0.1
   google_sign_in: ^6.2.0
+  camera: ^0.11.0
+  flutter_markdown_plus: ^1.0.0 # Use the latest version available
+  
 dev_dependencies:
-
+  flutter_launcher_icons: ^0.13.1
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -51,10 +54,16 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter packages.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/mapped_icon2.png"
+  adaptive_icon_background: "assets/adaptive_background.png"
+  adaptive_icon_foreground: "assets/adaptive_foreground.png"
+
 flutter:
 
   # The following line ensures that the Material Icons font is

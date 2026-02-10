@@ -1,16 +1,13 @@
 import 'dart:convert';
 import 'package:get/get.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart'; // 1. Import this
+import 'package:shared_preferences/shared_preferences.dart';
 import 'forum_model.dart';
 import '../create_post/create_post_controller.dart';
 
 class ForumController extends GetxController {
   // CONFIGURATION
-  final String baseUrl = kIsWeb
-      ? "http://localhost:5000"
-      : "http://10.0.2.2:5000";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com";
 
   String currentUserId = '';
 
@@ -270,6 +267,7 @@ class ForumController extends GetxController {
           print('ForumController: error removing post from shared tips: $e');
         }
 
+        Get.back();
         return true;
       } else {
         Get.snackbar("Error", "Could not delete post");

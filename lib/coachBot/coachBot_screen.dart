@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'coachBot_chat_screen.dart';
+import 'package:mapped_frontend/coachBot/coachBot_controller.dart';
+import 'package:mapped_frontend/coachBot/coachBot_history_screen.dart';
 
 class CoachBotScreen extends StatelessWidget {
   CoachBotScreen({super.key});
@@ -19,10 +20,6 @@ class CoachBotScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white, size: 28),
-                    onPressed: () {},
-                  ),
                   const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,12 +34,6 @@ class CoachBotScreen extends StatelessWidget {
                               color: Colors.white,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const Icon(
-                            Icons.keyboard_arrow_down,
-                            color: Colors.white,
-                            size: 20,
-                          ),
                         ],
                       ),
                     ],
@@ -50,12 +41,10 @@ class CoachBotScreen extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.history, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, color: Colors.grey),
+                    onPressed: () {
+                        Get.to(() => CoachBotHistoryScreen());
+                    },
+                     tooltip: 'Chat History',
                   ),
                 ],
               ),
@@ -70,7 +59,6 @@ class CoachBotScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 40),
-
                       // Greeting
                       Obx(
                         () => RichText(
@@ -301,57 +289,5 @@ class CoachBotScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class CoachBotController extends GetxController {
-  var userName = 'Lieyza'.obs;
-  final messageController = TextEditingController();
-
-  void _navigateToChatWithDraft(String draftText) {
-    // We pass the text as an argument, but we DO NOT send it yet.
-    Get.to(() => CoachBotChatScreen(), arguments: draftText);
-  }
-
-  // Quick Actions now just draft the message
-  void explainHistory() {
-    _navigateToChatWithDraft('Explain Taekwondo History & Philosophy');
-  }
-
-  void showTechniques() {
-    _navigateToChatWithDraft('Show me Taekwondo Techniques');
-  }
-
-  void findDojang() {
-    _navigateToChatWithDraft('Find a Training Hall Nearby');
-  }
-
-  void showOtherOptions() {
-    _navigateToChatWithDraft('Show me other options');
-  }
-
-  void sendMessage(String message) {
-    final text = message.trim();
-    if (text.isEmpty) return;
-    
-    messageController.clear();
-    // Pass the typed text to the chat screen to continue editing
-    _navigateToChatWithDraft(text);
-  }
-
-  void startVoiceInput() {
-    Get.snackbar(
-      'Voice Input',
-      'Listening...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFF09FACA),
-      colorText: Colors.white,
-    );
-  }
-
-  @override
-  void onClose() {
-  //messageController.dispose();
-    super.onClose();
   }
 }

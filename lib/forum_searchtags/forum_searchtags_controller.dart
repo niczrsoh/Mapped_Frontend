@@ -1,16 +1,13 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_model.dart';
 
 class ForumSearchtagsController extends GetxController {
-  final String baseUrl = kIsWeb
-      ? "http://localhost:5000"
-      : "http://10.0.2.2:5000";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com";
 
   // 1. Dynamic User ID
   String currentUserId = '';
