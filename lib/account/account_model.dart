@@ -60,6 +60,6 @@ class AccountHeaderData {
   /// Get full avatar URL
   String get avatarUrl {
     if (avatar.isEmpty) return '';
-    return 'https://mapped-backend-node-js.onrender.com/$avatar';
+    return 'http://10.0.2.2:5000/$avatar';
   }
 }

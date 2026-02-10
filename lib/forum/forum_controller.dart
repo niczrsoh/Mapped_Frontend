@@ -7,7 +7,7 @@ import '../create_post/create_post_controller.dart';
 
 class ForumController extends GetxController {
   // CONFIGURATION
-  final String baseUrl = "https://mapped-backend-node-js.onrender.com";
+  final String baseUrl = "http://10.0.2.2:5000";
 
   String currentUserId = '';
 

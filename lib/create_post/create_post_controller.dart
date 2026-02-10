@@ -14,7 +14,7 @@ import '../TProgress/belt_progress_ring_controller.dart';
 
 class CreatePostController extends GetxController {
   final ApiService _apiService = ApiService();
-  final String baseUrl = "https://mapped-backend-node-js.onrender.com";
+  final String baseUrl = "http://10.0.2.2:5000";
 
   final TextEditingController textController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
