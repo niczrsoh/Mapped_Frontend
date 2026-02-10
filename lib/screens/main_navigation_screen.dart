@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mapped_frontend/screens/session_dashboard_screen.dart';
+import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import '../screens/home_screen.dart';
 import '../forum/forum_screen.dart';
 import '../screens/coachBot_screen.dart';
-import '../screens/account_screen.dart';
+import '../account/account_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   //newly added to allow the get.back to specific tab

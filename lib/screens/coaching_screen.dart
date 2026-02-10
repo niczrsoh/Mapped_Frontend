@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controller/controller/trainer_controller.dart';
 
 class DailyCoachingScreen extends StatelessWidget {
   const DailyCoachingScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
+    final TrainerController trainerController = Get.isRegistered<TrainerController>() 
+        ? Get.find<TrainerController>() 
+        : Get.put(TrainerController());
+
     return Scaffold(
       backgroundColor: const Color(0xFF1a1d2e),
       body: SafeArea(
@@ -103,7 +110,10 @@ class DailyCoachingScreen extends StatelessWidget {
               // Ask Coachbot Button
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    await trainerController.incrementRecommendationCount();
+                    
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5eead4),
                     foregroundColor: Colors.black,

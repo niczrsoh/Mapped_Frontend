@@ -2,14 +2,16 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'belt_progress_ring_controller.dart';
-import '../../controller/controller/trainee_controller.dart';
-import '../controller/controller/session_controller.dart';
-import '../../controller/controller/resource_controller.dart';
+import '../../controller/controller/trainer_controller.dart';
+import '../session/session_controller.dart';
+import '../../resource/resource_controller.dart';
+import '../../comment/comment_controller.dart';
+import '../../create_post/create_post_controller.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
-// Import your new requirement file
-import 'package:mapped_frontend/TProgress/data/belt_requirements.dart'; 
+import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
 
 void main() {
   runApp(const MyApp());
@@ -43,19 +45,27 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    Get.put(TrainerController());
+    Get.put(SessionController());
+    Get.put(ResourceController());
+    Get.put(CommentsController());
+    Get.put(CreatePostController());
+
     ringController = Get.put(BeltProgressRingController());
-    // Trigger a fresh fetch from backend whenever dashboard loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ringController.fetchBeltProgress();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 100));
+      await ringController.fetchBeltProgress();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Inject Controllers
-    final TraineeController traineeController = Get.put(TraineeController());
-    final SessionController sessionController = Get.put(SessionController());
-    final resourceController = Get.put(ResourceController());
+    final TrainerController trainerController = Get.find<TrainerController>();
+    final SessionController sessionController = Get.find<SessionController>();
+    final resourceController = Get.find<ResourceController>();
+    final commentsController = Get.find<CommentsController>();
+    final createPostController = Get.find<CreatePostController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F1114),
@@ -116,11 +126,10 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
         ),
       ),
       body: Obx(() {
-        // 1. Pull live total values from controllers
         int totalSessions = sessionController.totalSessionsCount.value;
-        int totalActiveDays = traineeController.activeDaysCount.value;
-
-        // --- RESOURCE SYNC LOGIC ---
+        int totalActiveDays = trainerController.activeDaysCount.value;
+        int totalPosts = commentsController.submittedPostIds.length;
+        int totalShareTips = createPostController.sharedTipPostIds.length;
         int localResources = resourceController.viewedResourceIds.length;
         int backendResources = 0;
 
@@ -135,12 +144,13 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           print("Error finding backend resources: $e");
         }
 
-        // Use the higher number (Winner Takes All)
+        // Cap resources at White belt target (3)
+        const int resourceTarget = 3;
         int resourcesOpened = (localResources > backendResources)
             ? localResources
             : backendResources;
+        resourcesOpened = resourcesOpened.clamp(0, resourceTarget);
 
-        // --- PERCENTAGE SYNC LOGIC ---
         int getSyncedPercentage(String beltLabel) {
           try {
             var b = ringController.detailedBeltData.firstWhereOrNull((belt) {
@@ -151,13 +161,26 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
             });
 
             if (b != null) {
-              return (b.progressPercentage ?? 0.0).toInt();
+              return (b.progressPercentage ?? 0.0).round();
             }
           } catch (e) {
             print("Error fetching backend percentage for $beltLabel: $e");
           }
           return ringController.getPercentage(beltLabel);
         }
+
+
+        final brownResult = _buildBeltTasks(
+          beltId: BeltDefinitions.brown,
+          totalSessions: totalSessions,
+          totalActiveDays: totalActiveDays,
+          totalPosts: totalPosts,
+          totalShareTips: totalShareTips,
+          resourcesOpened: resourcesOpened,
+          );
+
+  int realTimeBrownPercentage = brownResult.percentage;
+  bool isBlackLocked = realTimeBrownPercentage < 100;
 
         return SafeArea(
           child: Column(
@@ -180,7 +203,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // YELLOW BELT
+
                     _buildBeltCard(
                       context: context,
                       beltName: 'Yellow Belt - Build Consistency',
@@ -189,11 +212,9 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                       color: const Color(0xFFFFD700),
                       totalSessions: totalSessions,
                       totalActiveDays: totalActiveDays,
-                      resourcesOpened: resourcesOpened,
                     ),
                     const SizedBox(height: 16),
 
-                    // GREEN BELT
                     _buildBeltCard(
                       context: context,
                       beltName: 'Green Belt - Start Adapting',
@@ -202,11 +223,11 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                       color: const Color(0xFF4CAF50),
                       totalSessions: totalSessions,
                       totalActiveDays: totalActiveDays,
-                      resourcesOpened: resourcesOpened,
+                      totalPosts: totalPosts,
                     ),
                     const SizedBox(height: 16),
 
-                    // BLUE BELT
+                    // --- BLUE BELT ---
                     _buildBeltCard(
                       context: context,
                       beltName: 'Blue Belt - Support Others',
@@ -215,33 +236,30 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                       color: const Color(0xFF2196F3),
                       totalSessions: totalSessions,
                       totalActiveDays: totalActiveDays,
-                      resourcesOpened: resourcesOpened,
+                      totalPosts: totalPosts,
+                      totalShareTips: totalShareTips,
                     ),
                     const SizedBox(height: 16),
 
-                    // BROWN BELT
                     _buildBeltCard(
                       context: context,
                       beltName: 'Brown Belt - Lead by Example',
                       beltId: BeltDefinitions.brown,
-                      percentage: getSyncedPercentage('Brown'),
+                      percentage: realTimeBrownPercentage,
                       color: const Color(0xFFA52A2A),
                       totalSessions: totalSessions,
                       totalActiveDays: totalActiveDays,
-                      resourcesOpened: resourcesOpened,
+                      totalShareTips: totalShareTips,
                     ),
                     const SizedBox(height: 16),
 
-                    // BLACK BELT
                     _buildBeltCard(
                       context: context,
                       beltName: 'Black Belt - Master',
                       beltId: BeltDefinitions.black,
-                      percentage: getSyncedPercentage('Black'),
+                      percentage: isBlackLocked ? 0 : 100,
                       color: const Color(0xFF000000),
-                      totalSessions: totalSessions,
-                      totalActiveDays: totalActiveDays,
-                      resourcesOpened: resourcesOpened,
+                      isLocked: isBlackLocked,
                     ),
                   ],
                 ),
@@ -253,74 +271,128 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     );
   }
 
-  /// Helper helper to build the list of BeltTasks from Requirement.dart
-  List<BeltTask> _buildBeltTasks({
+  BeltDataResult _buildBeltTasks({
     required String beltId,
     required int totalSessions,
     required int totalActiveDays,
+    required int totalPosts,
+    required int totalShareTips,
     required int resourcesOpened,
+    bool isLocked = false,
   }) {
-    // 1. Get the Requirement Definition
+    if (beltId == BeltDefinitions.black) {
+      return BeltDataResult(
+        [
+          BeltTask(
+            icon: Icons.star,
+            label: isLocked ? "Not yet achieved" : "Mastery Achieved",
+            value: "",
+          ),
+        ],
+        isLocked ? 0 : 100, 
+      );
+    }
+
     final requirement = BeltRequirementsData.getFor(beltId);
 
-    // 2. Map definition tasks to UI BeltTasks
-    return requirement.tasks.map((taskDef) {
-      String valueText = "";
+    BeltProgressModelV2? beltData;
+    try {
+      for (var b in ringController.detailedBeltData) {
+        if (b.beltColor == beltId) {
+          beltData = b;
+          break;
+        }
+      }
+    } catch (e) {
+      print("Error finding belt data for $beltId: $e");
+    }
 
-      // 3. Logic to determine the value string based on type
+    List<BeltTask> tasks = [];
+
+    double totalCurrentScore = 0.0;
+    double totalTargetScore = 0.0;
+
+    for (var taskDef in requirement.tasks) {
+      String valueText = "";
+      int currentMetricValue = 0;
+
       switch (taskDef.type) {
         case RequirementType.session:
           int calculated = (totalSessions - requirement.cumulativeSessionOffset)
               .clamp(0, taskDef.target);
+          currentMetricValue = calculated;
           valueText = "$calculated Sessions";
           break;
 
         case RequirementType.activeDay:
           int calculated = (totalActiveDays - requirement.cumulativeDayOffset)
               .clamp(0, taskDef.target);
+          currentMetricValue = calculated;
           valueText = "$calculated Days";
           break;
 
         case RequirementType.resource:
-          // Uses the specific Resource Sync logic passed in
+          currentMetricValue = resourcesOpened;
           valueText = "$resourcesOpened Resources";
           break;
 
         case RequirementType.recommendation:
-          // Matches your "3 Times" or "10 Times" style
-          valueText = "${taskDef.target} Times";
+          int currentCount = beltData?.progress.recommendationCount ?? 0;
+          currentMetricValue = currentCount;
+          valueText = "$currentCount Times";
           break;
 
         case RequirementType.reflection:
-          valueText = "${taskDef.target} Short Reflection";
-          break;
-
-        case RequirementType.uploadPhoto:
-          valueText = "${taskDef.target} Session Photos";
+          int currentCount = 0;
+          if (Get.isRegistered<SessionController>()) {
+            final sessionCtrl = Get.find<SessionController>();
+            currentCount = sessionCtrl.submittedReflectionSessionIds.length;
+          }
+          currentMetricValue = currentCount;
+          valueText = "$currentCount Short Reflection";
           break;
 
         case RequirementType.forumPost:
-          // Handles variation between "1 time" vs "1 Coach" based on context if needed
-          // Using a general rule to match your requested output
-          if (beltId == BeltDefinitions.blue && taskDef.target == 1 && taskDef.dashboardLabel.contains("Reply")) {
-             valueText = "${taskDef.target} Coach";
-          } else {
-             valueText = "${taskDef.target} time"; 
-          }
+          int calculated = (totalPosts - requirement.cumulativePostOffset)
+              .clamp(0, taskDef.target);
+          currentMetricValue = calculated;
+          valueText = "$calculated time";
           break;
 
         case RequirementType.shareTip:
-           // Handles "Tip/ Res" suffix
-           valueText = "${taskDef.target} Tip/ Res";
-           break;
+          int shareTipOffset = 0;
+          if (beltId == BeltDefinitions.brown) {
+            shareTipOffset = 1;
+          }
+          int currentCount = (totalShareTips - shareTipOffset).clamp(
+            0,
+            taskDef.target,
+          );
+          currentMetricValue = currentCount;
+          valueText = "$currentCount Tip/ Res";
+          break;
       }
 
-      return BeltTask(
-        icon: taskDef.icon,
-        label: taskDef.dashboardLabel,
-        value: valueText,
+      totalTargetScore += taskDef.target;
+      totalCurrentScore += currentMetricValue.clamp(0, taskDef.target);
+
+      tasks.add(
+        BeltTask(
+          icon: taskDef.icon,
+          label: taskDef.dashboardLabel,
+          value: valueText,
+        ),
       );
-    }).toList();
+    }
+
+    int finalPercent = 0;
+    if (totalTargetScore > 0) {
+      finalPercent = ((totalCurrentScore / totalTargetScore) * 100).round();
+    } else if (requirement.tasks.isEmpty) {
+      finalPercent = 0;
+    }
+
+    return BeltDataResult(tasks, finalPercent);
   }
 
   Widget _buildBeltCard({
@@ -329,29 +401,52 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     required String beltId,
     required int percentage,
     required Color color,
-    required int totalSessions,
-    required int totalActiveDays,
-    required int resourcesOpened,
+    int totalSessions = 0,
+    int totalActiveDays = 0,
+    int resourcesOpened = 0,
+    int totalPosts = 0,
+    int totalShareTips = 0,
+    bool isLocked = false,
   }) {
     String cleanName = beltName.split(' ')[0];
 
-    // Generate tasks dynamically
-    final tasks = _buildBeltTasks(
+    final result = _buildBeltTasks(
       beltId: beltId,
       totalSessions: totalSessions,
       totalActiveDays: totalActiveDays,
+      totalPosts: totalPosts,
+      totalShareTips: totalShareTips,
       resourcesOpened: resourcesOpened,
+      isLocked: isLocked,
     );
+
+    int displayPercentage = isLocked ? 0 : result.percentage;
+
+    if (percentage >= 100) displayPercentage = 100;
 
     return GestureDetector(
       onTap: () {
-        Get.to(() => BeltProgressScreen(beltName: cleanName, beltColor: color));
+        if (isLocked) {
+          Get.snackbar(
+            "Locked",
+            "Complete the Brown Belt to unlock Mastery.",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.white10,
+            colorText: Colors.white,
+            margin: const EdgeInsets.all(16),
+          );
+        } else {
+          Get.to(
+            () => BeltProgressScreen(beltName: cleanName, beltColor: color),
+          );
+        }
       },
       child: BeltCard(
         beltName: beltName,
-        percentage: percentage,
+        percentage: displayPercentage, 
         color: color,
-        tasks: tasks,
+        tasks: result.tasks,
+        isLocked: isLocked,
       ),
     );
   }
@@ -369,6 +464,7 @@ class BeltCard extends StatelessWidget {
   final int percentage;
   final Color color;
   final List<BeltTask> tasks;
+  final bool isLocked;
 
   const BeltCard({
     super.key,
@@ -376,11 +472,30 @@ class BeltCard extends StatelessWidget {
     required this.percentage,
     required this.color,
     required this.tasks,
+    this.isLocked = false,
   });
 
   String _getBeltImagePath(String name) {
     final coreName = name.split(' - ').first;
     return BeltDefinitions.getByName(coreName).assetPath;
+  }
+
+  Widget _buildBeltBadge(String name) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        name,
+        style: GoogleFonts.roboto(
+          color: Colors.white,
+          fontWeight: FontWeight.w400,
+          fontSize: 11,
+        ),
+      ),
+    );
   }
 
   @override
@@ -443,39 +558,47 @@ class BeltCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildBeltBadge(beltName),
                   const SizedBox(height: 12),
-                  ...tasks.map(
-                    (task) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 80),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(task.icon, color: Colors.white, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: GoogleFonts.roboto(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  height: 1.4,
-                                ),
-                                children: [
-                                  TextSpan(text: '${task.label} '),
-                                  TextSpan(
-                                    text: task.value,
-                                    style: const TextStyle(
-                                      color: Color(0xFF00FFA6),
-                                      fontWeight: FontWeight.w500,
+                        children: tasks.map((task) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(task.icon, color: Colors.white, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: GoogleFonts.roboto(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      height: 1.4,
                                     ),
+                                    children: [
+                                      TextSpan(text: '${task.label} '),
+                                      TextSpan(
+                                        text: task.value,
+                                        style: const TextStyle(
+                                          color: Color(0xFF00FFA6),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        )).toList(),
                       ),
                     ),
                   ),
@@ -487,22 +610,10 @@ class BeltCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildBeltBadge(String name) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        name,
-        style: GoogleFonts.roboto(
-          color: Colors.white,
-          fontWeight: FontWeight.w400,
-          fontSize: 11,
-        ),
-      ),
-    );
-  }
+class BeltDataResult {
+  final List<BeltTask> tasks;
+  final int percentage;
+  BeltDataResult(this.tasks, this.percentage);
 }

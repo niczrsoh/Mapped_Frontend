@@ -1,16 +1,18 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/helper/colorConstant.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
-import '../../controller/controller/trainee_controller.dart';
+import '../../controller/controller/trainer_controller.dart';
 import 'belt_progress_ring_controller.dart';
-import '../controller/controller/session_controller.dart';
-import '../../controller/controller/resource_controller.dart';
+import '../session/session_controller.dart';
+import '../../resource/resource_controller.dart';
+import '../../comment/comment_controller.dart';
+import '../../create_post/create_post_controller.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
-import 'package:mapped_frontend/TProgress/data/belt_requirements.dart'; // Ensure this import points to your new file
+import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
 
 class BeltProgressScreen extends StatefulWidget {
   final String beltName;
@@ -26,12 +28,16 @@ class BeltProgressScreen extends StatefulWidget {
   State<BeltProgressScreen> createState() => _BeltProgressScreenState();
 }
 
-class _BeltProgressScreenState extends State<BeltProgressScreen> {
-  final TraineeController controller = Get.put(TraineeController());
+class _BeltProgressScreenState extends State<BeltProgressScreen>
+    with WidgetsBindingObserver {
+  final TrainerController controller = Get.put(TrainerController());
   late BeltProgressRingController ringController;
 
   @override
   void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     ringController = Get.isRegistered<BeltProgressRingController>()
         ? Get.find<BeltProgressRingController>()
         : Get.put(BeltProgressRingController());
@@ -39,52 +45,131 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshData();
     });
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
   }
 
   Future<void> _refreshData() async {
-    if (controller.currentUserId.value.isEmpty) {
-      print("⏳ Waiting for User ID...");
-      int retries = 0;
-      while (controller.currentUserId.value.isEmpty && retries < 10) {
-        await Future.delayed(const Duration(milliseconds: 200));
-        retries++;
+    ringController.isLoading.value = true;
+
+    try {
+      if (Get.isRegistered<UserController>()) {
+        final userCtrl = Get.find<UserController>();
+        if (userCtrl.userId.value.isNotEmpty) {
+          controller.currentUserId.value = userCtrl.userId.value;
+        }
       }
+
+      await controller.updateActiveDays();
+      await ringController.fetchBeltProgress();
+
+      final resourceController = Get.isRegistered<ResourceController>()
+          ? Get.find<ResourceController>()
+          : Get.put(ResourceController());
+      await resourceController.fetchOpenResourceCount();
+
+      int maxImpliedPosts = 0;
+      for (var belt in ringController.detailedBeltData) {
+        final req = BeltRequirementsData.getFor(belt.beltColor);
+
+        if (belt.progress.postCount > 0) {
+          int impliedPosts = belt.progress.postCount + req.cumulativePostOffset;
+          if (impliedPosts > maxImpliedPosts) maxImpliedPosts = impliedPosts;
+        }
+      }
+
+      // 5. FINAL SYNC
+      final sessionController = Get.find<SessionController>();
+      await sessionController.fetchDashboardData();
+      controller.cumulativePostCount.value = maxImpliedPosts;
+
+      await _syncAllBelts();
+    } catch (e) {
+      print("❌ Error during refresh: $e");
+    } finally {
+      ringController.isLoading.value = false;
     }
-    // 0. Ensure Resources & Active Days are loaded/updated
-    final resourceController = Get.isRegistered<ResourceController>()
-        ? Get.find<ResourceController>()
-        : Get.put(ResourceController());
-    await resourceController.fetchOpenResourceCount();
-    await controller.updateActiveDays();
-
-    // 1. Fetch the ring percentages
-    await ringController.fetchBeltProgress();
-
-    // 2. Fetch the session count for the specific user
-    final sessionController = Get.find<SessionController>();
-    await sessionController.fetchDashboardData();
-
-    // 3. Sync Active Counts to Backend (to persist progress)
-    await _syncAllBelts();
   }
 
-  Map<String, dynamic> _calculateBeltStats(BeltRequirement req, int totalSessions, int totalActiveDays, int openResources) {
-    // 1. Calculate the raw current values (clamped to the specific task target)
-    int currentSess = (totalSessions - req.cumulativeSessionOffset)
-        .clamp(0, _getTaskTarget(req, RequirementType.session));
-        
-    int currentDays = (totalActiveDays - req.cumulativeDayOffset)
-        .clamp(0, _getTaskTarget(req, RequirementType.activeDay));
+  Map<String, dynamic> _calculateBeltStats(
+    BeltRequirement req,
+    int totalSessions,
+    int totalActiveDays,
+    int openResources,
+    int totalPosts,
+    int totalShareTips,
+    int totalReflections,
+    BeltProgressModelV2? beltData,
+  ) {
+    if ((req.beltId == BeltDefinitions.black ||
+            widget.beltName.contains('Black')) &&
+        req.beltId != BeltDefinitions.brown &&
+        req.beltId != 'Brown') {
+      // 1. Find Brown Belt Data to check strict progression
+      BeltProgressModelV2? brownData;
+      for (var b in ringController.detailedBeltData) {
+        if (b.beltColor == BeltDefinitions.brown || b.beltColor == 'Brown') {
+          brownData = b;
+          break;
+        }
+      }
+
+      final brownReq = BeltRequirementsData.getFor(BeltDefinitions.brown);
+
+      var brownStats = _calculateBeltStats(
+        brownReq,
+        totalSessions,
+        totalActiveDays,
+        openResources,
+        totalPosts,
+        totalShareTips,
+        totalReflections,
+        brownData,
+      );
+
+      double brownProgress = brownStats['progress'] ?? 0.0;
+      double blackProgress = (brownProgress >= 0.9999) ? 1.0 : 0.0;
+
+      return {
+        'sessions': 0,
+        'days': 0,
+        'progress': blackProgress,
+        'resources': 0,
+      };
+    }
+
+    int currentSess = (totalSessions - req.cumulativeSessionOffset).clamp(
+      0,
+      _getTaskTarget(req, RequirementType.session),
+    );
+
+    int currentDays = (totalActiveDays - req.cumulativeDayOffset).clamp(
+      0,
+      _getTaskTarget(req, RequirementType.activeDay),
+    );
+
+    int currentPosts = (totalPosts - req.cumulativePostOffset).clamp(
+      0,
+      _getTaskTarget(req, RequirementType.forumPost),
+    );
 
     double currentProgressSum = 0;
     double targetProgressSum = 0;
 
     for (var task in req.tasks) {
-      // Always add the target to the denominator
       targetProgressSum += task.target;
 
-      // Add actual progress to the numerator
       int val = 0;
       switch (task.type) {
         case RequirementType.session:
@@ -96,12 +181,24 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
         case RequirementType.resource:
           val = openResources.clamp(0, task.target);
           break;
-        case RequirementType.recommendation:
-        case RequirementType.uploadPhoto:
-        case RequirementType.reflection:
         case RequirementType.forumPost:
+          val = currentPosts;
+          break;
+        case RequirementType.recommendation:
+          val = (beltData?.progress.recommendationCount ?? 0).clamp(
+            0,
+            task.target,
+          );
+          break;
+        case RequirementType.reflection:
+          val = totalReflections.clamp(0, task.target);
+          break;
         case RequirementType.shareTip:
-          val = 0; 
+          int shareTipOffset = 0;
+          if (widget.beltName == 'Brown') {
+            shareTipOffset = 1;
+          }
+          val = (totalShareTips - shareTipOffset).clamp(0, task.target);
           break;
       }
       currentProgressSum += val;
@@ -115,11 +212,13 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
       'sessions': currentSess,
       'days': currentDays,
       'progress': progressPct,
-      'resources': openResources.clamp(0, _getTaskTarget(req, RequirementType.resource))
+      'resources': openResources.clamp(
+        0,
+        _getTaskTarget(req, RequirementType.resource),
+      ),
     };
   }
 
-  /// Helper to safely get a target for a specific type from a requirement, defaults to 0
   int _getTaskTarget(BeltRequirement req, RequirementType type) {
     try {
       return req.tasks.firstWhere((t) => t.type == type).target;
@@ -130,14 +229,25 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
   Future<void> _syncAllBelts() async {
     final SessionController sessionController = Get.find<SessionController>();
-    final ResourceController resourceController = Get.find<ResourceController>();
+    final ResourceController resourceController =
+        Get.find<ResourceController>();
+    final commentsController = Get.isRegistered<CommentsController>()
+        ? Get.find<CommentsController>()
+        : Get.put(CommentsController());
+    final createPostController = Get.isRegistered<CreatePostController>()
+        ? Get.find<CreatePostController>()
+        : Get.put(CreatePostController());
 
     int totalSessions = sessionController.totalSessionsCount.value;
     int totalActiveDays = controller.activeDaysCount.value;
+    int totalPosts = commentsController.submittedPostIds.length;
+    int totalShareTips = createPostController.sharedTipPostIds.length;
+    // Use submittedReflectionSessionIds for progress
+    int totalReflections =
+        sessionController.submittedReflectionSessionIds.length;
     int localResources = resourceController.viewedResourceIds.length;
     int backendResources = 0;
 
-    // Fetch backend resources from White Belt if available
     try {
       BeltProgressModelV2? whiteBelt;
       for (var b in ringController.detailedBeltData) {
@@ -153,10 +263,37 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
       print("Error reading backend resource count: $e");
     }
 
-    int currentOpenResources = (localResources > backendResources) ? localResources : backendResources;
+    // Cap resources at White belt target (3)
+    const int resourceTarget = 3;
+    int currentOpenResources = (localResources > backendResources)
+        ? localResources
+        : backendResources;
+    currentOpenResources = currentOpenResources.clamp(0, resourceTarget);
+
+    BeltProgressModelV2? whiteBeltData,
+        yellowBeltData,
+        greenBeltData,
+        blueBeltData,
+        brownBeltData;
+    for (var b in ringController.detailedBeltData) {
+      if (b.beltColor == 'W' || b.beltColor == 'White') whiteBeltData = b;
+      if (b.beltColor == 'Y' || b.beltColor == 'Yellow') yellowBeltData = b;
+      if (b.beltColor == 'G' || b.beltColor == 'Green') greenBeltData = b;
+      if (b.beltColor == 'B' || b.beltColor == 'Blue') blueBeltData = b;
+      if (b.beltColor == 'R' || b.beltColor == 'Brown') brownBeltData = b;
+    }
 
     var wReq = BeltRequirementsData.getFor('White');
-    var wStats = _calculateBeltStats(wReq, totalSessions, totalActiveDays, currentOpenResources);
+    var wStats = _calculateBeltStats(
+      wReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+      totalPosts,
+      totalShareTips,
+      totalReflections,
+      whiteBeltData,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'White',
       sessionCount: wStats['sessions'],
@@ -167,7 +304,16 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Yellow
     var yReq = BeltRequirementsData.getFor('Yellow');
-    var yStats = _calculateBeltStats(yReq, totalSessions, totalActiveDays, currentOpenResources);
+    var yStats = _calculateBeltStats(
+      yReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+      totalPosts,
+      totalShareTips,
+      totalReflections,
+      yellowBeltData,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Yellow',
       sessionCount: yStats['sessions'],
@@ -177,7 +323,16 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Green
     var gReq = BeltRequirementsData.getFor('Green');
-    var gStats = _calculateBeltStats(gReq, totalSessions, totalActiveDays, currentOpenResources);
+    var gStats = _calculateBeltStats(
+      gReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+      totalPosts,
+      totalShareTips,
+      totalReflections,
+      greenBeltData,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Green',
       sessionCount: gStats['sessions'],
@@ -187,7 +342,16 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Blue
     var bReq = BeltRequirementsData.getFor('Blue');
-    var bStats = _calculateBeltStats(bReq, totalSessions, totalActiveDays, currentOpenResources);
+    var bStats = _calculateBeltStats(
+      bReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+      totalPosts,
+      totalShareTips,
+      totalReflections,
+      blueBeltData,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Blue',
       sessionCount: bStats['sessions'],
@@ -197,13 +361,32 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
     // Brown
     var brReq = BeltRequirementsData.getFor('Brown');
-    var brStats = _calculateBeltStats(brReq, totalSessions, totalActiveDays, currentOpenResources);
+    var brStats = _calculateBeltStats(
+      brReq,
+      totalSessions,
+      totalActiveDays,
+      currentOpenResources,
+      totalPosts,
+      totalShareTips,
+      totalReflections,
+      brownBeltData,
+    );
     await ringController.syncCalculatedProgress(
       beltColor: 'Brown',
       sessionCount: brStats['sessions'],
       activeDayCount: brStats['days'],
       progressPercentage: (brStats['progress'] * 100).toDouble(),
     );
+
+    double brownProgress = (brStats['progress'] ?? 0.0);
+    if (brownProgress >= 0.9999) {
+      await ringController.syncCalculatedProgress(
+        beltColor: 'Black',
+        progressPercentage: 100.0,
+        sessionCount: 0,
+        activeDayCount: 0,
+      );
+    }
   }
 
   String _getBeltAssetPath(String beltName) {
@@ -212,14 +395,14 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final SessionController sessionController = Get.find<SessionController>();
+    final SessionController sessionController = Get.put(SessionController());
+    // use the controller field declared on the state class
     final resourceController = Get.isRegistered<ResourceController>()
         ? Get.find<ResourceController>()
         : Get.put(ResourceController());
     final themeBg = ColorConstant.themeBg;
     final cardBgColor = const Color(0xFF151725);
 
-    // --- 1. DETERMINE CURRENT & NEXT BELT COLORS ---
     final currentBeltDef = BeltDefinitions.getByName(widget.beltName);
     final String nextBeltName = (currentBeltDef.nextBeltId != null)
         ? BeltDefinitions.getByCode(currentBeltDef.nextBeltId!).name
@@ -238,7 +421,16 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () async {
+            if (Get.isRegistered<BeltProgressRingController>()) {
+              await Get.find<BeltProgressRingController>().fetchBeltProgress();
+            }
+            try {
+              Get.back();
+            } catch (e) {
+              Navigator.of(context).pop();
+            }
+          },
         ),
         title: Text(
           'Dashboard',
@@ -251,12 +443,29 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
         centerTitle: false,
       ),
       body: Obx(() {
+        if (ringController.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
         int totalSessions = sessionController.totalSessionsCount.value;
-        int totalActiveDays = controller.activeDaysCount.value;
+        final tController = Get.isRegistered<TrainerController>()
+            ? Get.find<TrainerController>()
+            : Get.put(TrainerController());
+        final commentsController = Get.isRegistered<CommentsController>()
+            ? Get.find<CommentsController>()
+            : Get.put(CommentsController());
+        final createPostController = Get.isRegistered<CreatePostController>()
+            ? Get.find<CreatePostController>()
+            : Get.put(CreatePostController());
+        int totalActiveDays = tController.activeDaysCount.value;
+        int totalPosts = commentsController.submittedPostIds.length;
+        int totalShareTips = createPostController.sharedTipPostIds.length;
+        int totalReflections =
+            sessionController.submittedReflectionSessionIds.length;
         int localResources = resourceController.viewedResourceIds.length;
-
-        // 2. Get Backend Count (Fetched from API)
         int backendResources = 0;
+
         try {
           for (var b in ringController.detailedBeltData) {
             if (b.beltColor == 'W' || b.beltColor == 'White') {
@@ -268,18 +477,45 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
           print("Error finding backend resources: $e");
         }
 
+        const int resourceTarget = 3;
         int currentOpenResources = (localResources > backendResources)
             ? localResources
             : backendResources;
+        currentOpenResources = currentOpenResources.clamp(0, resourceTarget);
 
         final beltReq = BeltRequirementsData.getFor(widget.beltName);
-        
-        int currentPlannedCount = (totalSessions - beltReq.cumulativeSessionOffset)
-                                  .clamp(0, _getTaskTarget(beltReq, RequirementType.session));
-        int currentActiveDays = (totalActiveDays - beltReq.cumulativeDayOffset)
-                                .clamp(0, _getTaskTarget(beltReq, RequirementType.activeDay));
 
-        var stats = _calculateBeltStats(beltReq, totalSessions, totalActiveDays, currentOpenResources);
+        int currentPlannedCount =
+            (totalSessions - beltReq.cumulativeSessionOffset).clamp(
+              0,
+              _getTaskTarget(beltReq, RequirementType.session),
+            );
+        int currentActiveDays = (totalActiveDays - beltReq.cumulativeDayOffset)
+            .clamp(0, _getTaskTarget(beltReq, RequirementType.activeDay));
+
+        BeltProgressModelV2? currentBeltData;
+        try {
+          final beltDef = BeltDefinitions.getByName(widget.beltName);
+          for (var b in ringController.detailedBeltData) {
+            if (b.beltColor == beltDef.id || b.beltColor == widget.beltName) {
+              currentBeltData = b;
+              break;
+            }
+          }
+        } catch (e) {
+          print("Error finding current belt data: $e");
+        }
+
+        var stats = _calculateBeltStats(
+          beltReq,
+          totalSessions,
+          totalActiveDays,
+          currentOpenResources,
+          totalPosts,
+          totalShareTips,
+          totalReflections,
+          currentBeltData,
+        );
         double liveProgress = stats['progress'];
 
         return SafeArea(
@@ -320,7 +556,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // The Gradient Bar
                           Container(
                             width: barWidth,
                             height: 16,
@@ -352,7 +587,12 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                   ),
                                 ),
                                 Positioned(
-                                  left: ((barWidth * liveProgress).clamp(0.0, barWidth)) - (thumbSize / 2),
+                                  left:
+                                      ((barWidth * liveProgress).clamp(
+                                        0.0,
+                                        barWidth,
+                                      )) -
+                                      (thumbSize / 2),
                                   top: -4,
                                   child: Container(
                                     width: thumbSize,
@@ -362,7 +602,9 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                       color: widget.beltColor,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: widget.beltColor.withOpacity(0.4),
+                                          color: widget.beltColor.withOpacity(
+                                            0.4,
+                                          ),
                                           blurRadius: 8,
                                           spreadRadius: 3,
                                         ),
@@ -459,30 +701,32 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                               ),
                             )
                           else ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildBeltHeaderItem(
-                                  widget.beltName,
-                                  widget.beltColor,
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 16.0,
+                            if (!widget.beltName.contains('Black')) ...[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildBeltHeaderItem(
+                                    widget.beltName,
+                                    widget.beltColor,
                                   ),
-                                  child: Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16,
-                                    color: Colors.white54,
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 16,
+                                      color: Colors.white54,
+                                    ),
                                   ),
-                                ),
-                                _buildBeltHeaderItem(
-                                  nextBeltName,
-                                  nextBeltColor,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
+                                  _buildBeltHeaderItem(
+                                    nextBeltName,
+                                    nextBeltColor,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                            ],
 
                             // 2. Column Titles
                             Row(
@@ -508,7 +752,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                             ),
                             const SizedBox(height: 16),
 
-                            // 3. Requirements List (Dynamic from belt_requirements.dart)
                             Expanded(
                               child: ListView.builder(
                                 padding: EdgeInsets.zero,
@@ -518,9 +761,46 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                 itemCount: beltReq.tasks.length,
                                 itemBuilder: (context, index) {
                                   final task = beltReq.tasks[index];
-                                  
-                                  // Determine Current Value
+
+                                  BeltProgressModelV2? currentBeltData;
+                                  try {
+                                    for (var b
+                                        in ringController.detailedBeltData) {
+                                      final beltDef = BeltDefinitions.getByName(
+                                        widget.beltName,
+                                      );
+                                      if (b.beltColor == beltDef.id ||
+                                          b.beltColor == widget.beltName) {
+                                        currentBeltData = b;
+                                        break;
+                                      }
+                                    }
+                                  } catch (e) {
+                                    print("Error finding belt data: $e");
+                                  }
                                   int currentValue = 0;
+                                  int currentPosts =
+                                      (totalPosts -
+                                              beltReq.cumulativePostOffset)
+                                          .clamp(
+                                            0,
+                                            _getTaskTarget(
+                                              beltReq,
+                                              RequirementType.forumPost,
+                                            ),
+                                          );
+                                  int shareTipOffset = 0;
+                                  if (widget.beltName == 'Brown') {
+                                    shareTipOffset = 1;
+                                  }
+                                  int currentShareTips =
+                                      (totalShareTips - shareTipOffset).clamp(
+                                        0,
+                                        _getTaskTarget(
+                                          beltReq,
+                                          RequirementType.shareTip,
+                                        ),
+                                      );
                                   switch (task.type) {
                                     case RequirementType.session:
                                       currentValue = currentPlannedCount;
@@ -529,48 +809,46 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                                       currentValue = currentActiveDays;
                                       break;
                                     case RequirementType.resource:
-                                      currentValue = currentOpenResources.clamp(0, task.target);
+                                      currentValue = currentOpenResources.clamp(
+                                        0,
+                                        task.target,
+                                      );
                                       break;
-                                    default:
-                                      // Others are currently not tracked in controller, default to 0
-                                      currentValue = 0;
-                                  }
-
-                                  // Highlight Logic (Matches original code for White belt session completion)
-                                  Color? highlight;
-                                  if (widget.beltName == 'White' && 
-                                      task.type == RequirementType.session && 
-                                      currentValue >= task.target) {
-                                    highlight = const Color(0xFF00E676);
-                                  } else {
-                                    highlight = widget.beltColor; 
+                                    case RequirementType.forumPost:
+                                      currentValue = currentPosts;
+                                      break;
+                                    case RequirementType.recommendation:
+                                      currentValue =
+                                          currentBeltData
+                                              ?.progress
+                                              .recommendationCount ??
+                                          0;
+                                      break;
+                                    case RequirementType.shareTip:
+                                      currentValue = currentShareTips;
+                                      break;
+                                    case RequirementType.reflection:
+                                      currentValue = totalReflections.clamp(
+                                        0,
+                                        task.target,
+                                      );
+                                      break;
                                   }
 
                                   Color displayColor = widget.beltColor;
-                                  if (widget.beltName == 'White' && task.type == RequirementType.session && currentValue >= task.target) {
-                                      displayColor = const Color(0xFF00E676);
-                                  } else if (widget.beltName == 'White') {
-                                      // White belt generic items didn't have specific color in original else block unless specified
-                                      displayColor = Colors.white; 
-                                  }
 
-                                  if(widget.beltName != 'White') {
-                                    displayColor = widget.beltColor;
-                                  } else {
-                                     // For White belt, only session gets green, others white unless specified
-                                     if(task.type == RequirementType.session && currentValue >= task.target) {
-                                       displayColor = const Color(0xFF00E676);
-                                     } else {
-                                       displayColor = Colors.white;
-                                     }
-                                  }
+                                  String progressText =
+                                      (widget.beltName.contains('Black') &&
+                                          task.target == 0)
+                                      ? "0" // Hide for Black Belt mastery
+                                      : "$currentValue / ${task.target}";
 
                                   return Column(
                                     children: [
                                       _buildRequirementRow(
                                         task.icon,
                                         task.progressLabel,
-                                        "$currentValue / ${task.target}",
+                                        progressText,
                                         highlightColor: displayColor,
                                       ),
                                       const SizedBox(height: 16),
@@ -582,7 +860,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
 
                             const SizedBox(height: 20),
 
-                            // 4. Level Up Helper Text
                             Center(
                               child: Text(
                                 "Ready to level up? Start the course now",
@@ -593,13 +870,21 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-
-                            // 5. Start Course Button
                             SizedBox(
                               width: double.infinity,
                               height: 50,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Get.snackbar(
+                                    "Info",
+                                    "This feature is currently in development.",
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.white24,
+                                    colorText: Colors.white,
+                                    margin: const EdgeInsets.all(10),
+                                    borderRadius: 10,
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white.withOpacity(
                                     0.15,
@@ -634,15 +919,10 @@ class _BeltProgressScreenState extends State<BeltProgressScreen> {
     );
   }
 
-  // --- Helper Widgets ---
   Widget _buildBeltHeaderItem(String name, Color color) {
     return Row(
       children: [
-        Image.asset(
-          _getBeltAssetPath(name),
-          height: 24, // Matches typical icon size
-          fit: BoxFit.contain,
-        ),
+        Image.asset(_getBeltAssetPath(name), height: 24, fit: BoxFit.contain),
         const SizedBox(width: 8),
         Text(
           name,

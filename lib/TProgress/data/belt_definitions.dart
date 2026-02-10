@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Defines the metadata for each belt level.
 class BeltDefinition {
-  final String id; // Internal code (W, Y, G, B, R, L)
-  final String name; // Display name
-  final Color color; // Display color
-  final int order; // Sequence order (1-based)
-  final String? nextBeltId; // ID of the subsequent belt
-  final String assetName; // Image asset filename
+  final String id;
+  final String name;
+  final Color color; 
+  final int order; 
+  final String? nextBeltId; 
+  final String assetName; 
 
   const BeltDefinition({
     required this.id,
@@ -21,15 +20,13 @@ class BeltDefinition {
   String get assetPath => 'assets/images/progress/$assetName';
 }
 
-/// Central registry of all Belt Definitions.
 class BeltDefinitions {
-  // Constant Codes
   static const String white = 'W';
   static const String yellow = 'Y';
   static const String green = 'G';
   static const String blue = 'B';
-  static const String brown = 'R'; // 'R' mapped to Brown in legacy logic
-  static const String black = 'L'; // 'L' mapped to Black in legacy logic
+  static const String brown = 'R'; 
+  static const String black = 'L'; 
 
   static const List<BeltDefinition> belts = [
     BeltDefinition(
@@ -87,7 +84,6 @@ class BeltDefinitions {
   }
 
   static BeltDefinition getByName(String name) {
-    // Handle "White Belt" vs "White"
     final cleanName = name.replaceAll(' Belt', '');
     return belts.firstWhere(
       (b) => b.name.toLowerCase() == cleanName.toLowerCase(),

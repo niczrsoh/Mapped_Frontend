@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../Participants/trainee_model.dart';
+import '../session/session_model.dart';
 
 class ApiService {
   //-----------------end----------------------------
@@ -17,6 +20,7 @@ class ApiService {
         url,
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode({
+          'name': fullName,
           'name': fullName,
           'email': email,
           'password': password,
@@ -124,6 +128,7 @@ class ApiService {
   }
 
   // GET USER PROFILE
+  // GET USER PROFILE
   Future<Map<String, dynamic>> getUserProfile(String userId) async {
     final url = Uri.parse('$baseUrl/profile/$userId');
     try {
@@ -133,7 +138,6 @@ class ApiService {
       );
 
       print('Get Profile Response Status: ${response.statusCode}');
-      print('Get Profile Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
@@ -154,44 +158,41 @@ class ApiService {
     }
   }
 
-  // ADD THIS METHOD FOR TRAINEE
-  Future<Map<String, dynamic>> addTrainee({
-    required String name,
-    required String belt,
-    required String dateOfBirth,
-    required String gender,
-    required String phone,
-    required String email,
-    required String address,
-    required String guardianName,
-    required String guardianContact,
-    required String guardianAddress,
-    String? imagePath,
-  }) async {
-    final url = Uri.parse('$baseUrl/trainee'); // Uses /trainee endpoint
+  Future<Map<String, dynamic>> addTrainee(TraineeModel trainee) async {
+    final url = Uri.parse('$baseUrl/trainee');
 
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({
-          'name': name,
-          'belt': belt,
-          'dateOfBirth': dateOfBirth,
-          'gender': gender,
-          'phone': phone,
-          'email': email,
-          'address': address,
-          'guardianName': guardianName,
-          'guardianContact': guardianContact,
-          'guardianAddress': guardianAddress,
-          'image': imagePath,
-        }),
-      );
+      var request = http.MultipartRequest('POST', url);
 
-      print('Trainee API Response Status: ${response.statusCode}');
-      // print('Trainee API Response Body: ${response.body}');
+      // Add text fields
+      request.fields['trainerId'] = trainee.trainerId ?? '';
+      request.fields['name'] = trainee.name;
+      request.fields['belt'] = trainee.belt;
+      request.fields['dateOfBirth'] = trainee.dateOfBirth;
+      request.fields['gender'] = trainee.gender;
+      request.fields['phone'] = trainee.phone;
+      request.fields['email'] = trainee.email;
+      request.fields['address'] = trainee.address;
+      request.fields['guardianName'] = trainee.guardianName;
+      request.fields['guardianContact'] = trainee.guardianContact;
+      request.fields['guardianAddress'] = trainee.guardianAddress;
+      request.fields['goals'] = trainee.goals;
+      request.fields['conditions'] = trainee.conditions;
+      request.fields['competency'] = trainee.competency;
 
+      // Add image file if exists
+      if (trainee.imagePath != null && trainee.imagePath!.isNotEmpty) {
+        final file = File(trainee.imagePath!);
+        if (await file.exists()) {
+          request.files.add(
+            await http.MultipartFile.fromPath('image', trainee.imagePath!),
+          );
+          print('📎 Image attached: ${trainee.imagePath}');
+        }
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
       final Map<String, dynamic> responseBody = json.decode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -211,11 +212,8 @@ class ApiService {
     }
   }
 
-  // === ADD THIS METHOD FOR GETTING TRAINEES ===
   Future<Map<String, dynamic>> getAllTrainees() async {
-    final url = Uri.parse(
-      '$baseUrl/trainee',
-    ); // Assuming endpoint is /api/trainee
+    final url = Uri.parse('$baseUrl/trainee');
 
     try {
       final response = await http.get(
@@ -223,18 +221,10 @@ class ApiService {
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
-      print('Get Trainees API Response Status: ${response.statusCode}');
-      //print('Get Trainees API Response Body: ${response.body}');
-
       final Map<String, dynamic> responseBody = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          //'trainees': responseBody['trainees'] ?? responseBody['data'] ?? [],
-          // 2. Fixed Data mapping: Node.js returns 'data', not 'trainees'
-          'data': responseBody['data'] ?? [],
-        };
+        return {'success': true, 'data': responseBody['data'] ?? []};
       } else {
         final String errorMsg =
             responseBody['msg'] ??
@@ -250,20 +240,57 @@ class ApiService {
     }
   }
 
-  // === END OF ADDED METHOD ===
+  // Future<Map<String, dynamic>> getTraineeById(String id) async {
+  //   final url = Uri.parse('$baseUrl/trainee/$id');
+  //   try {
+  //     final response = await http.get(
+  //       url,
+  //       headers: {'Content-Type': 'application/json; charset=UTF-8'},
+  //     );
+
+  //     print('Get Trainee($id) Status: ${response.statusCode}');
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> responseBody = json.decode(response.body);
+  //       return {'success': true, 'data': responseBody['data'] ?? responseBody};
+  //     } else {
+  //       return {'success': false, 'error': 'Failed to load trainee'};
+  //     }
+  //   } catch (e) {
+  //     print('API Error getting trainee: $e');
+  //     return {'success': false, 'error': 'Network Error'};
+  //   }
+  // }
 
   Future<Map<String, dynamic>> updateTrainee(
     String id,
-    Map<String, dynamic> data,
-  ) async {
+    Map<String, dynamic> data, {
+    String? imagePath,
+  }) async {
     final url = Uri.parse('$baseUrl/trainee/$id');
 
     try {
-      final response = await http.put(
-        url,
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode(data),
-      );
+      var request = http.MultipartRequest('PUT', url);
+
+      // Add all fields from data map
+      data.forEach((key, value) {
+        if (value != null) {
+          request.fields[key] = value.toString();
+        }
+      });
+
+      // Add image file if provided
+      if (imagePath != null && imagePath.isNotEmpty) {
+        final file = File(imagePath);
+        if (await file.exists()) {
+          request.files.add(
+            await http.MultipartFile.fromPath('image', imagePath),
+          );
+          print('📎 New image attached: $imagePath');
+        }
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       print('Update Trainee Status: ${response.statusCode}');
       final Map<String, dynamic> responseBody = json.decode(response.body);
@@ -308,48 +335,109 @@ class ApiService {
       return {'success': false, 'error': 'Network Error'};
     }
   }
-  // 👇 PASTE THIS NEW FUNCTION HERE (Inside the class) 👇
 
-  Future<Map<String, dynamic>> createSession({
-    required String trainerId,
-    required String trainer,
-    required String date,
-    required String startTime, // New Param
-    required String endTime, // New Param
-    required String venue,
-    required String totalTrainees,
-  }) async {
+  // --- TRAINER METHODS ---
+
+  Future<Map<String, dynamic>> getAllTrainers() async {
+    final url = Uri.parse('$baseUrl/trainer');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      print('Get Trainers API Response Status: ${response.statusCode}');
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': responseBody['data'] ?? []};
+      } else {
+        final String errorMsg =
+            responseBody['msg'] ??
+            'Failed to fetch trainers with status ${response.statusCode}';
+        return {'success': false, 'error': errorMsg};
+      }
+    } catch (e) {
+      print('API Error during fetching trainers: $e');
+      return {
+        'success': false,
+        'error': 'Network Error. Check server connection.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getTrainerById(String id) async {
+    final url = Uri.parse('$baseUrl/trainer/$id');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      print('Get Trainer($id) Status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+        return {'success': true, 'data': responseBody['data'] ?? responseBody};
+      } else {
+        return {'success': false, 'error': 'Failed to load trainer'};
+      }
+    } catch (e) {
+      print('API Error getting trainer: $e');
+      return {'success': false, 'error': 'Network Error'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateTrainer(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    final url = Uri.parse('$baseUrl/trainer/$id');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode(data),
+      );
+
+      print('Update Trainer Status: ${response.statusCode}');
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': responseBody['data']};
+      } else {
+        return {
+          'success': false,
+          'error': responseBody['msg'] ?? 'Update failed',
+        };
+      }
+    } catch (e) {
+      print('API Update Trainer Error: $e');
+      return {'success': false, 'error': 'Network Error'};
+    }
+  }
+
+  Future<Map<String, dynamic>> createSession(SessionModel session) async {
     try {
       final url = Uri.parse('$baseUrl/session');
-
-      final body = jsonEncode({
-        "trainerId": trainerId,
-        "trainer": trainer,
-        "date": date,
-        "startTime": startTime,
-        "endTime": endTime,
-        "venue": venue,
-        "totalTrainees": totalTrainees,
-      });
 
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: body,
+        body: jsonEncode(session.toJson()), // Send the Map directly
       );
 
       final responseData = jsonDecode(response.body);
 
-      // 4. Handle Success
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {
           'success': true,
           'msg': responseData['msg'],
           'data': responseData['data'],
         };
-      }
-      // 5. Handle Validation Errors from Backend
-      else {
+      } else {
         return {
           'success': false,
           'msg': responseData['msg'] ?? 'Failed to create session',
@@ -362,14 +450,11 @@ class ApiService {
     }
   }
 
-  // Use this version instead
-  // UPDATED: Now accepts both ID and Name to match Controller and Backend
   Future<Map<String, dynamic>> getSessionDashboard({
     required String trainerId,
     required String trainerName,
   }) async {
     try {
-      // 1. Construct URL with multiple query parameters
       final url = Uri.parse(
         '$baseUrl/session/dashboard?trainerId=$trainerId&trainer=$trainerName',
       );
@@ -395,30 +480,22 @@ class ApiService {
     }
   }
 
-  // Update an existing session
   Future<Map<String, dynamic>> updateSession({
     required String id,
-    required String trainer,
-    required String date,
-    required String startTime, // New Param
-    required String endTime, // New Param
-    required String venue,
-    required String totalTrainees,
+    String? trainerId,
+    required Map<String, dynamic> data,
   }) async {
     try {
-      final url = Uri.parse('$baseUrl/session/$id'); // PUT endpoint with ID
+      final url = Uri.parse('$baseUrl/session/$id');
+
+      if (trainerId != null) {
+        data['trainerId'] = trainerId;
+      }
 
       final response = await http.put(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'trainer': trainer,
-          'date': date,
-          'startTime': startTime, // Sending ISO String
-          'endTime': endTime, // Sending ISO String
-          'venue': venue,
-          'totalTrainees': totalTrainees,
-        }),
+        body: jsonEncode(data),
       );
 
       final responseBody = jsonDecode(response.body);
@@ -437,17 +514,10 @@ class ApiService {
     }
   }
 
-  // ... inside ApiService class
-
-  // --- PROGRESS ENDPOINTS ---
-
   Future<Map<String, dynamic>> saveProgress(Map<String, dynamic> data) async {
     try {
-      // Assuming your baseUrl is set up correctly in the class
       final response = await http.post(
-        Uri.parse(
-          '$baseUrl/progress',
-        ), // Ensure /progress route is added to your server.js
+        Uri.parse('$baseUrl/progress'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(data),
       );
@@ -460,13 +530,15 @@ class ApiService {
 
   Future<Map<String, dynamic>> getProgress(
     String traineeId,
+    String beltColor,
     String form,
   ) async {
     try {
-      // Encode form because it contains spaces and brackets
       final encodedForm = Uri.encodeComponent(form);
+      final encodedBelt = Uri.encodeComponent(beltColor);
+
       final response = await http.get(
-        Uri.parse('$baseUrl/progress/$traineeId/$encodedForm'),
+        Uri.parse('$baseUrl/progress/$traineeId/$encodedBelt/$encodedForm'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -476,12 +548,15 @@ class ApiService {
     }
   }
 
-  // GET ALL PROGRESS FOR A TRAINEE (For Dashboard Average)
-  Future<Map<String, dynamic>> getAllProgress(String traineeId) async {
+  Future<Map<String, dynamic>> getAllProgress(
+    String traineeId,
+    String beltColor,
+  ) async {
     try {
-      // Use the specific traineeId endpoint
+      final encodedBelt = Uri.encodeComponent(beltColor);
+
       final response = await http.get(
-        Uri.parse('$baseUrl/progress/$traineeId'),
+        Uri.parse('$baseUrl/progress/$traineeId/$encodedBelt'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -498,30 +573,53 @@ class ApiService {
     }
   }
 
-  // ==================================================
-  // GET ALL BELT RINGS (Calculated Average for Dashboard)
-  // ==================================================
-  Future<Map<String, dynamic>> getBeltRings() async {
+  Future<Map<String, dynamic>> deleteProgress(String traineeId) async {
     try {
-      // Make sure this matches the route defined in your Node.js backend
-      final response = await http.get(
-        Uri.parse('$baseUrl/belt-progress'),
+      final url = Uri.parse('$baseUrl/progress/$traineeId');
+      print('Attempting to delete progress at: $url');
+
+      final response = await http.delete(
+        url,
         headers: {'Content-Type': 'application/json'},
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return json.decode(response.body);
       } else {
         return {
           'success': false,
-          'msg': 'Failed to fetch belt rings. Status: ${response.statusCode}',
+          'msg': 'Failed to delete progress: ${response.statusCode}',
         };
       }
     } catch (e) {
-      print("Error fetching belt rings: $e");
-      return {'success': false, 'msg': e.toString()};
+      print('Delete Progress Exception: $e');
+      return {'success': false, 'msg': 'Connection error: $e'};
     }
   }
+
+  // // ==================================================
+  // // GET ALL BELT RINGS (Calculated Average for Dashboard)
+  // // ==================================================
+  // Future<Map<String, dynamic>> getBeltRings() async {
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('$baseUrl/belt-progress'),
+  //       headers: {'Content-Type': 'application/json'},
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       return jsonDecode(response.body);
+  //     } else {
+  //       return {
+  //         'success': false,
+  //         'msg': 'Failed to fetch belt rings. Status: ${response.statusCode}',
+  //       };
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching belt rings: $e");
+  //     return {'success': false, 'msg': e.toString()};
+  //   }
+  // }
 
   // ==================================================
   // 2. NEW RESOURCE METHODS (For Social Feed)
@@ -535,17 +633,14 @@ class ApiService {
     String url = '$baseUrl/resource';
     List<String> params = [];
 
-    // Add filters to list
     if (type != 'All') {
       params.add('type=$type');
     }
     if (tag != null && tag.isNotEmpty) {
       params.add('tag=$tag');
     }
-    if (search != null && search.isNotEmpty)
-      params.add('search=$search'); // <--- Add this line
+    if (search != null && search.isNotEmpty) params.add('search=$search');
 
-    // Join params with & and append to URL
     if (params.isNotEmpty) {
       url += '?${params.join('&')}';
     }
@@ -553,9 +648,7 @@ class ApiService {
     return await _get(url);
   }
 
-  // Get All Unique Tags (NEW METHOD)
   Future<Map<String, dynamic>> getTags() async {
-    // This calls the new backend route: router.get('/tags', ...)
     return await _get('$baseUrl/resource/tags');
   }
 
@@ -578,24 +671,13 @@ class ApiService {
       "author": author,
       "description": description,
     };
-    return await _post(
-      '$baseUrl/resource',
-      body,
-    ); // Requires _post helper below
+    return await _post('$baseUrl/resource', body);
   }
 
-  // Delete Resource
   Future<Map<String, dynamic>> deleteResource(String id) async {
-    return await _delete(
-      '$baseUrl/resource/$id',
-    ); // Requires _delete helper below
+    return await _delete('$baseUrl/resource/$id');
   }
 
-  // ==================================================
-  // 3. PRIVATE HELPER METHODS (FIXES YOUR ERRORS)
-  // ==================================================
-
-  // Helper: GET Request
   Future<Map<String, dynamic>> _get(String urls) async {
     try {
       final response = await http.get(
@@ -625,7 +707,6 @@ class ApiService {
     }
   }
 
-  // Helper: PUT Request (If needed for resources later)
   Future<Map<String, dynamic>> _put(
     String urls,
     Map<String, dynamic> body,
@@ -642,7 +723,6 @@ class ApiService {
     }
   }
 
-  // Helper: DELETE Request
   Future<Map<String, dynamic>> _delete(String urls) async {
     try {
       final response = await http.delete(
@@ -655,7 +735,6 @@ class ApiService {
     }
   }
 
-  // Helper: Process HTTP Response
   Map<String, dynamic> _processResponse(http.Response response) {
     try {
       final decodedBody = jsonDecode(response.body);
@@ -680,36 +759,51 @@ class ApiService {
     String resourceId,
     String userId,
   ) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/resources/view'),
-      body: jsonEncode({
-        'resourceId': resourceId,
-        'userId': userId, // Now backend can save it to the user's profile
-      }),
-      headers: {'Content-Type': 'application/json'},
-    );
-    return jsonDecode(response.body);
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/resources/$resourceId/view'),
+        body: jsonEncode({'userId': userId}),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        print(
+          '❌ Record view failed: ${response.statusCode} - ${response.body}',
+        );
+        return {'success': false, 'msg': 'Failed to record view'};
+      }
+    } catch (e) {
+      print('❌ Record view error: $e');
+      return {'success': false, 'msg': e.toString()};
+    }
   }
 
   // Update this to accept userId
   Future<Map<String, dynamic>> getUserResourceProgress(String userId) async {
     try {
-      // Ensure your Node.js route matches this: /api/user/resource-progress/:userId
       final response = await http.get(
-        Uri.parse('$baseUrl/user/resource-progress/$userId'),
+        Uri.parse('$baseUrl/resources/user/$userId/viewed'),
         headers: {'Content-Type': 'application/json'},
       );
-      return jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        print('❌ Get resource progress failed: ${response.statusCode}');
+        return {'success': false, 'data': []};
+      }
     } catch (e) {
-      return {'success': false, 'msg': e.toString()};
+      print('❌ Get resource progress error: $e');
+      return {'success': false, 'msg': e.toString(), 'data': []};
     }
   }
 
   Future<Map<String, dynamic>> updateBeltProgress({
     required String userId,
-    required String beltColor, // 'W', 'Y', 'G', etc.
-    required String
-    actionType, // 'recommendation', 'photo', 'open_resource', etc.
+    required String beltColor,
+    required String actionType,
   }) async {
     try {
       final url = Uri.parse('$baseUrl/belt-progress/update');
@@ -740,9 +834,6 @@ class ApiService {
     }
   }
 
-  // ==================================================
-  // FETCH BELT PROGRESS DATA
-  // ==================================================
   Future<Map<String, dynamic>> fetchBeltProgress(String userId) async {
     try {
       final url = Uri.parse('$baseUrl/belt-progress?userId=$userId');
@@ -755,7 +846,6 @@ class ApiService {
       final decodedBody = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Pass the full response body because backend returns 'belts' at the root level
         return decodedBody;
       } else {
         return {
@@ -768,4 +858,124 @@ class ApiService {
       return {'success': false, 'msg': 'Network Error: $e'};
     }
   }
-} // <---
+
+  // Record reflection submission for belt progress tracking
+  Future<Map<String, dynamic>> recordReflectionSubmission(
+    String sessionId,
+    String userId,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/sessions/$sessionId/reflection-submitted'),
+        body: jsonEncode({'userId': userId}),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'msg': 'Failed to record reflection'};
+      }
+    } catch (e) {
+      return {'success': false, 'msg': e.toString()};
+    }
+  }
+
+  // Get user's reflection submission history
+  Future<Map<String, dynamic>> getUserReflectionProgress(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/sessions/user/$userId/reflections-submitted'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'data': []};
+      }
+    } catch (e) {
+      return {'success': false, 'msg': e.toString(), 'data': []};
+    }
+  }
+
+  // Record post/comment submission for belt progress tracking
+  Future<Map<String, dynamic>> recordPostSubmission(
+    String commentId,
+    String userId,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forum/comments/$commentId/submitted'),
+        body: jsonEncode({'userId': userId}),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'msg': 'Failed to record post'};
+      }
+    } catch (e) {
+      return {'success': false, 'msg': e.toString()};
+    }
+  }
+
+  // Get user's post/comment submission history
+  Future<Map<String, dynamic>> getUserPostProgress(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/forum/user/$userId/posts-submitted'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'data': []};
+      }
+    } catch (e) {
+      return {'success': false, 'msg': e.toString(), 'data': []};
+    }
+  }
+
+  // Record share tip submission for belt progress tracking
+  Future<Map<String, dynamic>> recordShareTipSubmission(
+    String postId,
+    String userId,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/forum/posts/$postId/share-tip-submitted'),
+        body: jsonEncode({'userId': userId}),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'msg': 'Failed to record share tip'};
+      }
+    } catch (e) {
+      return {'success': false, 'msg': e.toString()};
+    }
+  }
+
+  // Get user's share tip submission history
+  Future<Map<String, dynamic>> getUserShareTipProgress(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/forum/user/$userId/share-tips-submitted'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'data': []};
+      }
+    } catch (e) {
+      return {'success': false, 'msg': e.toString(), 'data': []};
+    }
+  }
+}

@@ -6,9 +6,8 @@ enum RequirementType {
   activeDay,
   resource,
   recommendation,
-  uploadPhoto,
   reflection,
-  forumPost, 
+  forumPost,
   shareTip,
 }
 
@@ -34,6 +33,7 @@ class BeltRequirement {
   final String beltId;
   final int cumulativeSessionOffset;
   final int cumulativeDayOffset;
+  final int cumulativePostOffset;
 
   final List<BeltTaskDef> tasks;
 
@@ -41,17 +41,18 @@ class BeltRequirement {
     required this.beltId,
     required this.cumulativeSessionOffset,
     required this.cumulativeDayOffset,
+    required this.cumulativePostOffset,
     required this.tasks,
   });
 }
 
 class BeltRequirementsData {
   static const Map<String, BeltRequirement> requirements = {
-
     BeltDefinitions.white: BeltRequirement(
       beltId: BeltDefinitions.white,
       cumulativeSessionOffset: 0,
       cumulativeDayOffset: 0,
+      cumulativePostOffset: 0,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -85,6 +86,7 @@ class BeltRequirementsData {
       beltId: BeltDefinitions.yellow,
       cumulativeSessionOffset: 3,
       cumulativeDayOffset: 3,
+      cumulativePostOffset: 0,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -103,14 +105,6 @@ class BeltRequirementsData {
           icon: Icons.fitness_center,
         ),
         BeltTaskDef(
-          type: RequirementType.uploadPhoto,
-          target: 5,
-          dashboardLabel: "Photos",
-          progressLabel: "Upload Session Photos",
-          homeLabel: "Upload Session Photos",
-          icon: Icons.image,
-        ),
-        BeltTaskDef(
           type: RequirementType.activeDay,
           target: 5,
           dashboardLabel: 'Be active in the app for',
@@ -126,6 +120,7 @@ class BeltRequirementsData {
       beltId: BeltDefinitions.green,
       cumulativeSessionOffset: 8,
       cumulativeDayOffset: 8,
+      cumulativePostOffset: 0,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -154,8 +149,8 @@ class BeltRequirementsData {
         BeltTaskDef(
           type: RequirementType.forumPost,
           target: 1,
-          dashboardLabel: 'Post/reply in the forum',
-          progressLabel: 'Post/reply in the forum',
+          dashboardLabel: 'Reply in the forum',
+          progressLabel: 'Reply in the forum',
           homeLabel: 'Reply to Coach in Forum',
           icon: Icons.forum,
         ),
@@ -175,6 +170,7 @@ class BeltRequirementsData {
       beltId: BeltDefinitions.blue,
       cumulativeSessionOffset: 16,
       cumulativeDayOffset: 22,
+      cumulativePostOffset: 1,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -196,7 +192,7 @@ class BeltRequirementsData {
           type: RequirementType.forumPost,
           target: 1,
           dashboardLabel: 'Reply in the Forum',
-          progressLabel: 'Post/reply in the forum',
+          progressLabel: 'Reply in the forum',
           homeLabel: 'Reply to Coach in Forum',
           icon: Icons.forum,
         ),
@@ -216,6 +212,7 @@ class BeltRequirementsData {
       beltId: BeltDefinitions.brown,
       cumulativeSessionOffset: 36,
       cumulativeDayOffset: 52,
+      cumulativePostOffset: 2,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -252,19 +249,38 @@ class BeltRequirementsData {
       ],
     ),
 
-    // --- BLACK BELT ---
-    BeltDefinitions.black: BeltRequirement(
+  //   // --- BLACK BELT ---
+  //   BeltDefinitions.black: BeltRequirement(
+  //     beltId: BeltDefinitions.black,
+  //     cumulativeSessionOffset: 56,
+  //     cumulativeDayOffset: 112,
+  //     cumulativePostOffset: 2,
+  //     tasks: [
+  //       BeltTaskDef(
+  //         type: RequirementType.activeDay,
+  //         target: 15,
+  //         dashboardLabel: 'Be active in the app for',
+  //         progressLabel: 'Be active in the app',
+  //         homeLabel: 'Be active',
+  //         icon: Icons.directions_run,
+  //       ),
+  //     ],
+  //   ),
+  // };
+  BeltDefinitions.black: BeltRequirement(
       beltId: BeltDefinitions.black,
-      cumulativeSessionOffset: 56,
-      cumulativeDayOffset: 112,
+      cumulativeSessionOffset: 56, // Irrelevant based on tasks
+      cumulativeDayOffset: 112,    // Irrelevant based on tasks
+      cumulativePostOffset: 2,     // Irrelevant based on tasks
       tasks: [
+        // FIX: Set target to 0 so it's always complete immediately
         BeltTaskDef(
           type: RequirementType.activeDay,
-          target: 15,
-          dashboardLabel: 'Be active in the app for',
-          progressLabel: 'Be active in the app',
-          homeLabel: 'Be active',
-          icon: Icons.directions_run,
+          target: 0, 
+          dashboardLabel: 'Mastery Achieved',
+          progressLabel: 'Mastery Achieved',
+          homeLabel: 'Mastery',
+          icon: Icons.star, // Changed icon to Star for mastery
         ),
       ],
     ),
@@ -276,7 +292,7 @@ class BeltRequirementsData {
     }
 
     try {
-      String simpleName = beltCode.split(' - ')[0]; 
+      String simpleName = beltCode.split(' - ')[0];
 
       final def = BeltDefinitions.getByName(simpleName);
       if (requirements.containsKey(def.id)) {
