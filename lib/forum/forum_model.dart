@@ -16,6 +16,8 @@ class ForumPost {
   final RxBool isLiked;
   final RxBool isPinned;
   final RxBool isReported;
+  final List<Map<String, dynamic>> reports;
+  final RxBool isUserBlocked;
 
   ForumPost({
     required this.id,
@@ -30,13 +32,16 @@ class ForumPost {
     required this.videoThumbnail,
     required int likes,
     required this.comments,
+    this.reports = const [],
     bool isLiked = false,
     bool isPinned = false,
     bool isReported = false,
+    bool isUserBlocked = false, // Default value
   }) : likes = likes.obs,
        isLiked = isLiked.obs,
        isPinned = isPinned.obs,
-       isReported = isReported.obs;
+       isReported = isReported.obs,
+       isUserBlocked = isUserBlocked.obs; // Initialize observable
 
   factory ForumPost.fromJson(Map<String, dynamic> json, String currentUserId) {
     final date = DateTime.parse(json['date']);
@@ -48,12 +53,14 @@ class ForumPost {
     final likesList = (json['likes'] as List? ?? []);
     final isLiked = likesList.any((like) => like['user'] == currentUserId);
 
-    final reportsList = (json['reports'] as List? ?? []);
+    final reportsList = (json['reports'] as List? ?? [])
+        .map((report) => report as Map<String, dynamic>)
+        .toList();
+
     final isReported = reportsList.any(
       (report) => report['user'] == currentUserId,
     );
 
-    // Logic: Check 'images' array first (new backend), fallback to single 'image' (legacy)
     List<String> parsedImages = [];
     if (json['images'] != null && (json['images'] as List).isNotEmpty) {
       parsedImages = List<String>.from(json['images']);
@@ -63,7 +70,7 @@ class ForumPost {
 
     return ForumPost(
       id: json['_id'] ?? '',
-      authorId: json['user'] ?? '',
+      authorId: json['user'] is Map ? json['user']['_id'] : json['user'],
       authorName: json['name'] ?? 'Unknown',
       authorImage: json['avatar'],
       timeAgo: timeAgo,
@@ -74,9 +81,13 @@ class ForumPost {
       videoThumbnail: json['videoThumbnail'],
       likes: likesList.length,
       comments: (json['comments'] as List? ?? []).length,
+      reports: reportsList,
       isLiked: isLiked,
       isPinned: json['isPinned'] ?? false,
       isReported: isReported,
+      isUserBlocked: json['user'] is Map 
+        ? (json['user']['isBlocked'] ?? false) 
+        : (json['isBlocked'] ?? false),
     );
   }
 }

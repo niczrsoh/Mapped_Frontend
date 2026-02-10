@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:mapped_frontend/admin/admin_main_screen.dart';
 import 'package:mapped_frontend/coachBot/coachBot_controller.dart';
 import 'package:mapped_frontend/coachBot/coachBot_screen.dart';
 import 'package:mapped_frontend/forum/forum_screen.dart';
@@ -53,6 +54,8 @@ class AppRoutes {
   static const String createPost = '/create-post';
   static const String session = '/session';
   static const main = '/main';
+  static const String verificationCode = '/verification_code';
+  static const String adminReport = '/admin-report';
 }
 
 class AppPages {
@@ -136,5 +139,15 @@ class AppPages {
     GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
     GetPage(name: AppRoutes.forumSearchTags, page: () => ForumSearchtagsScreen()),
     GetPage(name: AppRoutes.createPost, page: () => CreatePostScreen()),
+    GetPage(
+      name: AppRoutes.verificationCode,
+      page: () => const VerificationCodeScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminReport, 
+      page: () => AdminMainScreen(),
+      transition: Transition.native,
+    ),
   ];
 }

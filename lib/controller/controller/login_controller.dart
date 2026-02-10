@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,8 +16,23 @@ class LoginController extends GetxController {
   final RxString emailError = ''.obs;
   final RxString passwordError = ''.obs;
   final RxString formError = ''.obs;
+  final RxBool isAdminMode = false.obs;
+  final RxBool canCheckBiometrics = false.obs;
+
+  void toggleMode() 
+  {
+    isAdminMode.value = !isAdminMode.value;
+    clearAll();
+  }
   
   final ApiService _apiService = ApiService();
+  final LocalAuthentication _auth = LocalAuthentication();
+
+  @override
+  void onInit() {
+    super.onInit();
+    _checkBiometricSupport();
+  }
 
   // Validation methods
   bool validateEmail() {
@@ -76,150 +92,116 @@ class LoginController extends GetxController {
     return isEmailValid && isPasswordValid;
   }
 
-  // Login method with validation
-  Future<void> login() async {
-    // Clear all errors
-    emailError.value = '';
-    passwordError.value = '';
-    formError.value = '';
-    
-    // Validate form
-    if (!validateForm()) {
-      return;
+  Future<void> _checkBiometricSupport() async {
+    bool canCheck = await _auth.canCheckBiometrics;
+    bool isSupported = await _auth.isDeviceSupported();
+    canCheckBiometrics.value = canCheck && isSupported;
+  }
+
+  // --- BIOMETRIC LOGIN LOGIC ---
+  Future<void> loginWithBiometrics() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? savedUserId = prefs.getString('user_id');
+
+      if (savedUserId == null || savedUserId.isEmpty) {
+        Get.snackbar(
+          'Manual Login Required',
+          'Please log in with your email and password at least once first.',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      bool authenticated = await _auth.authenticate(
+        localizedReason: 'Please scan your fingerprint to log in',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+          useErrorDialogs: true, // Automatically shows system dialogs for errors
+        ),
+      );
+
+      if (authenticated) {
+        String role = prefs.getString('user_role') ?? 'trainee';
+        
+        Get.snackbar('Welcome Back!', 'Biometric login successful',
+            backgroundColor: const Color(0xFF00C7A7), colorText: Colors.white);
+
+        // Navigate based on stored role
+        if (role == 'admin') {
+          Get.offAllNamed(AppRoutes.adminReport);
+        } else {
+          Get.offAllNamed(AppRoutes.main);
+        }
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Biometric authentication failed: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
     }
-    
+  }
+
+  // --- TRADITIONAL LOGIN LOGIC ---
+  Future<void> login() async {
+    if (!validateForm()) return;
     loading.value = true;
-    
+    formError.value = '';
+
     try {
       final result = await _apiService.loginUser(
         email: email.value.trim(),
         password: password.value,
       );
-      
+
       loading.value = false;
-      
-      if (result['success']) {
+
+      if (result['success'] == true) 
+      {
         final responseData = result['data'];
         
-        // Store user data including _id in SharedPreferences
         final prefs = await SharedPreferences.getInstance();
 
-        
-
-        // String? oldUserId = prefs.getString('user_id');
         String newUserId = responseData['user']['id'] ?? '';
 
-        // if (oldUserId != null && oldUserId != newUserId) {
-        //    print("🧹 Switching users: Clearing old belt and activity data...");
-        //    await prefs.remove('active_days_count');
-        //    await prefs.remove('recommendation_count');
-        //    await prefs.remove('last_active_date');
-        // }
+        // 1. Store Data for Persistence
+        String id = responseData['user']?['id'] ?? '';
+        String name = responseData['user']?['name'] ?? '';
+        String emailAddr = responseData['user']?['email'] ?? '';
+        String assignedRole = isAdminMode.value ? 'admin' : (responseData['user']?['role'] ?? 'trainee');
 
-        // // 2. Store new User ID
-        // if (responseData['user']['id'] != null) {
-        //   await prefs.setString('user_id', responseData['user']['id']);
-        // }
+        await prefs.setString('user_id', id);
+        await prefs.setString('user_name', name);
+        await prefs.setString('user_email', emailAddr);
+        await prefs.setString('user_role', assignedRole);
         
-        // Store user ID (from your MongoDB document - _id)
-        if (responseData['user']['id'] != null) {
-          await prefs.setString('user_id', responseData['user']['id']);
-          print('User ID stored: ${responseData['user']['id']}');
+        if (result['token'] != null) {
+          await prefs.setString('auth_token', result['token']);
         }
-        
-        // Store other user data
-        await prefs.setString('user_name', responseData['name'] ?? '');
-        await prefs.setString('user_email', responseData['email'] ?? '');
-        await prefs.setString('user_avatar', responseData['avatar'] ?? '');
-        await prefs.setString('user_role', responseData['role'] ?? 'trainee');
 
+        // 2. Update Global Controller
         final userController = Get.find<UserController>();
-        
-        // Force clear and reload user data
-        userController.userData.value = {}; // Clear current data
-        userController.userId.value = responseData['user']['id'] ?? '';
-        
-        // Fetch fresh user data
+        userController.userId.value = id;
         await userController.fetchUserProfile();
-        
-        // Clear fields on success
-        email.value = '';
-        password.value = '';
-        
-        Get.snackbar(
-          'Success! 🎉',
-          'Login successful!',
-          backgroundColor: const Color(0xFF00C7A7),
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
 
+        clearAll();
 
-        if (Get.isRegistered<TrainerController>()) {
-           final trainerCtrl = Get.find<TrainerController>();
-           trainerCtrl.currentUserId.value = newUserId;
-           
-           print("🔄 Triggering daily check on login...");
-           await trainerCtrl.updateActiveDays(); 
+        // 3. Navigation
+        if (assignedRole == 'admin') {
+          Get.offAllNamed(AppRoutes.adminReport); 
+        } else {
+          Get.offAllNamed(AppRoutes.main);
         }
-        
-        // Navigate to main screen
-        Get.offAllNamed(AppRoutes.main);
         
       } else {
-        final String errorMsg = result['error'] ?? 'Login failed';
-        
-        // Check for common error messages from backend
-        if (errorMsg.toLowerCase().contains('invalid credentials') ||
-            errorMsg.toLowerCase().contains('incorrect password') ||
-            errorMsg.toLowerCase().contains('user not found')) {
-          formError.value = 'Invalid email or password';
-        } else if (errorMsg.toLowerCase().contains('email not verified')) {
-          formError.value = 'Please verify your email first';
-        } else if (errorMsg.toLowerCase().contains('account locked')) {
-          formError.value = 'Account is temporarily locked. Try again later.';
-        } else if (errorMsg.toLowerCase().contains('too many attempts')) {
-          formError.value = 'Too many login attempts. Please wait.';
-        } else {
-          formError.value = errorMsg;
-        }
-        
-        if (formError.value.isNotEmpty) {
-          Get.snackbar(
-            'Login Failed',
-            formError.value,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        }
+        formError.value = result['msg'] ?? 'Login failed';
       }
-      
     } catch (e) {
       loading.value = false;
-      
-      // Handle specific exceptions
-      if (e.toString().contains('SocketException') ||
-          e.toString().contains('Network is unreachable')) {
-        formError.value = 'Network error. Please check your connection.';
-      } else if (e.toString().contains('TimeoutException')) {
-        formError.value = 'Request timed out. Please try again.';
-      } else {
-        formError.value = 'An unexpected error occurred. Please try again.';
-      }
-      
-      print('Login error: $e');
-      
-      Get.snackbar(
-        'Error',
-        formError.value,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      formError.value = 'Connection failed. Please check your server.';
     }
   }
-
+  
   bool get isFormValid {
     return email.value.isNotEmpty && 
           password.value.isNotEmpty &&
