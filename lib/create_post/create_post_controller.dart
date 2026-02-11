@@ -5,21 +5,23 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:mapped_frontend/forum/forum_screen.dart';
+import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_controller.dart';
-import '../services/api_service.dart';
-import '../TProgress/belt_progress_ring_controller.dart';
 
 class CreatePostController extends GetxController {
-  final ApiService _apiService = ApiService();
-  final String baseUrl = "http://10.0.2.2:5000";
+  final String baseUrl = kIsWeb
+      ? "http://localhost:5000"
+      : "http://10.0.2.2:5000";
 
   final TextEditingController textController = TextEditingController();
+  // Removed tagsController since we extract from text now
   final ImagePicker _picker = ImagePicker();
 
   var selectedImages = <XFile>[].obs;
+  final ApiService _apiService = ApiService();
   var isPosting = false.obs;
   var showPreview = false.obs;
   var postSuccess = false.obs;
@@ -32,6 +34,7 @@ class CreatePostController extends GetxController {
   String? currentUserId;
 
   YoutubePlayerController? ytPlayerController;
+  var sharedTipPostIds = <String>{}.obs;
 
   @override
   void onInit() {
@@ -55,6 +58,105 @@ class CreatePostController extends GetxController {
         textController.text.trim().isNotEmpty ||
         selectedImages.isNotEmpty ||
         videoUrl.value.isNotEmpty;
+  }
+
+    // Fetch previously shared tips from backend
+  Future<void> fetchSharedTips() async {
+    try {
+      if (currentUserId == null || currentUserId!.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        currentUserId = prefs.getString('user_id');
+      }
+
+      if (currentUserId == null || currentUserId!.isEmpty) return;
+
+      final result = await _apiService.getUserShareTipProgress(currentUserId!);
+
+      if (result['success'] == true && result['data'] != null) {
+        final List<dynamic> postIds = result['data'] as List<dynamic>;
+        sharedTipPostIds.value = postIds
+            .map((id) => id.toString())
+            .where((id) => id.isNotEmpty)
+            .toSet();
+      }
+    } catch (e) {
+      // Silent fail - user can still share tips
+    }
+  }
+
+   // Mark tip/resource share as submitted with duplicate prevention
+  Future<void> markShareTipAsSubmitted(String postId) async {
+
+    sharedTipPostIds.add(postId);
+
+    try {
+      try {
+        await _apiService.recordShareTipSubmission(postId, currentUserId!);
+      } catch (e) {
+      
+        print("⚠️ Individual share tip tracking not available: $e");
+      }
+      await _updateShareTipCount();
+
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+      }
+    } catch (e) {
+      sharedTipPostIds.remove(postId);
+    }
+  }
+
+  Future<void> _updateShareTipCount() async {
+    try {
+      if (currentUserId == null || currentUserId!.isEmpty) {
+        return;
+      }
+      await _apiService.updateBeltProgress(
+        userId: currentUserId!,
+        beltColor: 'B',
+        actionType: 'shareTip',
+      );
+
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+      }
+
+    } catch (e) {
+      print("⚠️ Failed to update share tip count: $e");
+    }
+  }
+
+
+  Future<void> removePostFromSharedTips(String postId) async {
+
+    if (sharedTipPostIds.isEmpty) {
+      await fetchSharedTips();
+    }
+
+    if (sharedTipPostIds.contains(postId)) {
+      sharedTipPostIds.remove(postId);
+      print("✅ Removed from local Set. New size: ${sharedTipPostIds.length}");
+    } else {
+      print("⚪ Post $postId not found in local shared tips Set");
+    }
+
+    if (Get.isRegistered<BeltProgressRingController>()) {
+      try {
+        final beltCtrl = Get.find<BeltProgressRingController>();
+        if (beltCtrl.backendShareTipCount.value > 0) {
+          beltCtrl.backendShareTipCount.value =
+              beltCtrl.backendShareTipCount.value - 1;
+        } else {
+          print("➡️ backendShareTipCount already zero; no decrement");
+        }
+      } catch (e) {
+        print("⚠️ Could not adjust backendShareTipCount: $e");
+      }
+    }
+
+    if (Get.isRegistered<BeltProgressRingController>()) {
+      await Get.find<BeltProgressRingController>().fetchBeltProgress();
+    }
   }
 
   Future<void> fetchCurrentUser() async {
@@ -190,21 +292,17 @@ class CreatePostController extends GetxController {
   }
 
   // --- VIDEO ---
-  Future<void> addVideoLink(String url) async {
+  void addVideoLink(String url) {
     if (url.isEmpty) return;
-    
-    isVideoLoading.value = true;
-    
-    try {
-      String? videoId = YoutubePlayer.convertUrlToId(url);
+    String? videoId = YoutubePlayer.convertUrlToId(url);
 
-      if (videoId == null) {
-        if (url.contains("youtube.com/watch?v=")) {
-          videoId = url.split("v=")[1].split("&")[0];
-        } else if (url.contains("youtu.be/")) {
-          videoId = url.split("youtu.be/")[1].split("?")[0];
-        }
+    if (videoId == null) {
+      if (url.contains("youtube.com/watch?v=")) {
+        videoId = url.split("v=")[1].split("&")[0];
+      } else if (url.contains("youtu.be/")) {
+        videoId = url.split("youtu.be/")[1].split("?")[0];
       }
+    }
 
     if (videoId != null && videoId.isNotEmpty) {
       videoUrl.value = url;
@@ -227,7 +325,6 @@ class CreatePostController extends GetxController {
   void removeVideo() {
     videoUrl.value = '';
     videoThumbnail.value = '';
-    isVideoLoading.value = false;
     ytPlayerController?.dispose();
     ytPlayerController = null;
     _updateContentState();
@@ -236,7 +333,9 @@ class CreatePostController extends GetxController {
   // --- HASHTAG LOGIC ---
   List<String> _extractHashtags(String text) {
     RegExp regExp = RegExp(r"#[a-zA-Z0-9_]+");
+
     Iterable<Match> matches = regExp.allMatches(text);
+
     return matches.map((m) => m.group(0)!).toSet().toList();
   }
 
@@ -320,8 +419,6 @@ class CreatePostController extends GetxController {
         selectedImages.clear();
         videoUrl.value = '';
         videoThumbnail.value = '';
-        isVideoLoading.value = false;
-        showPreview.value = false;
         ytPlayerController?.dispose();
         ytPlayerController = null;
         showPreview.value = false;
@@ -329,6 +426,8 @@ class CreatePostController extends GetxController {
 
         // Show success message
         Get.snackbar("Success", "Post published successfully");
+
+        // Refresh Feed
         try {
           Get.find<ForumController>().loadPosts();
         } catch (e) {
@@ -343,105 +442,6 @@ class CreatePostController extends GetxController {
       Get.snackbar("Error", "Connection error: $e");
     } finally {
       isPosting.value = false;
-    }
-  }
-
-  // Fetch previously shared tips from backend
-  Future<void> fetchSharedTips() async {
-    try {
-      if (currentUserId == null || currentUserId!.isEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        currentUserId = prefs.getString('user_id');
-      }
-
-      if (currentUserId == null || currentUserId!.isEmpty) return;
-
-      final result = await _apiService.getUserShareTipProgress(currentUserId!);
-
-      if (result['success'] == true && result['data'] != null) {
-        final List<dynamic> postIds = result['data'] as List<dynamic>;
-        sharedTipPostIds.value = postIds
-            .map((id) => id.toString())
-            .where((id) => id.isNotEmpty)
-            .toSet();
-      }
-    } catch (e) {
-      // Silent fail - user can still share tips
-    }
-  }
-
-  // Mark tip/resource share as submitted with duplicate prevention
-  Future<void> markShareTipAsSubmitted(String postId) async {
-
-    sharedTipPostIds.add(postId);
-
-    try {
-      try {
-        await _apiService.recordShareTipSubmission(postId, currentUserId!);
-      } catch (e) {
-      
-        print("⚠️ Individual share tip tracking not available: $e");
-      }
-      await _updateShareTipCount();
-
-      if (Get.isRegistered<BeltProgressRingController>()) {
-        await Get.find<BeltProgressRingController>().fetchBeltProgress();
-      }
-    } catch (e) {
-      sharedTipPostIds.remove(postId);
-    }
-  }
-
-  Future<void> _updateShareTipCount() async {
-    try {
-      if (currentUserId == null || currentUserId!.isEmpty) {
-        return;
-      }
-      await _apiService.updateBeltProgress(
-        userId: currentUserId!,
-        beltColor: 'B',
-        actionType: 'shareTip',
-      );
-
-      if (Get.isRegistered<BeltProgressRingController>()) {
-        await Get.find<BeltProgressRingController>().fetchBeltProgress();
-      }
-
-    } catch (e) {
-      print("⚠️ Failed to update share tip count: $e");
-    }
-  }
-
-
-  Future<void> removePostFromSharedTips(String postId) async {
-
-    if (sharedTipPostIds.isEmpty) {
-      await fetchSharedTips();
-    }
-
-    if (sharedTipPostIds.contains(postId)) {
-      sharedTipPostIds.remove(postId);
-      print("✅ Removed from local Set. New size: ${sharedTipPostIds.length}");
-    } else {
-      print("⚪ Post $postId not found in local shared tips Set");
-    }
-
-    if (Get.isRegistered<BeltProgressRingController>()) {
-      try {
-        final beltCtrl = Get.find<BeltProgressRingController>();
-        if (beltCtrl.backendShareTipCount.value > 0) {
-          beltCtrl.backendShareTipCount.value =
-              beltCtrl.backendShareTipCount.value - 1;
-        } else {
-          print("➡️ backendShareTipCount already zero; no decrement");
-        }
-      } catch (e) {
-        print("⚠️ Could not adjust backendShareTipCount: $e");
-      }
-    }
-
-    if (Get.isRegistered<BeltProgressRingController>()) {
-      await Get.find<BeltProgressRingController>().fetchBeltProgress();
     }
   }
 }
