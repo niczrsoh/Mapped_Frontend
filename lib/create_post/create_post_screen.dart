@@ -7,9 +7,33 @@ import 'dart:async';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'create_post_controller.dart';
 
-class CreatePostScreen extends StatelessWidget {
-  CreatePostScreen({super.key});
+class CreatePostScreen extends StatefulWidget {
+  const CreatePostScreen({super.key});
+
+  @override
+  State<CreatePostScreen> createState() => _CreatePostScreenState();
+}
+
+class _CreatePostScreenState extends State<CreatePostScreen> {
   final CreatePostController controller = Get.put(CreatePostController());
+  Worker? _postSuccessWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for post success
+    _postSuccessWorker = ever(controller.postSuccess, (success) {
+      if (success && mounted) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _postSuccessWorker?.dispose();
+    super.dispose();
+  }
 
   String _getAvatarUrl(String path) {
     if (path.isEmpty) return '';
@@ -22,15 +46,15 @@ class CreatePostScreen extends StatelessWidget {
     return Obx(() {
       // Show preview mode or edit mode
       if (controller.showPreview.value) {
-        return _buildPreviewMode();
+        return _buildPreviewMode(context);
       } else {
-        return _buildEditMode();
+        return _buildEditMode(context);
       }
     });
   }
 
   // EDIT MODE - Where user creates the post
-  Widget _buildEditMode() {
+  Widget _buildEditMode(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1A1D29),
       appBar: AppBar(
@@ -38,7 +62,7 @@ class CreatePostScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Forum Dashboard',
@@ -119,10 +143,13 @@ class CreatePostScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Combined Row: Media Icons (Left) + Next Button (Right)
-            _buildActionRow(
-              buttonLabel: 'Next',
-              onButtonTap: controller.previewPost,
-              isLoading: false,
+            Obx(
+              () => _buildActionRow(
+                buttonLabel: 'Next',
+                onButtonTap: controller.previewPost,
+                isLoading: false,
+                disableNext: !controller.hasContent.value,
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -224,7 +251,7 @@ class CreatePostScreen extends StatelessWidget {
   }
 
   // PREVIEW MODE - Where user sees preview before posting
-  Widget _buildPreviewMode() {
+  Widget _buildPreviewMode(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1A1D29),
       appBar: AppBar(
@@ -308,14 +335,28 @@ class CreatePostScreen extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   // Content
-                  Text(
-                    controller.textController.text,
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                      color: Colors.white,
-                      height: 1.5,
+                  if (controller.textController.text.trim().isNotEmpty)
+                    Text(
+                      controller.textController.text,
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: Colors.white,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
+
+                  if (controller.textController.text.trim().isEmpty &&
+                      (controller.selectedImages.isNotEmpty ||
+                          controller.videoUrl.value.isNotEmpty))
+                    Text(
+                      '📷 Shared media',
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+
                   const SizedBox(height: 12),
 
                   // Images Slider (Preview Mode)
@@ -396,6 +437,7 @@ class CreatePostScreen extends StatelessWidget {
     required VoidCallback onButtonTap,
     required bool isLoading,
     bool disableMedia = false,
+    bool disableNext = false,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -452,10 +494,12 @@ class CreatePostScreen extends StatelessWidget {
         ),
         const Spacer(),
         ElevatedButton(
-          onPressed: isLoading ? null : onButtonTap,
+          onPressed: (isLoading || disableNext) ? null : onButtonTap,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF09FACA),
             foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.grey[700],
+            disabledForegroundColor: Colors.grey[500],
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(25),

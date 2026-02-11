@@ -68,27 +68,31 @@ class ForumScreen extends StatelessWidget {
 
   // ========== SEARCH BAR ==========
   Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GestureDetector(
-        onTap: () => Get.to(() => ForumSearchtagsScreen()),
-        child: Container(
-          decoration: AppStyles.searchBarDeco,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Search by name or tags...',
-                  style: GoogleFonts.roboto(
-                    color: Colors.white54,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+    return Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => ForumSearchtagsScreen()),
+          ),
+          child: Container(
+            decoration: AppStyles.searchBarDeco,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Search by name or tags...',
+                    style: GoogleFonts.roboto(
+                      color: Colors.white54,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
-              const Icon(Icons.search, color: Colors.white54),
-            ],
+                const Icon(Icons.search, color: Colors.white54),
+              ],
+            ),
           ),
         ),
       ),
@@ -97,73 +101,79 @@ class ForumScreen extends StatelessWidget {
 
   // ========== CREATE POST SECTION ==========
   Widget _buildCreatePostSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Obx(() {
-            final avatar = userController.userAvatar;
-            return CircleAvatar(
-              radius: 22,
-              backgroundColor: Colors.grey[300],
-              backgroundImage: avatar.isNotEmpty
-                  ? NetworkImage(
-                      avatar.startsWith('http')
-                          ? avatar
-                          : 'https://mapped-backend-node-js.onrender.com/$avatar',
-                    )
-                  : null,
-              child: avatar.isEmpty
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
-            );
-          }),
-          const SizedBox(width: 12),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => Get.to(() => CreatePostScreen()),
+    return Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Obx(() {
+              final avatar = userController.userAvatar;
+              return CircleAvatar(
+                radius: 22,
+                backgroundColor: Colors.grey[300],
+                backgroundImage: avatar.isNotEmpty
+                    ? NetworkImage(
+                        avatar.startsWith('http')
+                            ? avatar
+                            : 'https://mapped-backend-node-js.onrender.com/$avatar',
+                      )
+                    : null,
+                child: avatar.isEmpty
+                    ? const Icon(Icons.person, color: Colors.grey)
+                    : null,
+              );
+            }),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => CreatePostScreen()),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF252836),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF09FACA).withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    'What\'s on your mind?',
+                    style: GoogleFonts.roboto(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => CreatePostScreen()),
+              ),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF252836),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF09FACA).withOpacity(0.3),
-                    width: 1,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
                   ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  'What\'s on your mind?',
-                  style: GoogleFonts.roboto(
-                    color: Colors.white54,
-                    fontSize: 14,
-                  ),
+                child: const Icon(
+                  Icons.collections,
+                  color: Colors.white,
+                  size: 22,
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: () => Get.to(() => CreatePostScreen()),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.collections,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -483,52 +493,58 @@ class ForumScreen extends StatelessWidget {
 
   // ========== INTERACTION BUTTONS ==========
   Widget _buildInteractionButtons(ForumPost post) {
-    return Row(
-      children: [
-        Obx(
-          () => _buildInteractionButton(
-            icon: post.isLiked.value ? Icons.favorite : Icons.favorite_border,
-            count: post.likes.value,
-            color: post.isLiked.value ? Colors.red : Colors.white54,
-            onTap: () => controller.toggleLike(post),
-          ),
-        ),
-        const SizedBox(width: 20),
-        _buildInteractionButton(
-          icon: Icons.chat_bubble_outline,
-          count: post.comments,
-          color: Colors.white54,
-          onTap: () => Get.to(() => CommentsScreen(post: post)),
-        ),
-
-        const Spacer(),
-
-        // PIN BUTTON
-        Obx(
-          () => IconButton(
-            icon: Icon(
-              post.isPinned.value ? Icons.push_pin : Icons.push_pin_outlined,
-              color: post.isPinned.value
-                  ? const Color(0xFF09FACA)
-                  : Colors.white54,
-              size: 20,
+    return Builder(
+      builder: (context) => Row(
+        children: [
+          Obx(
+            () => _buildInteractionButton(
+              icon: post.isLiked.value ? Icons.favorite : Icons.favorite_border,
+              count: post.likes.value,
+              color: post.isLiked.value ? Colors.red : Colors.white54,
+              onTap: () => controller.toggleLike(post),
             ),
-            onPressed: () => _showPinConfirmationDialog(post),
           ),
-        ),
-
-        // REPORT BUTTON
-        Obx(
-          () => IconButton(
-            icon: Icon(
-              post.isReported.value ? Icons.flag : Icons.flag_outlined,
-              color: post.isReported.value ? Colors.red : Colors.white54,
-              size: 20,
+          const SizedBox(width: 20),
+          _buildInteractionButton(
+            icon: Icons.chat_bubble_outline,
+            count: post.comments,
+            color: Colors.white54,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => CommentsScreen(post: post),
+              ),
             ),
-            onPressed: () => _showReportDialog(post),
           ),
-        ),
-      ],
+
+          const Spacer(),
+
+          // PIN BUTTON
+          Obx(
+            () => IconButton(
+              icon: Icon(
+                post.isPinned.value ? Icons.push_pin : Icons.push_pin_outlined,
+                color: post.isPinned.value
+                    ? const Color(0xFF09FACA)
+                    : Colors.white54,
+                size: 20,
+              ),
+              onPressed: () => _showPinConfirmationDialog(post),
+            ),
+          ),
+
+          // REPORT BUTTON
+          Obx(
+            () => IconButton(
+              icon: Icon(
+                post.isReported.value ? Icons.flag : Icons.flag_outlined,
+                color: post.isReported.value ? Colors.red : Colors.white54,
+                size: 20,
+              ),
+              onPressed: () => _showReportDialog(post),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -652,9 +668,16 @@ class ForumScreen extends StatelessWidget {
       textCancel: 'Cancel',
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
+      barrierDismissible: false,
       onConfirm: () async {
-        Get.back();
+        Get.back(); // Close dialog first
+        await Future.delayed(
+          const Duration(milliseconds: 100),
+        ); // Wait for dialog to close
         await controller.deletePost(post);
+      },
+      onCancel: () {
+        Get.back(); // Explicitly close on cancel
       },
     );
   }

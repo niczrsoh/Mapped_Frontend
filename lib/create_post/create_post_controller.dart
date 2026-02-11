@@ -26,6 +26,7 @@ class CreatePostController extends GetxController {
   var userAvatar = ''.obs;
   var videoUrl = ''.obs;
   var videoThumbnail = ''.obs;
+  var hasContent = false.obs;
 
   String? currentUserId;
 
@@ -34,14 +35,25 @@ class CreatePostController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    postSuccess.value = false; // Reset success flag
     fetchCurrentUser();
+    // Listen to text changes
+    textController.addListener(_updateContentState);
   }
 
   @override
   void onClose() {
+    textController.removeListener(_updateContentState);
     textController.dispose();
     ytPlayerController?.dispose();
     super.onClose();
+  }
+
+  void _updateContentState() {
+    hasContent.value =
+        textController.text.trim().isNotEmpty ||
+        selectedImages.isNotEmpty ||
+        videoUrl.value.isNotEmpty;
   }
 
   Future<void> fetchCurrentUser() async {
@@ -116,6 +128,7 @@ class CreatePostController extends GetxController {
     } catch (e) {
       Get.snackbar("Error", "Failed to pick images");
     }
+    _updateContentState();
   }
 
   Future<void> pickImageFromCamera() async {
@@ -150,14 +163,20 @@ class CreatePostController extends GetxController {
     } catch (e) {
       Get.snackbar("Error", "Failed to take photo");
     }
+    _updateContentState();
   }
 
-  void removeImage(int index) => selectedImages.removeAt(index);
+  void removeImage(int index) {
+    selectedImages.removeAt(index);
+    _updateContentState();
+  }
 
   // --- PREVIEW ---
   void previewPost() {
-    if (textController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Please write something");
+    if (textController.text.trim().isEmpty &&
+        selectedImages.isEmpty &&
+        videoUrl.value.isEmpty) {
+      Get.snackbar("Error", "Please add some content (text, images, or video)");
       return;
     }
     showPreview.value = true;
@@ -194,6 +213,7 @@ class CreatePostController extends GetxController {
         ),
       );
       Get.back();
+      _updateContentState();
     } else {
       Get.snackbar("Error", "Please enter a valid YouTube URL");
     }
@@ -204,6 +224,7 @@ class CreatePostController extends GetxController {
     videoThumbnail.value = '';
     ytPlayerController?.dispose();
     ytPlayerController = null;
+    _updateContentState();
   }
 
   // --- HASHTAG LOGIC ---
@@ -217,8 +238,10 @@ class CreatePostController extends GetxController {
 
   // --- SUBMIT ---
   Future<void> submitPost() async {
-    if (textController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Post content cannot be empty");
+    if (textController.text.trim().isEmpty &&
+        selectedImages.isEmpty &&
+        videoUrl.value.isEmpty) {
+      Get.snackbar("Error", "Post must have at least some content");
       return;
     }
 
@@ -282,18 +305,23 @@ class CreatePostController extends GetxController {
       var responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Set success flag FIRST to trigger navigation immediately
         postSuccess.value = true;
-        await Future.delayed(const Duration(seconds: 1));
 
-        // Reset
+        // Wait a bit for navigation to start
+        await Future.delayed(const Duration(milliseconds: 200));
+
+        // Then reset state (after navigation)
         textController.clear();
         selectedImages.clear();
         videoUrl.value = '';
         videoThumbnail.value = '';
         ytPlayerController?.dispose();
         ytPlayerController = null;
+        showPreview.value = false;
+        _updateContentState();
 
-        Get.back();
+        // Show success message
         Get.snackbar("Success", "Post published successfully");
 
         // Refresh Feed
