@@ -27,11 +27,7 @@ class CreatePostController extends GetxController {
   var userAvatar = ''.obs;
   var videoUrl = ''.obs;
   var videoThumbnail = ''.obs;
-  var isVideoLoading = false.obs;
-
-  // Share tip tracking - stores unique post IDs that have been shared
-  // Using Set to automatically prevent duplicate counting
-  var sharedTipPostIds = <String>{}.obs;
+  var hasContent = false.obs;
 
   String? currentUserId;
 
@@ -40,15 +36,25 @@ class CreatePostController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    postSuccess.value = false; // Reset success flag
     fetchCurrentUser();
-    fetchSharedTips();
+    // Listen to text changes
+    textController.addListener(_updateContentState);
   }
 
   @override
   void onClose() {
+    textController.removeListener(_updateContentState);
     textController.dispose();
     ytPlayerController?.dispose();
     super.onClose();
+  }
+
+  void _updateContentState() {
+    hasContent.value =
+        textController.text.trim().isNotEmpty ||
+        selectedImages.isNotEmpty ||
+        videoUrl.value.isNotEmpty;
   }
 
   Future<void> fetchCurrentUser() async {
@@ -123,6 +129,7 @@ class CreatePostController extends GetxController {
     } catch (e) {
       Get.snackbar("Error", "Failed to pick images");
     }
+    _updateContentState();
   }
 
   Future<void> pickImageFromCamera() async {
@@ -157,14 +164,20 @@ class CreatePostController extends GetxController {
     } catch (e) {
       Get.snackbar("Error", "Failed to take photo");
     }
+    _updateContentState();
   }
 
-  void removeImage(int index) => selectedImages.removeAt(index);
+  void removeImage(int index) {
+    selectedImages.removeAt(index);
+    _updateContentState();
+  }
 
   // --- PREVIEW ---
   void previewPost() {
-    if (textController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Please write something");
+    if (textController.text.trim().isEmpty &&
+        selectedImages.isEmpty &&
+        videoUrl.value.isEmpty) {
+      Get.snackbar("Error", "Please add some content (text, images, or video)");
       return;
     }
     showPreview.value = true;
@@ -193,37 +206,21 @@ class CreatePostController extends GetxController {
         }
       }
 
-      if (videoId != null && videoId.isNotEmpty) {
-        videoUrl.value = url;
-        videoThumbnail.value = "https://img.youtube.com/vi/$videoId/0.jpg";
-        
-        // Dispose existing controller if any
-        ytPlayerController?.dispose();
-        
-        // Initialize new controller
-        ytPlayerController = YoutubePlayerController(
-          initialVideoId: videoId,
-          flags: const YoutubePlayerFlags(
-            autoPlay: false,
-            mute: false,
-            disableDragSeek: true,
-            enableCaption: false,
-          ),
-        );
-        
-        // Wait for controller to be ready
-        await Future.delayed(const Duration(milliseconds: 500));
-        
-        Get.back();
-        Get.snackbar("Success", "Video added successfully");
-      } else {
-        Get.snackbar("Error", "Please enter a valid YouTube URL");
-      }
-    } catch (e) {
-      print("Error adding video: $e");
-      Get.snackbar("Error", "Failed to add video");
-    } finally {
-      isVideoLoading.value = false;
+    if (videoId != null && videoId.isNotEmpty) {
+      videoUrl.value = url;
+      videoThumbnail.value = "https://img.youtube.com/vi/$videoId/0.jpg";
+      ytPlayerController = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+          disableDragSeek: true,
+        ),
+      );
+      Get.back();
+      _updateContentState();
+    } else {
+      Get.snackbar("Error", "Please enter a valid YouTube URL");
     }
   }
 
@@ -233,6 +230,7 @@ class CreatePostController extends GetxController {
     isVideoLoading.value = false;
     ytPlayerController?.dispose();
     ytPlayerController = null;
+    _updateContentState();
   }
 
   // --- HASHTAG LOGIC ---
@@ -244,8 +242,10 @@ class CreatePostController extends GetxController {
 
   // --- SUBMIT ---
   Future<void> submitPost() async {
-    if (textController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Post content cannot be empty");
+    if (textController.text.trim().isEmpty &&
+        selectedImages.isEmpty &&
+        videoUrl.value.isEmpty) {
+      Get.snackbar("Error", "Post must have at least some content");
       return;
     }
 
@@ -309,22 +309,13 @@ class CreatePostController extends GetxController {
       var responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(responseBody);
-        String postId =
-            responseData['postId'] ??
-            DateTime.now().millisecondsSinceEpoch.toString();
-
-        print("🎉 Post submitted successfully! PostId: $postId");
+        // Set success flag FIRST to trigger navigation immediately
         postSuccess.value = true;
 
-        // Mark this post as a shared tip for belt progress tracking
-        print("📝 About to mark post as shared tip...");
-        await markShareTipAsSubmitted(postId);
-        print("✅ Marking complete");
+        // Wait a bit for navigation to start
+        await Future.delayed(const Duration(milliseconds: 200));
 
-        await Future.delayed(const Duration(seconds: 1));
-
-        // Reset everything
+        // Then reset state (after navigation)
         textController.clear();
         selectedImages.clear();
         videoUrl.value = '';
@@ -333,7 +324,10 @@ class CreatePostController extends GetxController {
         showPreview.value = false;
         ytPlayerController?.dispose();
         ytPlayerController = null;
-        Get.off(() => ForumScreen());
+        showPreview.value = false;
+        _updateContentState();
+
+        // Show success message
         Get.snackbar("Success", "Post published successfully");
         try {
           Get.find<ForumController>().loadPosts();

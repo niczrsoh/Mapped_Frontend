@@ -255,26 +255,29 @@ class ForumController extends GetxController {
 
       if (response.statusCode == 200) {
         posts.removeWhere((p) => p.id == post.id);
-        Get.snackbar("Success", "Post deleted successfully");
-
-        try {
-          if (Get.isRegistered<CreatePostController>()) {
-            await Get.find<CreatePostController>().removePostFromSharedTips(
-              post.id,
-            );
-          }
-        } catch (e) {
-          print('ForumController: error removing post from shared tips: $e');
-        }
-
-        Get.back();
+        Get.closeAllSnackbars(); // Close any existing snackbars
+        Get.snackbar(
+          "Success",
+          "Post deleted successfully",
+          duration: const Duration(seconds: 2),
+        );
         return true;
       } else {
-        Get.snackbar("Error", "Could not delete post");
+        Get.closeAllSnackbars();
+        Get.snackbar(
+          "Error",
+          "Could not delete post",
+          duration: const Duration(seconds: 2),
+        );
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Could not connect to server");
+      Get.closeAllSnackbars();
+      Get.snackbar(
+        "Error",
+        "Could not connect to server",
+        duration: const Duration(seconds: 2),
+      );
       return false;
     }
   }
