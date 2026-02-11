@@ -106,7 +106,7 @@ class ForumScreen extends StatelessWidget {
                   ? NetworkImage(
                       avatar.startsWith('http')
                           ? avatar
-                          : 'https://mapped-backend-node-js.onrender.com/$avatar',
+                          : 'http://10.0.2.2:5000/$avatar',
                     )
                   : null,
               child: avatar.isEmpty

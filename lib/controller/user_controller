@@ -18,33 +18,33 @@ class UserController extends GetxController {
   void onInit() {
     super.onInit();
     print('🔄 UserController initialized');
-    initializeUserData();
+    checkAuthAndRedirect();
   }
-  
-  Future<void> initializeUserData() async {
-    if (isInitialized.value) return;
-    
-    try {
-      print('📱 Initializing user data...');
-      final prefs = await SharedPreferences.getInstance();
-      final storedId = prefs.getString('user_id');
+
+  Future<void> checkAuthAndRedirect() async {
+    print('Checking authentication status for redirect...');
+    final prefs = await SharedPreferences.getInstance();
+    final String? storedId = prefs.getString('user_id');
+    final String? storedRole = prefs.getString('user_role');
+
+    if (storedId != null && storedId.isNotEmpty) {
+      print('✅ Auth found, redirecting user: $storedId');
       
-      if (storedId != null && storedId.isNotEmpty) {
-        userId.value = storedId;
-        print('✅ User ID found in storage: $storedId');
-        
-        // Load data from storage immediately
-        await _loadFromStorage(prefs);
-        
-        // Fetch fresh data from API
-        await fetchUserProfile();
+      // Update the reactive variables
+      userId.value = storedId;
+      await _loadFromStorage(prefs);
+      
+      if (storedRole == 'admin') {
+        // Use string literal until AppRoutes is available
+        Get.offAllNamed('/admin-report');
       } else {
-        print('⚠️ No user ID found in storage');
+        Get.offAllNamed('/main');
       }
       
-      isInitialized.value = true;
-    } catch (e) {
-      print('❌ Error initializing user data: $e');
+      // Silently fetch fresh profile data in the background
+      fetchUserProfile();
+    } else {
+      print('👋 No active session, staying on Login/Auth page');
     }
   }
   
