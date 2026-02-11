@@ -142,65 +142,77 @@ class LoginController extends GetxController {
     }
   }
 
-  // --- TRADITIONAL LOGIN LOGIC ---
   Future<void> login() async {
-    if (!validateForm()) return;
-    loading.value = true;
-    formError.value = '';
+      if (!validateForm()) return;
+      loading.value = true;
+      formError.value = '';
 
-    try {
-      final result = await _apiService.loginUser(
-        email: email.value.trim(),
-        password: password.value,
-      );
+      try {
+        final result = await _apiService.loginUser(
+          email: email.value.trim(),
+          password: password.value,
+        );
 
-      loading.value = false;
+        if (result['success'] == true) {
+          final responseData = result['data'];
+          final serverRole = responseData['user']?['role'] ?? 'trainee';
 
-      if (result['success'] == true) 
-      {
-        final responseData = result['data'];
-        
-        final prefs = await SharedPreferences.getInstance();
+          // --- NEW SECURITY CHECK ---
+          // If UI is in Admin Mode but server says User, OR
+          // If UI is in User Mode but server says Admin -> REJECT
+          if (isAdminMode.value && serverRole != 'admin') {
+            loading.value = false;
+            formError.value = 'Access Denied: This account does not have Admin privileges.';
+            return; 
+          } 
+          
+          if (!isAdminMode.value && serverRole == 'admin') {
+            loading.value = false;
+            formError.value = 'Admins must use the Admin Access portal to log in.';
+            return;
+          }
+          // ---------------------------
 
-        String newUserId = responseData['user']['id'] ?? '';
+          final prefs = await SharedPreferences.getInstance();
 
-        // 1. Store Data for Persistence
-        String id = responseData['user']?['id'] ?? '';
-        String name = responseData['user']?['name'] ?? '';
-        String emailAddr = responseData['user']?['email'] ?? '';
-        String assignedRole = isAdminMode.value ? 'admin' : (responseData['user']?['role'] ?? 'trainee');
+          // Store Data for Persistence
+          String id = responseData['user']?['id'] ?? '';
+          String name = responseData['user']?['name'] ?? '';
+          String emailAddr = responseData['user']?['email'] ?? '';
+          
+          await prefs.setString('user_id', id);
+          await prefs.setString('user_name', name);
+          await prefs.setString('user_email', emailAddr);
+          await prefs.setString('user_role', serverRole);
+          
+          if (result['token'] != null) {
+            await prefs.setString('auth_token', result['token']);
+          }
 
-        await prefs.setString('user_id', id);
-        await prefs.setString('user_name', name);
-        await prefs.setString('user_email', emailAddr);
-        await prefs.setString('user_role', assignedRole);
-        
-        if (result['token'] != null) {
-          await prefs.setString('auth_token', result['token']);
-        }
+          // Update Global Controller
+          final userController = Get.find<UserController>();
+          userController.userId.value = id;
+          await userController.fetchUserProfile();
 
-        // 2. Update Global Controller
-        final userController = Get.find<UserController>();
-        userController.userId.value = id;
-        await userController.fetchUserProfile();
+          loading.value = false;
+          clearAll();
 
-        clearAll();
-
-        // 3. Navigation
-        if (assignedRole == 'admin') {
-          Get.offAllNamed(AppRoutes.adminReport); 
+          // Navigation based on Role
+          if (serverRole == 'admin') {
+            Get.offAllNamed(AppRoutes.adminReport); 
+          } else {
+            Get.offAllNamed(AppRoutes.main);
+          }
+          
         } else {
-          Get.offAllNamed(AppRoutes.main);
+          loading.value = false;
+          formError.value = result['msg'] ?? 'Login failed';
         }
-        
-      } else {
-        formError.value = result['msg'] ?? 'Login failed';
+      } catch (e) {
+        loading.value = false;
+        formError.value = 'Connection failed. Please check your server.';
       }
-    } catch (e) {
-      loading.value = false;
-      formError.value = 'Connection failed. Please check your server.';
     }
-  }
   
   bool get isFormValid {
     return email.value.isNotEmpty && 
