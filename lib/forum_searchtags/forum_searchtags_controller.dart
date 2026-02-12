@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_model.dart';
 
 class ForumSearchtagsController extends GetxController {
-  final String baseUrl = "http://10.0.2.2:5000";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com";
 
   // 1. Dynamic User ID
   String currentUserId = '';

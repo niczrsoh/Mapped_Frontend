@@ -14,7 +14,7 @@ class ResetPasswordController extends GetxController {
   final isLoading = false.obs;
   final errorMessage = "".obs;
 
-  final String baseUrl = "http://10.0.2.2:5000/api/users";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
 
   Future<void> sendResetEmail() async {
     final email = emailController.text.trim();
