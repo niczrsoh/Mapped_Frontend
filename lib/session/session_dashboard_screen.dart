@@ -5,6 +5,7 @@ import 'package:mapped_frontend/session/session_upcoming_screen.dart';
 import 'session_current_screen.dart';
 import 'session_history_screen.dart';
 import 'session_controller.dart';
+import 'session_model.dart';
 
 class SessionDashboardScreen extends StatelessWidget {
   const SessionDashboardScreen({super.key});
@@ -16,16 +17,123 @@ class SessionDashboardScreen extends StatelessWidget {
     return '$d Mins';
   }
 
-  Widget _sessionCard({
-    required String title,
+  Widget _buildSessionContentRows({
     required String date,
     required String time,
     required String venue,
     required String trainees,
     required String trainer,
-    bool isEmpty = false,
-    int? notificationCount,
   }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.calendar_today, size: 14, color: Colors.white54),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                date,
+                style: GoogleFonts.roboto(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.access_time, size: 14, color: Colors.white54),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                time,
+                style: GoogleFonts.roboto(
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(
+              Icons.location_on_outlined,
+              size: 14,
+              color: Colors.white54,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                venue,
+                style: GoogleFonts.roboto(
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(Icons.group_outlined, size: 14, color: Colors.white54),
+            const SizedBox(width: 8),
+            Text(
+              trainees,
+              style: GoogleFonts.roboto(
+                color: Colors.white54,
+                fontWeight: FontWeight.w400,
+                fontSize: 12,
+                height: 1.0,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(Icons.person_outline, size: 14, color: Colors.white54),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                trainer,
+                style: GoogleFonts.roboto(
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // --- REUSABLE SCROLLABLE BOX WIDGET ---
+  Widget _buildScrollableSessionBox({
+    required BuildContext context,
+    required String title,
+    required List<SessionModel> sessions,
+    required Widget Function() navigationTarget,
+    double maxHeight = 105,
+  }) {
+    bool isEmpty = sessions.isEmpty;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 20),
       padding: const EdgeInsets.all(1),
@@ -56,8 +164,9 @@ class SessionDashboardScreen extends StatelessWidget {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // --- Header Row (Title + Notification) ---
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         title,
@@ -67,139 +176,52 @@ class SessionDashboardScreen extends StatelessWidget {
                           fontSize: 16,
                         ),
                       ),
-                      if (notificationCount != null && notificationCount > 0)
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 24,
-                            minHeight: 24,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$notificationCount',
-                              style: GoogleFonts.roboto(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        size: 14,
-                        color: Colors.white54,
+
+                  // --- Scrollable List ---
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight:
+                          maxHeight, // Limits height to make it scrollable
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: sessions.length,
+                      separatorBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Divider(
+                          color: Colors.white.withOpacity(0.1),
+                          height: 1,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          date,
-                          style: GoogleFonts.roboto(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12,
-                            height: 1.0,
+                      itemBuilder: (context, index) {
+                        final session = sessions[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => navigationTarget(),
+                              ),
+                            );
+                          },
+                          // Transparent container to catch taps
+                          child: Container(
+                            color: Colors.transparent,
+                            child: _buildSessionContentRows(
+                              date: session.uiDate ?? session.date ?? '-',
+                              time: _formatDuration(session.duration),
+                              venue: session.venue ?? '-',
+                              trainees: '${session.totalTrainees} Trainees',
+                              trainer: 'Coach: Sir ${session.trainer ?? '-'}',
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: Colors.white54,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          time,
-                          style: GoogleFonts.roboto(
-                            color: Colors.white54,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12,
-                            height: 1.0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: Colors.white54,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          venue,
-                          style: GoogleFonts.roboto(
-                            color: Colors.white54,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12,
-                            height: 1.0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.group_outlined,
-                        size: 14,
-                        color: Colors.white54,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        trainees,
-                        style: GoogleFonts.roboto(
-                          color: Colors.white54,
-                          fontWeight: FontWeight.w400,
-                          fontSize: 12,
-                          height: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.person_outline,
-                        size: 14,
-                        color: Colors.white54,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          trainer,
-                          style: GoogleFonts.roboto(
-                            color: Colors.white54,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12,
-                            height: 1.0,
-                          ),
-                        ),
-                      ),
-                    ],
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -270,85 +292,26 @@ class SessionDashboardScreen extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SessionCurrentScreen(),
-                        ),
-                      );
-                    },
-                    child: _sessionCard(
-                      title: 'Current',
-                      isEmpty: controller.currentList.isEmpty,
-                      date: controller.currentList.isNotEmpty
-                          ? controller.currentList[0].uiDate ??
-                                controller.currentList[0].date ??
-                                '-'
-                          : '-',
-                      time: controller.currentList.isNotEmpty
-                          ? _formatDuration(controller.currentList[0].duration)
-                          : '-',
-                      venue: controller.currentList.isNotEmpty
-                          ? controller.currentList[0].venue ?? '-'
-                          : '-',
-                      trainees: controller.currentList.isNotEmpty
-                          ? '${controller.currentList[0].totalTrainees} Trainees'
-                          : '0 Trainees',
-                      trainer: controller.currentList.isNotEmpty
-                          ? 'Coach: Sir ${controller.currentList[0].trainer ?? '-'}'
-                          : 'Coach: Sir -',
-                    ),
+                  _buildScrollableSessionBox(
+                    context: context,
+                    title: 'Current',
+                    sessions: controller.currentList,
+                    navigationTarget: () => const SessionCurrentScreen(),
                   ),
 
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UpcomingSessionsScreen(),
-                        ),
-                      );
-                    },
-                    child: _sessionCard(
-                      title: 'Upcoming',
-                      isEmpty: controller.upcomingSession.value == null,
-                      notificationCount: controller.upcomingList.length,
-                      date: controller.upcomingSession.value?.uiDate ?? '-',
-                      time: _formatDuration(
-                        controller.upcomingSession.value?.duration,
-                      ),
-                      venue: controller.upcomingSession.value?.venue ?? '-',
-                      trainees:
-                          '${controller.upcomingSession.value?.totalTrainees ?? 0} Trainees',
-                      trainer:
-                          'Coach: Sir ${controller.upcomingSession.value?.trainer ?? '-'}',
-                    ),
+
+                  _buildScrollableSessionBox(
+                    context: context,
+                    title: 'Upcoming',
+                    sessions: controller.upcomingList,
+                    navigationTarget: () => UpcomingSessionsScreen(),
                   ),
 
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SessionHistoryScreen(),
-                        ),
-                      );
-                    },
-                    child: _sessionCard(
-                      title: 'History',
-                      isEmpty: controller.historySession.value == null,
-                      date: controller.historySession.value?.uiDate ?? '-',
-                      time: _formatDuration(
-                        controller.historySession.value?.duration,
-                      ),
-                      venue: controller.historySession.value?.venue ?? '-',
-                      trainees:
-                          '${controller.historySession.value?.totalTrainees ?? 0} Trainees',
-                      trainer:
-                          'Coach: Sir ${controller.historySession.value?.trainer ?? '-'}',
-                    ),
+                  _buildScrollableSessionBox(
+                    context: context,
+                    title: 'History',
+                    sessions: controller.historyList,
+                    navigationTarget: () => const SessionHistoryScreen(),
                   ),
 
                   const SizedBox(height: 40),

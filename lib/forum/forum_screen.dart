@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'dart:async';
 import 'package:mapped_frontend/helper/colorConstant.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -10,12 +11,35 @@ import '../forum/forum_model.dart';
 import '../forum_searchtags/forum_searchtags_screen.dart';
 import '../comment/comment_screen.dart';
 import '../create_post/create_post_screen.dart';
-import 'package:mapped_frontend/controller/user_controller';
+import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 
-class ForumScreen extends StatelessWidget {
-  ForumScreen({super.key});
-  final ForumController controller = Get.put(ForumController());
-  final UserController userController = Get.find<UserController>();
+class ForumScreen extends StatefulWidget {
+  const ForumScreen({super.key});
+
+  
+
+  @override
+  State<ForumScreen> createState() => _ForumScreenState();
+}
+
+class _ForumScreenState extends State<ForumScreen> {
+  late final ForumController controller;
+  late final UserController userController;
+
+  @override
+  void initState() {
+    super.initState();
+    Get.put(ForumController());
+    controller = Get.find<ForumController>();
+    userController = Get.find<UserController>();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.loadPosts();
+    });
+  }
+
+  final BeltProgressRingController beltController = Get.put(BeltProgressRingController());
+
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +52,6 @@ class ForumScreen extends StatelessWidget {
           child: CustomScrollView(
             slivers: [
               _buildSliverAppBar(),
-
               SliverToBoxAdapter(
                 child: Column(
                   children: [
@@ -38,8 +61,11 @@ class ForumScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               _buildPostsListSliver(),
+              // 🔁 Pagination at the bottom
+              SliverToBoxAdapter(
+                child: _buildPagination(),
+              ),
             ],
           ),
         ),
@@ -47,6 +73,7 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
+  // ---------- SLIVER APP BAR ----------
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       backgroundColor: const Color(0xFF1A1D29),
@@ -65,13 +92,16 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
+  // ---------- SEARCH BAR ----------
   Widget _buildSearchBar() {
     return Builder(
       builder: (context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: GestureDetector(
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => ForumSearchtagsScreen()),
+            MaterialPageRoute(
+              builder: (context) => ForumSearchtagsScreen(),
+            ),
           ),
           child: Container(
             decoration: AppStyles.searchBarDeco,
@@ -97,87 +127,121 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
+  // ---------- CREATE POST SECTION ----------
   Widget _buildCreatePostSection() {
-    return Builder(
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Obx(() {
-              final avatar = userController.userAvatar;
-              return CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.grey[300],
-                backgroundImage: avatar.isNotEmpty
-                    ? NetworkImage(
-                        avatar.startsWith('http')
-                            ? avatar
-                            : 'https://mapped-backend-node-js.onrender.com/$avatar',
-                      )
-                    : null,
-                child: avatar.isEmpty
-                    ? const Icon(Icons.person, color: Colors.grey)
-                    : null,
-              );
-            }),
-            const SizedBox(width: 12),
-            Expanded(
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => CreatePostScreen()),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252836),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFF09FACA).withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    'What\'s on your mind?',
-                    style: GoogleFonts.roboto(
-                      color: Colors.white54,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => CreatePostScreen()),
-              ),
+
+    void handlePostCreation() async {
+      // Check if Blue Belt is LOCKED (meaning Green is not finished)
+     if (beltController.detailedBeltData.isEmpty) {
+        // Show loading indicator
+        Get.dialog(
+          const Center(child: CircularProgressIndicator(color: Color(0xFF09FACA))),
+          barrierDismissible: false,
+        );
+        
+        // Force a refresh
+        await beltController.fetchBeltProgress();
+        
+        // Close loading indicator
+        if (Get.isDialogOpen ?? false) Get.back();
+      }
+
+      // 2. Perform the check
+      // We check if it IS locked (True = Blocked)
+      if (beltController.isBeltLocked('Blue')) {
+        Get.snackbar(
+          "Access Denied",
+          "You are not allowed to post in the forum until you achieve the blue belt.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          icon: const Icon(Icons.lock, color: Colors.white),
+          duration: const Duration(seconds: 4),
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+        );
+      } else {
+        // Unlocked -> Go to Create Screen
+        Get.to(() => CreatePostScreen());
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Obx(() {
+            final avatar = userController.userAvatar;
+            return CircleAvatar(
+              radius: 22,
+              backgroundColor: Colors.grey[300],
+              backgroundImage: avatar.isNotEmpty
+                  ? NetworkImage(
+                      avatar.startsWith('http')
+                          ? avatar
+                          : 'https://mapped-backend-node-js.onrender.com/$avatar',
+                    )
+                  : null,
+              child: avatar.isEmpty
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
+            );
+          }),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: handlePostCreation, 
               child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-                child: const Icon(
-                  Icons.collections,
-                  color: Colors.white,
-                  size: 22,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF252836),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF09FACA).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'What\'s on your mind?',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white54,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: handlePostCreation,
+            //onTap: () => Get.to(() => CreatePostScreen()),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.collections,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  // ---------- POSTS LIST (USING displayedPosts) ----------
   Widget _buildPostsListSliver() {
     return Obx(() {
-      if (controller.isLoading.value && controller.posts.isEmpty) {
+      if (controller.isLoading.value && controller.allPosts.isEmpty) {
         return const SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
@@ -186,7 +250,7 @@ class ForumScreen extends StatelessWidget {
         );
       }
 
-      if (controller.posts.isEmpty) {
+      if (controller.allPosts.isEmpty) {
         return SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
@@ -201,15 +265,19 @@ class ForumScreen extends StatelessWidget {
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         sliver: SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final post = controller.posts[index];
-            return _buildPostCard(post);
-          }, childCount: controller.posts.length),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final post = controller.displayedPosts[index];
+              return _buildPostCard(post);
+            },
+            childCount: controller.displayedPosts.length,
+          ),
         ),
       );
     });
   }
 
+  // ---------- POST CARD (unchanged) ----------
   Widget _buildPostCard(ForumPost post) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -220,9 +288,7 @@ class ForumScreen extends StatelessWidget {
         children: [
           _buildPostHeader(post),
           const SizedBox(height: 12),
-
           _buildPostContent(post),
-
           if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),
             PostVideoPlayer(videoUrl: post.videoUrl!),
@@ -238,7 +304,7 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== UPDATED CONTENT BUILDER ==========
+  // ---------- POST CONTENT (unchanged) ----------
   Widget _buildPostContent(ForumPost post) {
     return RichText(
       text: TextSpan(
@@ -266,8 +332,10 @@ class ForumScreen extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
             recognizer: TapGestureRecognizer()
-              ..onTap = () =>
-                  Get.to(() => ForumSearchtagsScreen(), arguments: tag),
+              ..onTap = () => Get.to(
+                    () => ForumSearchtagsScreen(),
+                    arguments: tag,
+                  ),
           ),
         );
         return "";
@@ -285,7 +353,7 @@ class ForumScreen extends StatelessWidget {
     return spans;
   }
 
-  // ========== POST HEADER ==========
+  // ---------- POST HEADER (updated: no .value on currentUserId) ----------
   Widget _buildPostHeader(ForumPost post) {
     return Row(
       children: [
@@ -294,8 +362,8 @@ class ForumScreen extends StatelessWidget {
           backgroundColor: Colors.grey[300],
           backgroundImage:
               post.authorImage != null && post.authorImage!.isNotEmpty
-              ? NetworkImage(controller.getFullImageUrl(post.authorImage!))
-              : null,
+                  ? NetworkImage(controller.getFullImageUrl(post.authorImage!))
+                  : null,
           child: post.authorImage == null || post.authorImage!.isEmpty
               ? const Icon(Icons.person, color: Colors.grey)
               : null,
@@ -319,12 +387,10 @@ class ForumScreen extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
                     if (post.isPinned.value) ...[
                       const SizedBox(width: 8),
                       _buildPinnedBadge(),
                     ],
-
                     if (post.isReported.value) ...[
                       const SizedBox(width: 8),
                       _buildReportedBadge(),
@@ -334,15 +400,21 @@ class ForumScreen extends StatelessWidget {
               ),
               Text(
                 post.timeAgo,
-                style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54),
+                style: GoogleFonts.roboto(
+                  fontSize: 12,
+                  color: Colors.white54,
+                ),
               ),
             ],
           ),
         ),
-
-        if (post.authorId == controller.currentUserId) _buildPostMenu(post),
+        isAuthor(post) ? _buildPostMenu(post) : const SizedBox.shrink(),
       ],
     );
+  }
+    // Helper to keep code clean
+  bool isAuthor(ForumPost post) {
+    return post.authorId.toString() == controller.currentUserId;
   }
 
   Widget _buildPinnedBadge() {
@@ -409,9 +481,8 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== POST IMAGES WITH INSTAGRAM-STYLE GALLERY ==========
+  // ---------- POST IMAGES (unchanged) ----------
   Widget _buildPostImages(ForumPost post) {
-    // Single image - display normally
     if (post.images.length == 1) {
       return GestureDetector(
         onTap: () => _openImageViewer(
@@ -445,7 +516,7 @@ class ForumScreen extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: loadingProgress.expectedTotalBytes != null
                         ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                            loadingProgress.expectedTotalBytes!
                         : null,
                     color: const Color(0xFF09FACA),
                   ),
@@ -457,7 +528,6 @@ class ForumScreen extends StatelessWidget {
       );
     }
 
-    // Multiple images - Instagram-style swipeable gallery
     return PostImageGallery(
       images: post.images,
       controller: controller,
@@ -469,7 +539,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== IMAGE VIEWER ==========
   void _openImageViewer(
     String imageUrl,
     int initialIndex,
@@ -484,14 +553,16 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // ========== INTERACTION BUTTONS ==========
+  // ---------- INTERACTION BUTTONS (unchanged) ----------
   Widget _buildInteractionButtons(ForumPost post) {
     return Builder(
       builder: (context) => Row(
         children: [
           Obx(
             () => _buildInteractionButton(
-              icon: post.isLiked.value ? Icons.favorite : Icons.favorite_border,
+              icon: post.isLiked.value
+                  ? Icons.favorite
+                  : Icons.favorite_border,
               count: post.likes.value,
               color: post.isLiked.value ? Colors.red : Colors.white54,
               onTap: () => controller.toggleLike(post),
@@ -508,14 +579,13 @@ class ForumScreen extends StatelessWidget {
               ),
             ),
           ),
-
           const Spacer(),
-
-          // PIN BUTTON
           Obx(
             () => IconButton(
               icon: Icon(
-                post.isPinned.value ? Icons.push_pin : Icons.push_pin_outlined,
+                post.isPinned.value
+                    ? Icons.push_pin
+                    : Icons.push_pin_outlined,
                 color: post.isPinned.value
                     ? const Color(0xFF09FACA)
                     : Colors.white54,
@@ -524,8 +594,6 @@ class ForumScreen extends StatelessWidget {
               onPressed: () => _showPinConfirmationDialog(post),
             ),
           ),
-
-          // REPORT BUTTON
           Obx(
             () => IconButton(
               icon: Icon(
@@ -566,10 +634,10 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // --- PIN CONFIRMATION DIALOG ---
+  // ---------- PIN CONFIRMATION DIALOG (unchanged) ----------
   void _showPinConfirmationDialog(ForumPost post) {
     bool currentlyPinned = post.isPinned.value;
-    
+
     showDialog(
       context: Get.context!,
       barrierDismissible: false,
@@ -595,7 +663,11 @@ class ForumScreen extends StatelessWidget {
                     if (currentlyPinned)
                       Transform.rotate(
                         angle: -0.8,
-                        child: Container(height: 2, width: 40, color: Colors.white),
+                        child: Container(
+                          height: 2,
+                          width: 40,
+                          color: Colors.white,
+                        ),
                       ),
                   ],
                 ),
@@ -660,7 +732,7 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // --- DELETE CONFIRMATION DIALOG ---
+  // ---------- DELETE CONFIRMATION DIALOG (unchanged) ----------
   void _showDeleteConfirmationDialog(ForumPost post) {
     Get.defaultDialog(
       title: 'Delete Post',
@@ -671,19 +743,17 @@ class ForumScreen extends StatelessWidget {
       buttonColor: Colors.red,
       barrierDismissible: false,
       onConfirm: () async {
-        Get.back(); // Close dialog first
-        await Future.delayed(
-          const Duration(milliseconds: 100),
-        ); // Wait for dialog to close
+        Get.back();
+        await Future.delayed(const Duration(milliseconds: 100));
         await controller.deletePost(post);
       },
       onCancel: () {
-        Get.back(); // Explicitly close on cancel
+        Get.back();
       },
     );
   }
 
-  // --- REPORT DIALOG - STEP 1: POLICY SELECTION ---
+  // ---------- REPORT DIALOGS (unchanged) ----------
   void _showReportDialog(ForumPost post) {
     if (!controller.canReportPost(post)) {
       Get.snackbar(
@@ -702,7 +772,9 @@ class ForumScreen extends StatelessWidget {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -792,7 +864,6 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // --- REPORT DIALOG - STEP 2: CONFIRMATION ---
   void _showReportConfirmationDialog(ForumPost post) {
     controller.toggleReportConfirmation(false);
 
@@ -801,7 +872,9 @@ class ForumScreen extends StatelessWidget {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -831,7 +904,9 @@ class ForumScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  controller.getReasonDefinition(controller.selectedReason.value),
+                  controller.getReasonDefinition(
+                    controller.selectedReason.value,
+                  ),
                   style: const TextStyle(fontSize: 13, color: Colors.black87),
                 ),
                 const SizedBox(height: 20),
@@ -850,8 +925,8 @@ class ForumScreen extends StatelessWidget {
                       Checkbox(
                         value: controller.isReportConfirmed.value,
                         activeColor: const Color(0xFF007AFF),
-                        onChanged: (val) =>
-                            controller.toggleReportConfirmation(val ?? false),
+                        onChanged: (val) => controller
+                            .toggleReportConfirmation(val ?? false),
                       ),
                       Expanded(
                         child: Text(
@@ -879,7 +954,8 @@ class ForumScreen extends StatelessWidget {
                       onPressed: controller.isReportConfirmed.value
                           ? () async {
                               Navigator.of(context).pop();
-                              final success = await controller.submitReport(post);
+                              final success =
+                                  await controller.submitReport(post);
                               if (success) {
                                 _showReportSuccessDialog();
                               }
@@ -900,14 +976,15 @@ class ForumScreen extends StatelessWidget {
     );
   }
 
-  // --- REPORT DIALOG - STEP 3: SUCCESS ---
   void _showReportSuccessDialog() {
     showDialog(
       context: Get.context!,
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -952,9 +1029,87 @@ class ForumScreen extends StatelessWidget {
       },
     );
   }
+
+  // ---------- 🆕 PAGINATION WIDGET ----------
+  Widget _buildPagination() {
+    return Obx(() {
+      final total = controller.totalPages.value;
+      final current = controller.currentPage.value;
+
+      if (total <= 1) return const SizedBox.shrink(); // Hide if only one page
+
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Previous button
+            IconButton(
+              icon: const Icon(Icons.chevron_left, color: Colors.white54),
+              onPressed: current > 1
+                  ? () => controller.goToPage(current - 1)
+                  : null,
+            ),
+            const SizedBox(width: 8),
+
+            // Page numbers
+            ...List.generate(total, (index) {
+              final page = index + 1;
+              final isCurrent = page == current;
+              return GestureDetector(
+                onTap: () => controller.goToPage(page),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isCurrent
+                        ? const Color(0xFF09FACA).withOpacity(0.2)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isCurrent
+                          ? const Color(0xFF09FACA)
+                          : Colors.white24,
+                    ),
+                  ),
+                  child: Text(
+                    '$page',
+                    style: GoogleFonts.roboto(
+                      color: isCurrent
+                          ? const Color(0xFF09FACA)
+                          : Colors.white70,
+                      fontWeight:
+                          isCurrent ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              );
+            }),
+
+            const SizedBox(width: 8),
+            // Next button
+            IconButton(
+              icon: const Icon(Icons.chevron_right, color: Colors.white54),
+              onPressed: current < total
+                  ? () => controller.goToPage(current + 1)
+                  : null,
+            ),
+          ],
+        ),
+      );
+    });
+  }
 }
 
-// ========== VIDEO PLAYER WIDGET ==========
+// ============================================================================
+// EXTERNAL WIDGETS (PostVideoPlayer, PostImageGallery, FullScreenImageViewer)
+// ============================================================================
+// These widgets are already perfect and remain unchanged from the original code.
+
+// ---------- VIDEO PLAYER ----------
 class PostVideoPlayer extends StatefulWidget {
   final String videoUrl;
 
@@ -1103,7 +1258,7 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
   }
 }
 
-// ========== INSTAGRAM-STYLE IMAGE GALLERY WIDGET ==========
+// ---------- INSTAGRAM-STYLE IMAGE GALLERY ----------
 class PostImageGallery extends StatefulWidget {
   final List<String> images;
   final ForumController controller;
@@ -1191,7 +1346,7 @@ class _PostImageGalleryState extends State<PostImageGallery> {
     } catch (e) {
       print('Error checking aspect ratios: $e');
       setState(() {
-        _allImagesSameRatio = false; // Default to fixed ratio if error occurs
+        _allImagesSameRatio = false;
       });
     }
   }
@@ -1212,7 +1367,6 @@ class _PostImageGalleryState extends State<PostImageGallery> {
       ),
       child: Stack(
         children: [
-          // Image PageView
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: PageView.builder(
@@ -1249,7 +1403,7 @@ class _PostImageGalleryState extends State<PostImageGallery> {
                           child: CircularProgressIndicator(
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                                 : null,
                             color: const Color(0xFF09FACA),
                           ),
@@ -1261,8 +1415,6 @@ class _PostImageGalleryState extends State<PostImageGallery> {
               },
             ),
           ),
-
-          // Page Indicator at the top right
           Positioned(
             top: 12,
             right: 12,
@@ -1282,8 +1434,6 @@ class _PostImageGalleryState extends State<PostImageGallery> {
               ),
             ),
           ),
-
-          // Dot Indicators at the bottom
           Positioned(
             bottom: 12,
             left: 0,
@@ -1312,7 +1462,7 @@ class _PostImageGalleryState extends State<PostImageGallery> {
   }
 }
 
-// ========== FULL SCREEN IMAGE VIEWER ==========
+// ---------- FULL SCREEN IMAGE VIEWER ----------
 class FullScreenImageViewer extends StatefulWidget {
   final List<String> imageUrls;
   final int initialIndex;
@@ -1350,7 +1500,6 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Image PageView with Zoom
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -1373,7 +1522,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                         child: CircularProgressIndicator(
                           value: loadingProgress.expectedTotalBytes != null
                               ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
+                                  loadingProgress.expectedTotalBytes!
                               : null,
                           color: const Color(0xFF09FACA),
                         ),
@@ -1403,8 +1552,6 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
               );
             },
           ),
-
-          // Close Button - LEFT
           Positioned(
             top: 15,
             left: 16,
@@ -1421,15 +1568,13 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
               ),
             ),
           ),
-
-          // Page Counter (if multiple images) - RIGHT
           if (widget.imageUrls.length > 1)
             Positioned(
               top: 20,
               right: 16,
               child: SafeArea(
                 child: Container(
-                  height: 48, // Match the IconButton height
+                  height: 48,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -1451,8 +1596,6 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                 ),
               ),
             ),
-
-          // Dot Indicators (if multiple images)
           if (widget.imageUrls.length > 1)
             Positioned(
               bottom: 30,

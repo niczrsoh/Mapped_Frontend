@@ -8,7 +8,7 @@ import 'comment_model.dart';
 
 class CommentsScreen extends StatefulWidget {
   final ForumPost post;
-  
+
   const CommentsScreen({super.key, required this.post});
 
   @override
@@ -16,12 +16,19 @@ class CommentsScreen extends StatefulWidget {
 }
 
 class _CommentsScreenState extends State<CommentsScreen> {
-  final CommentsController controller = Get.put(CommentsController());
+  late final CommentsController controller;
   final TextEditingController commentController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    // Ensure ForumController is registered before creating CommentsController
+    if (!Get.isRegistered<ForumController>()) {
+      Get.put(ForumController());
+    }
+
+    controller = Get.put(CommentsController());
+
     // Load comments only once when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.loadComments(widget.post.id);
@@ -55,14 +62,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
-       onPressed: () {
-            try {
-              Get.find<ForumController>().loadPosts();
-            } catch (e) {
-              print("Forum controller not found: $e");
-            }
-            Navigator.pop(context);
-          },
+        onPressed: () {
+          try {
+            Get.find<ForumController>().loadPosts();
+          } catch (e) {
+            print("Forum controller not found: $e");
+          }
+          Navigator.pop(context);
+        },
       ),
       title: Text(
         'Comments',
@@ -94,7 +101,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
       }
 
       return RefreshIndicator(
-        onRefresh: () => controller.loadComments(widget.post.id, forceReload: true),
+        onRefresh: () =>
+            controller.loadComments(widget.post.id, forceReload: true),
         color: const Color(0xFF09FACA),
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -145,10 +153,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 const SizedBox(height: 4),
                 Text(
                   comment.text,
-                  style: GoogleFonts.roboto(
-                    fontSize: 13,
-                    color: Colors.white,
-                  ),
+                  style: GoogleFonts.roboto(fontSize: 13, color: Colors.white),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -259,15 +264,31 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   // ========== HANDLE SEND COMMENT ==========
   void _handleSendComment() async {
-    if (commentController.text.trim().isNotEmpty && !controller.isPosting.value) {
+    if (!controller.isEligibleToComment) {
+      Get.snackbar(
+        "Access Denied",
+        "You are not allowed to reply in the forum until you achieve the green belt.",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+        icon: const Icon(Icons.lock, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+      return; // ⛔ STOP HERE
+    }
+
+    if (commentController.text.trim().isNotEmpty &&
+        !controller.isPosting.value) {
       final commentText = commentController.text.trim();
       commentController.clear();
       // Unfocus keyboard
       FocusScope.of(context).unfocus();
-      
+
       // Add comment
       await controller.addComment(widget.post.id, commentText);
-      
+
       // Show styled success message
       if (controller.comments.isNotEmpty) {
         Get.snackbar(

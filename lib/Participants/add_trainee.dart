@@ -60,8 +60,14 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
   img.XFile? _pickedImage;
   final img.ImagePicker _picker = img.ImagePicker();
 
-  final TraineeController traineeController = Get.find<TraineeController>();
-  final TrainerController trainerController = Get.find<TrainerController>();
+  final TraineeController traineeController =
+      Get.isRegistered<TraineeController>()
+      ? Get.find<TraineeController>()
+      : Get.put(TraineeController());
+  final TrainerController trainerController =
+      Get.isRegistered<TrainerController>()
+      ? Get.find<TrainerController>()
+      : Get.put(TrainerController());
 
   @override
   void initState() {
@@ -585,10 +591,8 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                           onTap: () async {
                             await _submitTraineeData();
                             if (traineeController.success.value) {
-                              Navigator.of(ctx).pop(); 
-                              Navigator.of(
-                                context,
-                              ).pop(); 
+                              Navigator.of(ctx).pop();
+                              Navigator.of(context).pop();
                             }
                           },
                           child: Container(
