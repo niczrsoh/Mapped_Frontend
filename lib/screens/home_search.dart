@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
-import 'package:google_fonts/google_fonts.dart';
 import '../Participants/trainee_controller.dart';
 import '../session/session_controller.dart';
 import '../forum/forum_controller.dart';
@@ -49,7 +48,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh data immediately
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _traineeController.fetchTrainees();
       _sessionController.fetchDashboardData();
@@ -1045,16 +1044,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: accentColor,
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
-      ),
-    );
-  }
 
   Widget _buildGradientBorderContainer({
     required Widget child,
