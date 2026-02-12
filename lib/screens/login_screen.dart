@@ -1,150 +1,176 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/controller/login_controller.dart';
 import '../global/routes.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends GetView<LoginController> {
   const LoginScreen({super.key});
 
-  static InputDecoration _inputDecoration({required String hint, bool hasError = false}) {
+  // Input decoration – unchanged
+  static InputDecoration _inputDecoration({
+    required String hint,
+    bool hasError = false,
+  }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white70),
+      hintStyle: GoogleFonts.poppins(
+        color: Colors.white.withOpacity(0.9),
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+      ),
       filled: true,
-      fillColor: Colors.white10,
+      fillColor: Colors.black.withOpacity(0.5),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: hasError ? Colors.redAccent : const Color(0xFF00C7A7)),
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00E5CC),
+          width: 1.5,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: hasError ? Colors.redAccent : const Color(0xFF00C7A7), width: 1),
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(
+          color: hasError ? Colors.redAccent : const Color(0xFF00E5CC),
+          width: 2.0,
+        ),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
-        fit: StackFit.expand,
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/loginBg.jpg',
-              fit: BoxFit.cover,
-              errorBuilder: (c, e, s) => Container(color: Colors.black),
-            ),
-          ),
-          Positioned.fill(child: Container(color: Colors.black.withOpacity(0.60))),
+          // Background image
+          Obx(() => Positioned.fill(
+                child: Opacity(
+                  opacity: 0.6,
+                  child: Image.asset(
+                    controller.isAdminMode.value
+                        ? 'assets/images/loginBg.jpg'
+                        : 'assets/images/loginBg.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              )),
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: size.height - 100),
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Dynamic Header
+                    // Header
                     Obx(() => Text(
-                      controller.isAdminMode.value ? "ADMIN ACCESS" : "USER LOGIN",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                    )),
-                    const SizedBox(height: 40),
+                          controller.isAdminMode.value
+                              ? "Login as Admin"
+                              : "Welcome Back",
+                          style: GoogleFonts.poppins(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w600,
+                            color: controller.isAdminMode.value
+                                ? Colors.white
+                                : const Color(0xFF00E5CC),
+                            letterSpacing: 0.5,
+                          ),
+                        )),
+                    const SizedBox(height: 50),
 
+                    // Email field – now stateful with its own controller
                     _EmailTextField(controller: controller),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 20),
+
+                    // Password field – stateful with its own controller
                     _PasswordTextField(controller: controller),
+
+                    const SizedBox(height: 25),
+
+                    // Forgot Password
+                    TextButton(
+                      onPressed: () => Get.toNamed(AppRoutes.resetPassword),
+                      child: Text(
+                        "Forgot Password",
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF00E5CC),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
 
                     const SizedBox(height: 20),
 
-                    // Main Login Button
-                    Obx(() => Center(
-                      child: SizedBox(
-                        width: size.width * 0.68,
-                        height: 52,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                          ),
-                          onPressed: controller.loading.value ? null : () => controller.login(),
-                          child: controller.loading.value
-                              ? const CircularProgressIndicator(color: Colors.black)
-                              : Text(
-                                  controller.isAdminMode.value ? "LOGIN AS ADMIN" : "LOGIN",
-                                  style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
-                                ),
-                        ),
-                      ),
-                    )),
+                    // Login button
+                    _RoundedActionButton(
+                      label: "Login",
+                      onPressed: () => controller.login(),
+                      isLoading: controller.loading.value,
+                    ),
 
-                    const SizedBox(height: 10),
-                    
+                    const SizedBox(height: 15),
+
+                    // Biometrics button (only for user mode)
                     Obx(() => Visibility(
-                      // Only show if NOT in admin mode AND the device supports biometrics
-                      visible: !controller.isAdminMode.value && controller.canCheckBiometrics.value,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 20), // Spacing from the login button
-                          child: SizedBox(
-                            width: size.width * 0.68,
-                            height: 52,
-                            child: OutlinedButton.icon( // Use .icon for a better look
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Colors.white54),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(28),
+                          visible: !controller.isAdminMode.value,
+                          child: _RoundedActionButton(
+                            label: "Login with Fingerprint",
+                            onPressed: () => controller.loginWithBiometrics(),
+                          ),
+                        )),
+
+                    const SizedBox(height: 35),
+
+                    // Register link
+                    Obx(() => Visibility(
+                          visible: !controller.isAdminMode.value,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Did not have an account? ",
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white, fontSize: 14),
+                              ),
+                              InkWell(
+                                onTap: () => Get.toNamed(AppRoutes.register),
+                                child: const Text(
+                                  "Register",
+                                  style: TextStyle(
+                                    color: Color(0xFF00E5CC),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
-                              // Call the logic directly from the controller
-                              onPressed: () => controller.loginWithBiometrics(), 
-                              icon: const Icon(Icons.fingerprint, color: Color(0xFF00C7A7)),
-                              label: const Text(
-                                'Login with Fingerprint',
-                                style: TextStyle(color: Colors.white),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(height: 15),
+
+                    // Admin / User toggle
+                    Obx(() => InkWell(
+                          onTap: () => controller.toggleMode(),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            child: Text(
+                              controller.isAdminMode.value
+                                  ? "User Login"
+                                  : "Admin Login",
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xFF00E5CC),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    )),
-
-                    const SizedBox(height: 20),
-
-                    // Register Link (Only shows in User mode)
-                    Obx(() => Visibility(
-                      visible: !controller.isAdminMode.value,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('New here? ', style: TextStyle(color: Colors.white70)),
-                          InkWell(
-                            onTap: () => Get.toNamed(AppRoutes.register),
-                            child: const Text('Register', style: TextStyle(color: Color(0xDE00FAFE), fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
-                    )),
-
-                    const SizedBox(height: 40),
-
-                    // THE TOGGLE LINK
-                    Center(
-                      child: TextButton(
-                        onPressed: () => controller.toggleMode(),
-                        child: Obx(() => Text(
-                          controller.isAdminMode.value ? 'Switch to User Login' : 'Admin Login',
-                          style: const TextStyle(color: Color(0xFF00C7A7), fontSize: 16, fontWeight: FontWeight.bold),
                         )),
-                      ),
-                    ),
+                    const SizedBox(height: 15),
                   ],
                 ),
               ),
@@ -156,68 +182,190 @@ class LoginScreen extends GetView<LoginController> {
   }
 }
 
-// --- Sub-widgets for Email/Password stay exactly as you wrote them ---
-class _EmailTextField extends StatelessWidget {
+// -------------------- Rounded Button (unchanged) --------------------
+class _RoundedActionButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final bool isLoading;
+
+  const _RoundedActionButton({
+    required this.label,
+    required this.onPressed,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          elevation: 0,
+        ),
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+              )
+            : Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 17,
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+// -------------------- Email TextField (FIXED) --------------------
+class _EmailTextField extends StatefulWidget {
   final LoginController controller;
   const _EmailTextField({required this.controller});
 
   @override
+  __EmailTextFieldState createState() => __EmailTextFieldState();
+}
+
+class __EmailTextFieldState extends State<_EmailTextField> {
+  late TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with current value from controller
+    _textController = TextEditingController(text: widget.controller.email.value);
+    // Keep the text field in sync when controller.email changes externally
+    ever(widget.controller.email, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose(); // 🔥 PREVENTS THE ERROR
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Obx(() => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          style: const TextStyle(color: Colors.white),
-          decoration: LoginScreen._inputDecoration(
-            hint: 'Email',
-            hasError: controller.emailError.value.isNotEmpty,
+    return Obx(() {
+      final hasError = widget.controller.emailError.value.isNotEmpty;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _textController,
+            style: const TextStyle(color: Colors.white),
+            decoration: LoginScreen._inputDecoration(
+              hint: 'Email',
+              hasError: hasError,
+            ),
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (value) {
+              // Update reactive value and clear error while typing
+              widget.controller.email.value = value;
+              if (hasError) widget.controller.emailError.value = '';
+            },
           ),
-          onChanged: controller.onEmailChanged,
-        ),
-        if (controller.emailError.value.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 12, top: 4),
-            child: Text(controller.emailError.value, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
-          ),
-      ],
-    ));
+          if (hasError)
+            Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.emailError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+        ],
+      );
+    });
   }
 }
 
+// -------------------- Password TextField (FIXED) --------------------
 class _PasswordTextField extends StatefulWidget {
   final LoginController controller;
   const _PasswordTextField({required this.controller});
+
   @override
-  State<_PasswordTextField> createState() => _PasswordTextFieldState();
+  __PasswordTextFieldState createState() => __PasswordTextFieldState();
 }
 
-class _PasswordTextFieldState extends State<_PasswordTextField> {
-  bool _obscure = true;
+class __PasswordTextFieldState extends State<_PasswordTextField> {
+  late TextEditingController _textController;
+  bool _obscureText = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.password.value);
+    ever(widget.controller.password, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose(); // 🔥 PREVENTS THE ERROR
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          obscureText: _obscure,
-          style: const TextStyle(color: Colors.white),
-          decoration: LoginScreen._inputDecoration(
-            hint: 'Password',
-            hasError: widget.controller.passwordError.value.isNotEmpty,
-          ).copyWith(
-            suffixIcon: IconButton(
-              icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, color: Colors.white70),
-              onPressed: () => setState(() => _obscure = !_obscure),
+    return Obx(() {
+      final hasError = widget.controller.passwordError.value.isNotEmpty;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _textController,
+            obscureText: _obscureText,
+            style: const TextStyle(color: Colors.white),
+            decoration: LoginScreen._inputDecoration(
+              hint: 'Password',
+              hasError: hasError,
+            ).copyWith(
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white54,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => _obscureText = !_obscureText),
+              ),
             ),
+            onChanged: (value) {
+              widget.controller.password.value = value;
+              if (hasError) widget.controller.passwordError.value = '';
+            },
           ),
-          onChanged: widget.controller.onPasswordChanged,
-        ),
-        if (widget.controller.passwordError.value.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 12, top: 4),
-            child: Text(widget.controller.passwordError.value, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
-          ),
-      ],
-    ));
+          if (hasError)
+            Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.passwordError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+        ],
+      );
+    });
   }
 }

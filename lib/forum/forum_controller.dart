@@ -11,12 +11,22 @@ class ForumController extends GetxController {
 
   String currentUserId = '';
 
-  var posts = <ForumPost>[].obs;
+  // 🔁 Full list of all posts (cached)
+  var allPosts = <ForumPost>[].obs;
+
+  // 📄 Posts visible on the current page
+  var displayedPosts = <ForumPost>[].obs;
+
   var isLoading = false.obs;
 
   // --- REPORTING STATE ---
   var selectedReason = ''.obs;
   var isReportConfirmed = false.obs;
+
+  // 🔢 Pagination state
+  var currentPage = 1.obs;
+  final int pageSize = 5;
+  var totalPages = 1.obs;
 
   final List<String> reportReasons = [
     "Harassment",
@@ -77,17 +87,29 @@ class ForumController extends GetxController {
     }
   }
 
-  // 1. FETCH POSTS
+  // ----------------------------------------------
+  // 1. FETCH POSTS – store all, then paginate
+  // ----------------------------------------------
   Future<void> loadPosts() async {
     isLoading.value = true;
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/forum'));
-
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        posts.value = data
+        allPosts.value = data
             .map((json) => ForumPost.fromJson(json, currentUserId))
             .toList();
+
+        // Sort pinned posts first
+        _sortAllPostsByPinned();
+
+        // Calculate total pages
+        totalPages.value = (allPosts.length / pageSize).ceil();
+        if (totalPages.value == 0) totalPages.value = 1;
+
+        // Reset to first page
+        currentPage.value = 1;
+        _updateDisplayedPosts();
       } else {
         Get.snackbar("Error", "Failed to load posts");
       }
@@ -99,7 +121,9 @@ class ForumController extends GetxController {
     }
   }
 
-  // 2. SEARCH POSTS
+  // ----------------------------------------------
+  // 2. SEARCH – update allPosts and paginate
+  // ----------------------------------------------
   Future<void> searchPosts(String query) async {
     if (query.isEmpty) {
       loadPosts();
@@ -111,12 +135,19 @@ class ForumController extends GetxController {
       final response = await http.get(
         Uri.parse('$baseUrl/api/forum/search?q=$query'),
       );
-
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        posts.value = data
+        allPosts.value = data
             .map((json) => ForumPost.fromJson(json, currentUserId))
             .toList();
+
+        _sortAllPostsByPinned();
+
+        totalPages.value = (allPosts.length / pageSize).ceil();
+        if (totalPages.value == 0) totalPages.value = 1;
+
+        currentPage.value = 1;
+        _updateDisplayedPosts();
       }
     } catch (e) {
       print("Search Error: $e");
@@ -125,17 +156,40 @@ class ForumController extends GetxController {
     }
   }
 
-  // 3. PIN POST FUNCTIONALITY
+  // ----------------------------------------------
+  // 3. PAGINATION CORE
+  // ----------------------------------------------
+  void _updateDisplayedPosts() {
+    final start = (currentPage.value - 1) * pageSize;
+    final end = start + pageSize;
+    if (start < allPosts.length) {
+      displayedPosts.value = allPosts.sublist(
+        start,
+        end > allPosts.length ? allPosts.length : end,
+      );
+    } else {
+      displayedPosts.value = [];
+    }
+  }
+
+  void goToPage(int page) {
+    if (page < 1 || page > totalPages.value) return;
+    currentPage.value = page;
+    _updateDisplayedPosts();
+  }
+
+  // ----------------------------------------------
+  // 4. TOGGLE PIN – update allPosts, re‑sort, refresh page
+  // ----------------------------------------------
   Future<void> togglePin(ForumPost post) async {
-    // Optimistic Update
+    // Optimistic update
     post.isPinned.value = !post.isPinned.value;
 
-    // Sort list locally
-    posts.sort((a, b) {
-      if (b.isPinned.value && !a.isPinned.value) return 1;
-      if (!b.isPinned.value && a.isPinned.value) return -1;
-      return 0;
-    });
+    // Re‑sort the full list
+    _sortAllPostsByPinned();
+
+    // Refresh current page
+    _updateDisplayedPosts();
 
     try {
       final response = await http.put(
@@ -144,17 +198,73 @@ class ForumController extends GetxController {
       if (response.statusCode != 200) {
         // Revert on failure
         post.isPinned.value = !post.isPinned.value;
+        _sortAllPostsByPinned();
+        _updateDisplayedPosts();
         Get.snackbar("Error", "Failed to update pin status");
-        loadPosts();
       }
     } catch (e) {
       post.isPinned.value = !post.isPinned.value;
+      _sortAllPostsByPinned();
+      _updateDisplayedPosts();
       Get.snackbar("Error", "Connection error");
-      loadPosts();
     }
   }
 
-  // 4. REPORT POST FUNCTIONALITY
+  // Helper to sort allPosts: pinned first
+  void _sortAllPostsByPinned() {
+    allPosts.sort((a, b) {
+      if (b.isPinned.value && !a.isPinned.value) return 1;
+      if (!b.isPinned.value && a.isPinned.value) return -1;
+      return 0;
+    });
+  }
+
+  // ----------------------------------------------
+  // 5. DELETE POST – remove from allPosts, refresh page
+  // ----------------------------------------------
+  Future<bool> deletePost(ForumPost post) async {
+    if (currentUserId.isEmpty) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/forum/${post.id}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': currentUserId}),
+      );
+
+      if (response.statusCode == 200) {
+        allPosts.removeWhere((p) => p.id == post.id);
+        totalPages.value = (allPosts.length / pageSize).ceil();
+        if (totalPages.value == 0) totalPages.value = 1;
+
+        // Adjust current page if it becomes out of range
+        if (currentPage.value > totalPages.value) {
+          currentPage.value = totalPages.value;
+        }
+        _updateDisplayedPosts();
+
+        Get.closeAllSnackbars();
+        Get.snackbar(
+          "Success",
+          "Post deleted successfully",
+          duration: const Duration(seconds: 2),
+        );
+        return true;
+      } else {
+        Get.closeAllSnackbars();
+        Get.snackbar("Error", "Could not delete post");
+        return false;
+      }
+    } catch (e) {
+      Get.closeAllSnackbars();
+      Get.snackbar("Error", "Could not connect to server");
+      return false;
+    }
+  }
+
+  // ----------------------------------------------
+  // 6. REPORT POST
+  // ----------------------------------------------
   bool canReportPost(ForumPost post) {
     return !post.isReported.value;
   }
@@ -190,6 +300,7 @@ class ForumController extends GetxController {
 
       if (response.statusCode == 200) {
         post.isReported.value = true;
+        _updateDisplayedPosts(); // Refresh current page
         return true;
       } else {
         Get.snackbar("Error", "Failed to submit report");
@@ -206,7 +317,9 @@ class ForumController extends GetxController {
     isReportConfirmed.value = false;
   }
 
-  // 5. LIKE POST
+  // ----------------------------------------------
+  // 7. LIKE POST
+  // ----------------------------------------------
   Future<void> toggleLike(ForumPost post) async {
     if (currentUserId.isEmpty) {
       Get.snackbar("Error", "You must be logged in to like posts.");
@@ -228,7 +341,7 @@ class ForumController extends GetxController {
       final response = await http.put(
         Uri.parse('$baseUrl/api/forum/like/${post.id}'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': currentUserId}), // Uses dynamic ID
+        body: jsonEncode({'userId': currentUserId}),
       );
 
       if (response.statusCode != 200) {
@@ -239,37 +352,14 @@ class ForumController extends GetxController {
     } catch (e) {
       post.likes.value = originalLikes;
       post.isLiked.value = originalStatus;
+    } finally {
+      _updateDisplayedPosts(); // Refresh current page
     }
   }
 
-  // 6. DELETE POST
-  Future<bool> deletePost(ForumPost post) async {
-    if (currentUserId.isEmpty) return false;
-
-    try {
-      final response = await http.delete(
-        Uri.parse('$baseUrl/api/forum/${post.id}'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': currentUserId}),
-      );
-
-      if (response.statusCode == 200) {
-        posts.removeWhere((p) => p.id == post.id);
-        Get.snackbar("Success", "Post deleted successfully");
-
-        Get.back();
-        return true;
-      } else {
-        Get.snackbar("Error", "Could not delete post");
-        return false;
-      }
-    } catch (e) {
-      Get.snackbar("Error", "Could not connect to server");
-      return false;
-    }
-  }
-
-  // 7. HELPER
+  // ----------------------------------------------
+  // 8. HELPER
+  // ----------------------------------------------
   String getFullImageUrl(String relativePath) {
     if (relativePath.startsWith('http')) return relativePath;
     return "$baseUrl/$relativePath";

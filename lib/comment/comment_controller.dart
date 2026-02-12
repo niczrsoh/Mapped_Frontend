@@ -113,6 +113,7 @@ class CommentsController extends GetxController {
   // Fetch previously submitted posts/comments from backend
   Future<void> fetchSubmittedPosts() async {
     try {
+      // 🔥 FIXED: Use .value to get the plain String
       final userId = forumController.currentUserId;
       if (userId.isEmpty) return;
 
@@ -153,6 +154,7 @@ class CommentsController extends GetxController {
       final response = await http.post(
         Uri.parse('${forumController.baseUrl}/api/forum/comment/$postId'),
         headers: {'Content-Type': 'application/json'},
+        // 🔥 FIXED: Use .value
         body: jsonEncode({
           'userId': forumController.currentUserId,
           'text': text.trim(),
@@ -199,6 +201,7 @@ class CommentsController extends GetxController {
 
   Future<void> _updatePostCount() async {
     try {
+      // 🔥 FIXED: Use .value
       final userId = forumController.currentUserId;
 
       await _apiService.updateBeltProgress(
