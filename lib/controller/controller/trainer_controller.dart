@@ -114,18 +114,10 @@ class TrainerController extends GetxController {
         var data = jsonDecode(response.body);
 
         if (data['success'] == true) {
-          // 2. Get the authoritative count from backend
           int backendCount =
               int.tryParse(data['activeDaysCount'].toString()) ?? 0;
 
-          print("📅 Daily Check Synced. Total Active Days: $backendCount");
-
-          // 3. Update Observable (UI updates automatically)
           activeDaysCount.value = backendCount;
-          print(
-            '⤴️ updateActiveDays: activeDaysCount updated to $backendCount for user $userId',
-          );
-          // Refresh belt progress so UI shows updated activeDay counts immediately
           try {
             if (Get.isRegistered<BeltProgressRingController>()) {
               await Get.find<BeltProgressRingController>().fetchBeltProgress();

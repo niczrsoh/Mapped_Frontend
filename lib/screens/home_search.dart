@@ -77,13 +77,11 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- HEADER & SEARCH ---
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Back Button & Title
                   Row(
                     children: [
                       IconButton(
@@ -111,7 +109,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // 2. "Search" Title
                   const Text(
                     'Search',
                     style: TextStyle(
@@ -122,7 +119,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 3. Search Bar
                   _buildGradientBorderContainer(
                     borderRadius: 30,
                     child: TextField(
@@ -170,7 +166,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
               ),
             ),
 
-            // --- SCROLLABLE CONTENT ---
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
@@ -214,7 +209,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                               })
                               .toList();
 
-                          // Limit Logic
                           List<dynamic> displayList = filteredList;
                           if (_selectedFilter == 'All') {
                             displayList = filteredList.take(2).toList();
@@ -222,7 +216,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             displayList = filteredList.take(6).toList();
                           }
 
-                          // If in 'All' mode and there are no items, hide the whole section
                           if (_selectedFilter == 'All' && displayList.isEmpty) {
                             return const SizedBox.shrink();
                           }
@@ -255,7 +248,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                         }),
                       ],
 
-                      // 2. SESSIONS SECTION
                       if (_selectedFilter == 'All' ||
                           _selectedFilter == 'Sessions') ...[
                         Obx(() {
@@ -270,13 +262,11 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             );
                           }
 
-                          // Combine Current + Upcoming sessions
                           List<dynamic> allSessions = [
                             ..._sessionController.currentList,
                             ..._sessionController.upcomingList,
                           ];
 
-                          // Sorting Logic
                           allSessions.sort((a, b) {
                             String? idA = a.id;
                             String? idB = b.id;
@@ -297,7 +287,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             return da.compareTo(db);
                           });
 
-                          // Filter based on search query
                           final filteredSessions = allSessions.where((session) {
                             final venue = (session.venue ?? '').toLowerCase();
                             final level = (session.level ?? '').toLowerCase();
@@ -308,7 +297,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                                 date.contains(query);
                           }).toList();
 
-                          // Limit display count
                           List<dynamic> displaySessions = filteredSessions;
                           if (_selectedFilter == 'All') {
                             displaySessions = filteredSessions.take(2).toList();
@@ -316,7 +304,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             displaySessions = filteredSessions.take(6).toList();
                           }
 
-                          // Hide entire section in 'All' when empty
                           if (_selectedFilter == 'All' &&
                               displaySessions.isEmpty) {
                             return const SizedBox.shrink();
@@ -345,12 +332,10 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                                         session.venue ?? 'Unknown Venue';
                                     String dateStr = _formatDate(session.date);
 
-                                    // Convert session to Map<String, dynamic> for navigation
                                     Map<String, dynamic> sessionMap = {};
                                     if (session is Map<String, dynamic>) {
                                       sessionMap = session;
                                     } else {
-                                      // If session is a model, try toJson or fallback
                                       try {
                                         sessionMap = session.toJson();
                                       } catch (_) {
@@ -396,7 +381,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                         }),
                       ],
 
-                      // 3. DYNAMIC FORUM SECTION
                       if (_selectedFilter == 'All' ||
                           _selectedFilter == 'Forum') ...[
                         Obx(() {
@@ -411,7 +395,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             );
                           }
 
-                          // Filter Logic
                           final filteredPosts = _forumController.allPosts.where((
                             post,
                           ) {
@@ -422,7 +405,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                                 author.contains(query);
                           }).toList();
 
-                          // Limit Logic
                           List<dynamic> displayPosts = filteredPosts;
                           if (_selectedFilter == 'All') {
                             displayPosts = filteredPosts.take(2).toList();
@@ -449,7 +431,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                                   itemCount: displayPosts.length,
                                   itemBuilder: (context, index) {
                                     final post = displayPosts[index];
-                                    // Calculate simple text snippet for card
+                            
                                     String snippet = post.content;
                                     if (snippet.length > 50) {
                                       snippet =
@@ -480,7 +462,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                         }),
                       ],
 
-                      // 4. DYNAMIC RESOURCES SECTION
                       if (_selectedFilter == 'All' ||
                           _selectedFilter == 'Resource') ...[
                         Obx(() {
@@ -503,7 +484,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                               )
                               .toList();
 
-                          // Limit display count
                           List<dynamic> displayResources = resources;
                           if (_selectedFilter == 'All') {
                             displayResources = resources.take(2).toList();
@@ -511,7 +491,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             displayResources = resources.take(6).toList();
                           }
 
-                          // Hide entire section in 'All' when empty
+                  
                           if (_selectedFilter == 'All' &&
                               displayResources.isEmpty) {
                             return const SizedBox.shrink();
@@ -563,7 +543,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
     );
   }
 
-  // --- WIDGET BUILDERS ---
 
   Widget _buildEmptyState(String message) {
     return Padding(
@@ -591,7 +570,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
         if (text.isEmpty || text == 'null') {
           noteText = 'None';
         } else if (text.contains('-')) {
-          // Remove dashes and join items with comma, like trainee_screen.dart
           final parts = text
               .split('-')
               .map((e) => e.trim())
@@ -760,7 +738,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
     );
   }
 
-  // --- DYNAMIC FORUM CARD ---
   Widget _buildDynamicForumCard({
     required String authorName,
     String? authorImage,
@@ -768,10 +745,8 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
     required RxInt likes,
     required int replies,
   }) {
-    // Prepare Image URL if it exists
     String? fullImageUrl;
     if (authorImage != null && authorImage.isNotEmpty) {
-      // Use controller helper if path is relative
       fullImageUrl = _forumController.getFullImageUrl(authorImage);
     }
 
@@ -782,7 +757,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
         padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
-            // User Avatar (Profile Picture)
             CircleAvatar(
               radius: 25,
               backgroundColor: Colors.grey[800],
@@ -798,7 +772,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Author Name
                   Text(
                     authorName,
                     style: TextStyle(
@@ -808,7 +781,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  // Post Content/Title
+
                   Text(
                     title,
                     maxLines: 2,
@@ -820,7 +793,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Reply Count
+
                   Obx(
                     () => Text(
                       '${likes.value} likes - $replies replies',
@@ -836,11 +809,9 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
     );
   }
 
-  // --- DYNAMIC RESOURCE CARD ---
   Widget _buildResourceCardFromPost(ResourcePost resource) {
     Widget thumbnail;
 
-    // 1. Image Check
     if (resource.images.isNotEmpty) {
       thumbnail = Image.network(
         _resourceController.getFullImageUrl(resource.images.first),
@@ -851,7 +822,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
             const Icon(Icons.image, color: Colors.white54, size: 24),
       );
 
-      // 2. Video Check
     } else if (resource.videoUrl != null && resource.videoUrl!.isNotEmpty) {
       final videoId = YoutubePlayer.convertUrlToId(resource.videoUrl!);
       if (videoId != null && videoId.isNotEmpty) {
@@ -888,14 +858,13 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
         );
       }
 
-      // 3. Link Check -> SHOW PLAY ICON (As requested)
     } else if (resource.resourceType.toLowerCase() == 'link' ||
         resource.content.contains('http://') ||
         resource.content.contains('https://')) {
       thumbnail = Container(
         width: 60,
         height: 50,
-        color: const Color(0xFF1A1D29), // Dark background
+        color: const Color(0xFF1A1D29), 
         child: Center(
           child: Container(
             decoration: BoxDecoration(
@@ -904,7 +873,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
             ),
             padding: const EdgeInsets.all(6),
             child: const Icon(
-              Icons.play_circle_filled, // Play icon for links
+              Icons.play_circle_filled, 
               color: Color(0xFF09FACA),
               size: 20,
             ),
@@ -912,7 +881,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
         ),
       );
 
-      // 4. Text/Fallback
     } else {
       thumbnail = Container(
         width: 60,
@@ -1003,7 +971,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
         if (showSeeMore)
           TextButton(
             onPressed: () {
-              // Navigate to the appropriate dashboard/list screen
               if (filterKey == 'Participants') {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const TraineesScreen()),
@@ -1032,7 +999,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                 return;
               }
 
-              // Fallback: just switch filter in-place
               setState(() => _selectedFilter = filterKey);
             },
             child: Text(

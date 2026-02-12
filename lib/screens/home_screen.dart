@@ -251,22 +251,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   child: sectionCard(
                     child: Obx(() {
                       final belts = BeltDefinitions.belts;
-                      // 🟢 [FIX] Defined beltOrder here so it can be used in children
                       final beltOrder = belts.map((b) => b.id).toList();
 
                       BeltProgressModelV2? currentBeltData;
                       String currentBeltCode = BeltDefinitions.white;
                       int currentBeltIndex = 0;
 
-                      // Logic to find current belt using strict data
                       for (int i = 0; i < belts.length; i++) {
                         final beltDef = belts[i];
                         final code = beltDef.id;
 
                         final data = beltController.detailedBeltData
                             .firstWhereOrNull((b) => b.beltColor == code);
-
-                        // 🟢 [FIX] Simply check if completed based on backend flag
+                            
                         bool isPassed = data?.isCompleted ?? false;
 
                         if (!isPassed) {
@@ -288,7 +285,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       double progress = 0.0;
 
                       if (currentBeltData != null) {
-                        // 🟢 [FIX] Removed unused arguments from function call
                         progress = _calculateProgressPercentageFromModel(
                           requirement,
                           currentBeltData,
@@ -346,7 +342,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            // 🟢 [FIX] beltOrder is now defined
                             children: List.generate(beltOrder.length, (index) {
                               final thisCode = beltOrder[index];
 
@@ -817,7 +812,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // 🟢 [MODIFIED] Logic changed to use specific belt data directly
   int _getProgressValue(
     BeltTaskDef task,
     BeltProgressModelV2? data,
