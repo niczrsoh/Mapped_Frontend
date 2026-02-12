@@ -7,7 +7,6 @@ import '../forum/forum_controller.dart';
 import '../resource/resource_controller.dart';
 import '../resource/resource_model.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-
 import '../Participants/trainee_detail_screen.dart';
 import '../session/session_details.dart';
 import '../resource/resource_detail_screen.dart';
