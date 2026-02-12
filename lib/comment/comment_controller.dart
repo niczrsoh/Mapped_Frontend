@@ -184,6 +184,16 @@ class CommentsController extends GetxController {
 
     try {
       try {
+        try {
+          if (Get.isRegistered<BeltProgressRingController>()) {
+            Get.find<BeltProgressRingController>().incrementProgressCounter(
+              beltColor: 'G',
+              counter: 'post',
+              delta: 1,
+            );
+          }
+        } catch (_) {}
+
         await _apiService.recordPostSubmission(commentId, userId);
       } catch (e) {
         print("⚠️ Individual post tracking not available: $e");

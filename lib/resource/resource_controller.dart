@@ -139,6 +139,18 @@ class ResourceController extends GetxController {
 
     viewedResourceIds.add(id);
 
+    // Optimistically increment local resource counter so UI updates immediately
+    try {
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        // increase both openResourceCount and resourceCount to be safe
+        Get.find<BeltProgressRingController>().incrementProgressCounter(
+          beltColor: 'G',
+          counter: 'openResource',
+          delta: 1,
+        );
+      }
+    } catch (_) {}
+
     try {
       final result = await _apiService.recordResourceView(id, userId);
 

@@ -4,6 +4,7 @@ import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/forum/forum_screen.dart';
+import 'package:mapped_frontend/forum/forum_controller.dart';
 import 'package:mapped_frontend/screens/coaching_screen.dart';
 import 'package:mapped_frontend/resource/resource_screen.dart';
 import 'package:mapped_frontend/Participants/trainee_screen.dart';
@@ -39,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Ensure ForumController is registered before controllers that depend on it
+    Get.put(ForumController());
     Get.put(TrainerController());
     Get.put(SessionController());
     Get.put(ResourceController());
@@ -47,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Get.put(BeltProgressRingController());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-        _refreshData();
-      });
+      _refreshData();
+    });
   }
 
   @override
@@ -171,12 +174,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 const SizedBox(height: 18),
                 // Search bar
                 GestureDetector(
-                onTap: () {
-                
+                  onTap: () {
                     Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeSearchScreen()),
-                  );
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeSearchScreen(),
+                      ),
+                    );
                   },
                   child: Container(
                     height: 56,
@@ -236,17 +240,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
 
                 const SizedBox(height: 18),
-                
+
                 // Belt Progress Card
                 GestureDetector(
                   onTap: () {
-                    Get.to(() => const BeltDashboardScreen())?.then((_) => _refreshData());
+                    Get.to(
+                      () => const BeltDashboardScreen(),
+                    )?.then((_) => _refreshData());
                   },
                   child: sectionCard(
                     child: Obx(() {
                       final belts = BeltDefinitions.belts;
                       // 🟢 [FIX] Defined beltOrder here so it can be used in children
-                      final beltOrder = belts.map((b) => b.id).toList(); 
+                      final beltOrder = belts.map((b) => b.id).toList();
 
                       BeltProgressModelV2? currentBeltData;
                       String currentBeltCode = BeltDefinitions.white;
@@ -297,8 +303,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                       final String nextBeltName =
                           (currentBeltIndex < belts.length - 1)
-                              ? belts[currentBeltIndex + 1].name
-                              : "Mastery";
+                          ? belts[currentBeltIndex + 1].name
+                          : "Mastery";
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,8 +348,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             // 🟢 [FIX] beltOrder is now defined
                             children: List.generate(beltOrder.length, (index) {
-                              final thisCode = beltOrder[index]; 
-                              
+                              final thisCode = beltOrder[index];
+
                               bool isLocked = false;
                               if (thisCode == BeltDefinitions.black &&
                                   currentBeltCode != BeltDefinitions.black) {
@@ -367,8 +373,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         beltName: _getBeltName(thisCode),
                                         beltColor: _getBeltColor(thisCode),
                                       ),
-                                    )
-                                    ?.then((_) => _refreshData());
+                                    )?.then((_) => _refreshData());
                                   }
                                 },
                                 child: Column(
@@ -446,10 +451,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 Builder(
                                   builder: (context) {
                                     String nextCode;
-                                    if (currentBeltIndex <
-                                        belts.length - 1) {
-                                      nextCode =
-                                          belts[currentBeltIndex + 1].id;
+                                    if (currentBeltIndex < belts.length - 1) {
+                                      nextCode = belts[currentBeltIndex + 1].id;
                                     } else {
                                       nextCode = belts.last.id;
                                     }
@@ -581,11 +584,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 const SizedBox(height: 12),
                 GestureDetector(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const DailyCoachingScreen(),
-                      ),
-                    ).then((_) => _refreshData());
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (context) => const DailyCoachingScreen(),
+                          ),
+                        )
+                        .then((_) => _refreshData());
                   },
                   child: sectionCard(
                     child: Column(
@@ -626,11 +631,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ResourceScreen(),
-                                  ),
-                                ).then((_) => _refreshData());
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (context) => ResourceScreen(),
+                                      ),
+                                    )
+                                    .then((_) => _refreshData());
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -660,11 +667,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ForumScreen(),
-                                  ),
-                                ).then((_) => _refreshData());
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (context) => ForumScreen(),
+                                      ),
+                                    )
+                                    .then((_) => _refreshData());
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -769,20 +778,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day} ${now.year}';
   }
 
-  Widget _buildRequirementText(
-    String code,
-    BeltProgressModelV2? data,
-  ) {
+  Widget _buildRequirementText(String code, BeltProgressModelV2? data) {
     final requirement = BeltRequirementsData.getFor(code);
 
     List<Widget> reqs = [];
 
     for (var task in requirement.tasks) {
-      int currentValue = _getProgressValue(
-        task,
-        data,
-        requirement,
-      );
+      int currentValue = _getProgressValue(task, data, requirement);
 
       String text = "${task.homeLabel}: $currentValue / ${task.target}";
 
@@ -827,10 +829,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       case RequirementType.session:
         return data.planSessionCount.clamp(0, task.target);
 
-     case RequirementType.activeDay:
+      case RequirementType.activeDay:
         final trainerCtrl = Get.find<TrainerController>();
         int modelCount = data.progress.activeDayCount;
-        int freshCount = trainerCtrl.activeDaysCount.value; 
+        int freshCount = trainerCtrl.activeDaysCount.value;
         int displayCount = (freshCount > modelCount) ? freshCount : modelCount;
 
         return displayCount.clamp(0, task.target);
@@ -842,7 +844,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return data.progress.recommendationCount.clamp(0, task.target);
 
       case RequirementType.reflection:
-         return data.progress.reflectionCount.clamp(0, task.target);
+        return data.progress.reflectionCount.clamp(0, task.target);
 
       case RequirementType.forumPost:
         return data.progress.postCount.clamp(0, task.target);
@@ -854,7 +856,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return 1;
     }
   }
-  
+
   double _calculateProgressPercentageFromModel(
     BeltRequirement req,
     BeltProgressModelV2 data,
@@ -862,24 +864,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (req.beltId == BeltDefinitions.black) {
       return 100.0;
     }
-    
+
     if (data.progressPercentage != null && data.progressPercentage! > 0) {
-       return data.progressPercentage!;
+      return data.progressPercentage!;
     }
 
+    final trainerCtrl = Get.find<TrainerController>();
     double currentProgressSum = 0;
     double targetProgressSum = 0;
 
     for (var task in req.tasks) {
       targetProgressSum += task.target;
       int val = 0;
-      
+
       switch (task.type) {
         case RequirementType.session:
           val = data.planSessionCount;
           break;
         case RequirementType.activeDay:
-          val = data.progress.activeDayCount;
+          int modelCount = data.progress.activeDayCount;
+          int freshCount = trainerCtrl.activeDaysCount.value;
+          val = (freshCount > modelCount) ? freshCount : modelCount;
           break;
         case RequirementType.resource:
           val = data.progress.openResourceCount;

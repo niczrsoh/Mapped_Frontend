@@ -39,9 +39,7 @@ class BeltProgressRingController extends GetxController {
 
       final result = await _apiService.fetchBeltProgress(userId);
 
-      if (
-          result['success'] == true &&
-          result['belts'] != null) {
+      if (result['success'] == true && result['belts'] != null) {
         Map<String, dynamic> beltsData = result['belts'];
 
         List<BeltProgressModelV2> parsedModels = [];
@@ -105,6 +103,49 @@ class BeltProgressRingController extends GetxController {
     }
   }
 
+  // Optimistically increment a progress counter locally so UI updates immediately
+  void incrementProgressCounter({
+    required String beltColor,
+    required String counter,
+    int delta = 1,
+  }) {
+    int idx = detailedBeltData.indexWhere((b) => b.beltColor == beltColor);
+    if (idx == -1) return;
+
+    final old = detailedBeltData[idx];
+    final oldP = old.progress;
+
+    // Build new ProgressCounters copying existing values and applying delta
+    final newP = ProgressCounters(
+      recommendationCount:
+          oldP.recommendationCount + (counter == 'recommendation' ? delta : 0),
+      sessionPhotoCount:
+          oldP.sessionPhotoCount + (counter == 'sessionPhoto' ? delta : 0),
+      activeDayCount:
+          oldP.activeDayCount + (counter == 'activeDay' ? delta : 0),
+      postCount: oldP.postCount + (counter == 'post' ? delta : 0),
+      shareTipCount: oldP.shareTipCount + (counter == 'shareTip' ? delta : 0),
+      resourceCount: oldP.resourceCount + (counter == 'resource' ? delta : 0),
+      openResourceCount:
+          oldP.openResourceCount + (counter == 'openResource' ? delta : 0),
+      reflectionCount:
+          oldP.reflectionCount + (counter == 'reflection' ? delta : 0),
+    );
+
+    final newModel = BeltProgressModelV2(
+      beltColor: old.beltColor,
+      planSessionCount: old.planSessionCount,
+      reqSessionCount: old.reqSessionCount,
+      progress: newP,
+      isCompleted: old.isCompleted,
+      assignedTrainerId: old.assignedTrainerId,
+      progressPercentage: old.progressPercentage,
+    );
+
+    detailedBeltData[idx] = newModel;
+    detailedBeltData.refresh();
+  }
+
   String _getUiNameFromCode(String code) {
     switch (code) {
       case 'W':
@@ -148,11 +189,10 @@ class BeltProgressRingController extends GetxController {
     else if (beltId == 'Black')
       code = 'L';
     else
-      code = beltId; 
+      code = beltId;
 
     index = order.indexOf(code);
-    if (index <= 0) return false; 
-
+    if (index <= 0) return false;
 
     String prevCode = order[index - 1];
     var prevBelt = detailedBeltData.firstWhereOrNull(

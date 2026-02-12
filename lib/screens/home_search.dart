@@ -15,6 +15,7 @@ import '../session/session_dashboard_screen.dart';
 import '../forum/forum_screen.dart';
 import '../resource/resource_screen.dart';
 
+
 class HomeSearchScreen extends StatefulWidget {
   const HomeSearchScreen({super.key});
 
@@ -411,7 +412,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                           }
 
                           // Filter Logic
-                          final filteredPosts = _forumController.posts.where((
+                          final filteredPosts = _forumController.allPosts.where((
                             post,
                           ) {
                             final content = post.content.toLowerCase();

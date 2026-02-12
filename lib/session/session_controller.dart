@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import 'package:mapped_frontend/controller/user_controller';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 import 'session_model.dart';
 
@@ -40,6 +41,16 @@ class SessionController extends GetxController {
         }
       } catch (e) {
         print("Could not find UserController: $e");
+      }
+
+      // Fallback: if UserController wasn't ready, try stored prefs
+      if (tId.isEmpty) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          tId = prefs.getString('user_id') ?? '';
+        } catch (e) {
+          print('Could not read stored user_id: $e');
+        }
       }
 
       final result = await _apiService.getSessionDashboard(
@@ -145,15 +156,15 @@ class SessionController extends GetxController {
 
       if (result['success'] == true) {
         success.value = true;
-        
-         if (session.trainerId != null && session.trainerId!.isNotEmpty) {
+
+        if (session.trainerId != null && session.trainerId!.isNotEmpty) {
           try {
             await _apiService.updateBeltProgress(
               userId: session.trainerId!,
-              beltColor: 'W', 
-              actionType: 'session', 
+              beltColor: 'W',
+              actionType: 'session',
             );
-            
+
             if (Get.isRegistered<BeltProgressRingController>()) {
               Get.find<BeltProgressRingController>().fetchBeltProgress();
             }
@@ -163,7 +174,7 @@ class SessionController extends GetxController {
         }
 
         await fetchDashboardData();
-        
+
         if (result['data'] != null) {
           return SessionModel.fromJson(result['data']);
         }
@@ -320,11 +331,11 @@ class SessionController extends GetxController {
       );
 
       if (result['success'] == true) {
-         try {
+        try {
           await _apiService.updateBeltProgress(
             userId: userId,
-            beltColor: 'W', 
-            actionType: 'reflection', 
+            beltColor: 'W',
+            actionType: 'reflection',
           );
         } catch (e) {
           print("⚠️ Belt update failed: $e");
