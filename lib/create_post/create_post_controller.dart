@@ -28,6 +28,7 @@ class CreatePostController extends GetxController {
   var videoUrl = ''.obs;
   var videoThumbnail = ''.obs;
   var isVideoLoading = false.obs;
+  var userBelt = 'White'.obs;
 
   // Share tip tracking - stores unique post IDs that have been shared
   // Using Set to automatically prevent duplicate counting
@@ -36,6 +37,15 @@ class CreatePostController extends GetxController {
   String? currentUserId;
 
   YoutubePlayerController? ytPlayerController;
+
+  final List<String> beltHierarchy = [
+    'White',
+    'Yellow',
+    'Green',
+    'Blue', 
+    'Brown',
+    'Black'
+  ];
 
   @override
   void onInit() {
@@ -432,19 +442,6 @@ class CreatePostController extends GetxController {
       print("⚪ Post $postId not found in local shared tips Set");
     }
 
-    if (Get.isRegistered<BeltProgressRingController>()) {
-      try {
-        final beltCtrl = Get.find<BeltProgressRingController>();
-        if (beltCtrl.backendShareTipCount.value > 0) {
-          beltCtrl.backendShareTipCount.value =
-              beltCtrl.backendShareTipCount.value - 1;
-        } else {
-          print("➡️ backendShareTipCount already zero; no decrement");
-        }
-      } catch (e) {
-        print("⚠️ Could not adjust backendShareTipCount: $e");
-      }
-    }
 
     if (Get.isRegistered<BeltProgressRingController>()) {
       await Get.find<BeltProgressRingController>().fetchBeltProgress();

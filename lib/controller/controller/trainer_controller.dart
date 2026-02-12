@@ -93,6 +93,10 @@ class TrainerController extends GetxController {
 
   Future<void> updateActiveDays() async {
     String userId = currentUserId.value;
+    if (userId.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      userId = prefs.getString('user_id') ?? '';
+    }
     if (userId.isEmpty) return;
 
     try {
@@ -118,6 +122,20 @@ class TrainerController extends GetxController {
 
           // 3. Update Observable (UI updates automatically)
           activeDaysCount.value = backendCount;
+          print(
+            '⤴️ updateActiveDays: activeDaysCount updated to $backendCount for user $userId',
+          );
+          // Refresh belt progress so UI shows updated activeDay counts immediately
+          try {
+            if (Get.isRegistered<BeltProgressRingController>()) {
+              await Get.find<BeltProgressRingController>().fetchBeltProgress();
+              print(
+                '⤴️ BeltProgressRingController refreshed after daily-check',
+              );
+            }
+          } catch (e) {
+            print('⚠️ Failed to refresh belt progress after daily-check: $e');
+          }
         }
       } else {
         print("❌ Daily Check Failed: ${response.body}");
@@ -125,8 +143,7 @@ class TrainerController extends GetxController {
     } catch (e) {
       print("❌ Network Error during daily check: $e");
     }
-  } 
-
+  }
 
   Future<void> _loadAuthData() async {
     try {
@@ -158,7 +175,6 @@ class TrainerController extends GetxController {
       recommendationCount.value = 0;
       return;
     }
-
 
     final prefs = await SharedPreferences.getInstance();
     recommendationCount.value =
@@ -208,8 +224,7 @@ class TrainerController extends GetxController {
           }
           double calculatedAvg = totalPercentage / totalFormCount;
           if (calculatedAvg > 1.0) calculatedAvg = 1.0;
-          trainerProgressMap[trainerId] =
-              '${(calculatedAvg * 100).round()} %';
+          trainerProgressMap[trainerId] = '${(calculatedAvg * 100).round()} %';
         }
       }
     } catch (e) {

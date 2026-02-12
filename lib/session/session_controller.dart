@@ -50,7 +50,6 @@ class SessionController extends GetxController {
       if (result['success'] == true) {
         final data = result['data'];
 
-        // 1. Parse Current List
         final currentRaw = data['current'];
         if (currentRaw is List) {
           currentList.assignAll(
@@ -97,12 +96,9 @@ class SessionController extends GetxController {
         }
         historySession.value = historyList.isNotEmpty ? historyList[0] : null;
 
-        // 4. Update Total Count
         totalSessionsCount.value =
             currentList.length + upcomingList.length + historyList.length;
 
-        // --- THE FIX IS HERE ---
-        // automatically count reflections based on the downloaded data
         _syncReflectionsFromSessions([
           ...currentList,
           ...historyList,
@@ -149,7 +145,25 @@ class SessionController extends GetxController {
 
       if (result['success'] == true) {
         success.value = true;
+        
+         if (session.trainerId != null && session.trainerId!.isNotEmpty) {
+          try {
+            await _apiService.updateBeltProgress(
+              userId: session.trainerId!,
+              beltColor: 'W', 
+              actionType: 'session', 
+            );
+            
+            if (Get.isRegistered<BeltProgressRingController>()) {
+              Get.find<BeltProgressRingController>().fetchBeltProgress();
+            }
+          } catch (e) {
+            print("⚠️ Failed to update belt progress: $e");
+          }
+        }
+
         await fetchDashboardData();
+        
         if (result['data'] != null) {
           return SessionModel.fromJson(result['data']);
         }
@@ -297,10 +311,6 @@ class SessionController extends GetxController {
       return;
     }
 
-    const int reflectionTarget = 1;
-    if (submittedReflectionSessionIds.length >= reflectionTarget) {
-      return;
-    }
     submittedReflectionSessionIds.add(sessionId);
 
     try {
@@ -310,6 +320,16 @@ class SessionController extends GetxController {
       );
 
       if (result['success'] == true) {
+         try {
+          await _apiService.updateBeltProgress(
+            userId: userId,
+            beltColor: 'W', 
+            actionType: 'reflection', 
+          );
+        } catch (e) {
+          print("⚠️ Belt update failed: $e");
+        }
+
         if (Get.isRegistered<BeltProgressRingController>()) {
           await Get.find<BeltProgressRingController>().fetchBeltProgress();
         }

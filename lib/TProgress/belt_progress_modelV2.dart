@@ -7,6 +7,7 @@ class BeltProgressModelV2 {
   final String? assignedTrainerId;
   final double? progressPercentage; 
 
+
   BeltProgressModelV2({
     required this.beltColor,
     required this.planSessionCount,
@@ -22,6 +23,7 @@ class BeltProgressModelV2 {
       beltColor: json['beltColor'],
       planSessionCount: json['planSessionCount'] ?? 0,
       reqSessionCount: json['reqSessionCount'] ?? 0,
+
       progress: ProgressCounters.fromJson(
         json,
       ),
@@ -39,20 +41,20 @@ class ProgressCounters {
   final int sessionPhotoCount;
   final int activeDayCount;
   final int postCount;
-  final int writeShortDescriptionCount;
   final int shareTipCount;
   final int resourceCount;
   final int openResourceCount;
+  final int reflectionCount;
 
   ProgressCounters({
     this.recommendationCount = 0,
     this.sessionPhotoCount = 0,
     this.activeDayCount = 0,
     this.postCount = 0,
-    this.writeShortDescriptionCount = 0,
     this.shareTipCount = 0,
     this.resourceCount = 0,
     this.openResourceCount = 0,
+    this.reflectionCount = 0,
   });
 
   factory ProgressCounters.fromJson(Map<String, dynamic> json) {
@@ -61,10 +63,10 @@ class ProgressCounters {
       sessionPhotoCount: json['sessionPhotoCount'] ?? 0,
       activeDayCount: json['activeDayCount'] ?? 0,
       postCount: json['postCount'] ?? 0,
-      writeShortDescriptionCount: json['writeShortDescriptionCount'] ?? 0,
       shareTipCount: json['shareTipCount'] ?? 0,
       resourceCount: json['resourceCount'] ?? 0,
       openResourceCount: json['openResourceCount'] ?? 0,
+      reflectionCount: (json['reflectionCount'] ?? 0).toInt(),
     );
   }
 }

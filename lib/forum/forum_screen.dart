@@ -10,11 +10,13 @@ import '../forum_searchtags/forum_searchtags_screen.dart';
 import '../comment/comment_screen.dart';
 import '../create_post/create_post_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
+import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 
 class ForumScreen extends StatelessWidget {
   ForumScreen({super.key});
   final ForumController controller = Get.put(ForumController());
   final UserController userController = Get.find<UserController>();
+  final BeltProgressRingController beltController = Get.put(BeltProgressRingController());
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +95,43 @@ class ForumScreen extends StatelessWidget {
   }
 
   Widget _buildCreatePostSection() {
+
+    void handlePostCreation() async {
+      // Check if Blue Belt is LOCKED (meaning Green is not finished)
+     if (beltController.detailedBeltData.isEmpty) {
+        // Show loading indicator
+        Get.dialog(
+          const Center(child: CircularProgressIndicator(color: Color(0xFF09FACA))),
+          barrierDismissible: false,
+        );
+        
+        // Force a refresh
+        await beltController.fetchBeltProgress();
+        
+        // Close loading indicator
+        if (Get.isDialogOpen ?? false) Get.back();
+      }
+
+      // 2. Perform the check
+      // We check if it IS locked (True = Blocked)
+      if (beltController.isBeltLocked('Blue')) {
+        Get.snackbar(
+          "Access Denied",
+          "You are not allowed to post in the forum until you achieve the blue belt.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          icon: const Icon(Icons.lock, color: Colors.white),
+          duration: const Duration(seconds: 4),
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+        );
+      } else {
+        // Unlocked -> Go to Create Screen
+        Get.to(() => CreatePostScreen());
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -117,7 +156,7 @@ class ForumScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
-              onTap: () => Get.to(() => CreatePostScreen()),
+              onTap: handlePostCreation, 
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -143,7 +182,8 @@ class ForumScreen extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: () => Get.to(() => CreatePostScreen()),
+            onTap: handlePostCreation,
+            //onTap: () => Get.to(() => CreatePostScreen()),
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(

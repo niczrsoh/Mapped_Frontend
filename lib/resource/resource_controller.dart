@@ -17,7 +17,10 @@ class ResourceController extends GetxController {
 
   final ApiService _apiService = ApiService();
 
-  TrainerController get trainerController => Get.find<TrainerController>();
+  TrainerController get trainerController =>
+      Get.isRegistered<TrainerController>()
+      ? Get.find<TrainerController>()
+      : Get.put(TrainerController());
 
   String currentUserId = '';
 
@@ -126,12 +129,12 @@ class ResourceController extends GetxController {
     }
 
     if (viewedResourceIds.contains(id)) {
-      return; 
+      return;
     }
 
     const int resourceTarget = 3;
     if (viewedResourceIds.length >= resourceTarget) {
-      return; 
+      return;
     }
 
     viewedResourceIds.add(id);

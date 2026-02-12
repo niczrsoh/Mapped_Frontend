@@ -1,6 +1,9 @@
 import 'package:mapped_frontend/session/session_reflect.dart';
+import 'package:mapped_frontend/session/session_reflect_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
+import 'session_controller.dart';
 
 class SessionDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> sessionData;
@@ -211,18 +214,64 @@ class SessionDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
 
-            // --- Reflect Button ---
             Center(
               child: GestureDetector(
-                onTap: () {
-                  // Navigate to Session Reflections Screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          SessionReflectionsScreen(sessionData: sessionData),
-                    ),
-                  );
+                onTap: () async {
+                  final controller = Get.put(SessionController());
+
+                  await controller.fetchDashboardData();
+
+                  final id = sessionData['_id'] ?? sessionData['id'];
+                  dynamic upToDateSession;
+                  if (id != null) {
+                    try {
+                      final matches = controller.historyList.where((s) {
+                        final sid = s.id?.toString() ?? '';
+                        return sid == id.toString();
+                      });
+                      upToDateSession = matches.isNotEmpty
+                          ? matches.first
+                          : null;
+                    } catch (_) {
+                      upToDateSession = null;
+                    }
+                  }
+
+                  Map<String, dynamic> sessionMap;
+                  if (upToDateSession != null) {
+                    try {
+                      sessionMap = upToDateSession.toJson();
+                    } catch (_) {
+                      sessionMap = Map<String, dynamic>.from(sessionData);
+                    }
+                  } else {
+                    sessionMap = Map<String, dynamic>.from(sessionData);
+                  }
+
+                  final reflection = sessionMap['reflection'];
+                  final bool hasReflection =
+                      reflection != null &&
+                      reflection is Map &&
+                      reflection.isNotEmpty;
+
+                  if (hasReflection) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SessionReflectionsPreviewScreen(
+                          sessionData: sessionMap,
+                        ),
+                      ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SessionReflectionsScreen(sessionData: sessionMap),
+                      ),
+                    );
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

@@ -257,16 +257,6 @@ class ForumController extends GetxController {
         posts.removeWhere((p) => p.id == post.id);
         Get.snackbar("Success", "Post deleted successfully");
 
-        try {
-          if (Get.isRegistered<CreatePostController>()) {
-            await Get.find<CreatePostController>().removePostFromSharedTips(
-              post.id,
-            );
-          }
-        } catch (e) {
-          print('ForumController: error removing post from shared tips: $e');
-        }
-
         Get.back();
         return true;
       } else {
