@@ -7,24 +7,25 @@ import '../global/routes.dart';
 class LoginScreen extends GetView<LoginController> {
   const LoginScreen({super.key});
 
-  // Updated to match the specific thin neon border and capsule shape in image_aa60d9.png
-  static InputDecoration _inputDecoration({required String hint, bool hasError = false}) {
+  // Input decoration – unchanged
+  static InputDecoration _inputDecoration({
+    required String hint,
+    bool hasError = false,
+  }) {
     return InputDecoration(
       hintText: hint,
       hintStyle: GoogleFonts.poppins(
-        color: Colors.white.withOpacity(0.9), 
+        color: Colors.white.withOpacity(0.9),
         fontSize: 16,
         fontWeight: FontWeight.w400,
       ),
       filled: true,
       fillColor: Colors.black.withOpacity(0.5),
       contentPadding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-      
-      // Capsule shape with thin neon cyan border
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30), 
+        borderRadius: BorderRadius.circular(30),
         borderSide: BorderSide(
-          color: hasError ? Colors.redAccent : const Color(0xFF00E5CC), // Neon Cyan
+          color: hasError ? Colors.redAccent : const Color(0xFF00E5CC),
           width: 1.5,
         ),
       ),
@@ -44,7 +45,7 @@ class LoginScreen extends GetView<LoginController> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Dynamic Background
+          // Background image
           Obx(() => Positioned.fill(
                 child: Opacity(
                   opacity: 0.6,
@@ -56,39 +57,40 @@ class LoginScreen extends GetView<LoginController> {
                   ),
                 ),
               )),
-
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Column(
                   children: [
-                    // Updated Header to match image_aa6591.png (Neon Cyan "User Login")
+                    // Header
                     Obx(() => Text(
-                          controller.isAdminMode.value ? "Login as Admin" : "Welcome Back",
+                          controller.isAdminMode.value
+                              ? "Login as Admin"
+                              : "Welcome Back",
                           style: GoogleFonts.poppins(
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
-                            color: controller.isAdminMode.value 
-                                ? Colors.white 
-                                : const Color(0xFF00E5CC), // Matching Cyan
+                            color: controller.isAdminMode.value
+                                ? Colors.white
+                                : const Color(0xFF00E5CC),
                             letterSpacing: 0.5,
                           ),
                         )),
                     const SizedBox(height: 50),
 
-                    // Inputs matching image_aa60d9.png
+                    // Email field – now stateful with its own controller
                     _EmailTextField(controller: controller),
                     const SizedBox(height: 20),
+
+                    // Password field – stateful with its own controller
                     _PasswordTextField(controller: controller),
 
                     const SizedBox(height: 25),
 
-                    // Forgot Password Link
+                    // Forgot Password
                     TextButton(
-                     onPressed: () {
-                        Get.toNamed(AppRoutes.resetPassword); 
-                      },
+                      onPressed: () => Get.toNamed(AppRoutes.resetPassword),
                       child: Text(
                         "Forgot Password",
                         style: GoogleFonts.poppins(
@@ -101,7 +103,7 @@ class LoginScreen extends GetView<LoginController> {
 
                     const SizedBox(height: 20),
 
-                    // Main Action Buttons
+                    // Login button
                     _RoundedActionButton(
                       label: "Login",
                       onPressed: () => controller.login(),
@@ -110,17 +112,18 @@ class LoginScreen extends GetView<LoginController> {
 
                     const SizedBox(height: 15),
 
+                    // Biometrics button (only for user mode)
                     Obx(() => Visibility(
-                      visible: !controller.isAdminMode.value,
-                      child: _RoundedActionButton(
-                        label: "Login with Fingerprint",
-                        onPressed: () => controller.loginWithBiometrics(),
-                      ),
-                    )),
+                          visible: !controller.isAdminMode.value,
+                          child: _RoundedActionButton(
+                            label: "Login with Fingerprint",
+                            onPressed: () => controller.loginWithBiometrics(),
+                          ),
+                        )),
 
                     const SizedBox(height: 35),
 
-                    // Registration Footer
+                    // Register link
                     Obx(() => Visibility(
                           visible: !controller.isAdminMode.value,
                           child: Row(
@@ -128,7 +131,8 @@ class LoginScreen extends GetView<LoginController> {
                             children: [
                               Text(
                                 "Did not have an account? ",
-                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white, fontSize: 14),
                               ),
                               InkWell(
                                 onTap: () => Get.toNamed(AppRoutes.register),
@@ -144,29 +148,29 @@ class LoginScreen extends GetView<LoginController> {
                             ],
                           ),
                         )),
-                        const SizedBox(height: 15),
+                    const SizedBox(height: 15),
 
-                        Obx(() => InkWell(
-                              // This switches the mode when the text is clicked
-                              onTap: () => controller.toggleMode(),
-                              borderRadius: BorderRadius.circular(10),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                child: Text(
-                                  // Logic: If currently in Admin mode, show "User Login" to allow switching back, 
-                                  // and vice versa.
-                                  controller.isAdminMode.value ? "User Login" : "Admin Login",
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF00E5CC), // Neon Cyan matching your images
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
+                    // Admin / User toggle
+                    Obx(() => InkWell(
+                          onTap: () => controller.toggleMode(),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            child: Text(
+                              controller.isAdminMode.value
+                                  ? "User Login"
+                                  : "Admin Login",
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xFF00E5CC),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
                               ),
-                            )),
-
-                        const SizedBox(height: 15),
+                            ),
+                          ),
+                        )),
+                    const SizedBox(height: 15),
                   ],
                 ),
               ),
@@ -178,7 +182,7 @@ class LoginScreen extends GetView<LoginController> {
   }
 }
 
-// Reusable White Rounded Button component
+// -------------------- Rounded Button (unchanged) --------------------
 class _RoundedActionButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -221,56 +225,147 @@ class _RoundedActionButton extends StatelessWidget {
   }
 }
 
-class _EmailTextField extends StatelessWidget {
+// -------------------- Email TextField (FIXED) --------------------
+class _EmailTextField extends StatefulWidget {
   final LoginController controller;
   const _EmailTextField({required this.controller});
+
+  @override
+  __EmailTextFieldState createState() => __EmailTextFieldState();
+}
+
+class __EmailTextFieldState extends State<_EmailTextField> {
+  late TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with current value from controller
+    _textController = TextEditingController(text: widget.controller.email.value);
+    // Keep the text field in sync when controller.email changes externally
+    ever(widget.controller.email, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose(); // 🔥 PREVENTS THE ERROR
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: LoginScreen._inputDecoration(
-                hint: 'Email', 
-                hasError: controller.emailError.value.isNotEmpty
-              ),
-              onChanged: controller.onEmailChanged,
+    return Obx(() {
+      final hasError = widget.controller.emailError.value.isNotEmpty;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _textController,
+            style: const TextStyle(color: Colors.white),
+            decoration: LoginScreen._inputDecoration(
+              hint: 'Email',
+              hasError: hasError,
             ),
-          ],
-        ));
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (value) {
+              // Update reactive value and clear error while typing
+              widget.controller.email.value = value;
+              if (hasError) widget.controller.emailError.value = '';
+            },
+          ),
+          if (hasError)
+            Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.emailError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+        ],
+      );
+    });
   }
 }
 
+// -------------------- Password TextField (FIXED) --------------------
 class _PasswordTextField extends StatefulWidget {
   final LoginController controller;
   const _PasswordTextField({required this.controller});
+
   @override
-  State<_PasswordTextField> createState() => _PasswordTextFieldState();
+  __PasswordTextFieldState createState() => __PasswordTextFieldState();
 }
 
-class _PasswordTextFieldState extends State<_PasswordTextField> {
-  bool _obscure = true;
+class __PasswordTextFieldState extends State<_PasswordTextField> {
+  late TextEditingController _textController;
+  bool _obscureText = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.controller.password.value);
+    ever(widget.controller.password, (value) {
+      if (_textController.text != value) {
+        _textController.text = value;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose(); // 🔥 PREVENTS THE ERROR
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              obscureText: _obscure,
-              style: const TextStyle(color: Colors.white),
-              decoration: LoginScreen._inputDecoration(
-                hint: 'Password', 
-                hasError: widget.controller.passwordError.value.isNotEmpty
-              ).copyWith(
-                suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, color: Colors.white54, size: 20), 
-                  onPressed: () => setState(() => _obscure = !_obscure)
+    return Obx(() {
+      final hasError = widget.controller.passwordError.value.isNotEmpty;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _textController,
+            obscureText: _obscureText,
+            style: const TextStyle(color: Colors.white),
+            decoration: LoginScreen._inputDecoration(
+              hint: 'Password',
+              hasError: hasError,
+            ).copyWith(
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white54,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => _obscureText = !_obscureText),
+              ),
+            ),
+            onChanged: (value) {
+              widget.controller.password.value = value;
+              if (hasError) widget.controller.passwordError.value = '';
+            },
+          ),
+          if (hasError)
+            Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                widget.controller.passwordError.value,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 12,
                 ),
               ),
-              onChanged: widget.controller.onPasswordChanged,
             ),
-          ],
-        ));
+        ],
+      );
+    });
   }
 }

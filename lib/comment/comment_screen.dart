@@ -22,10 +22,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
   @override
   void initState() {
     super.initState();
+     final ForumController forumController = Get.find<ForumController>();
     // Load comments only once when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.loadComments(widget.post.id);
     });
+    
   }
 
   @override

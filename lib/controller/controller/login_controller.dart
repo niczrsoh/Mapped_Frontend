@@ -6,12 +6,12 @@ import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../global/routes.dart';
-import 'trainer_controller.dart';
 
 class LoginController extends GetxController {
-  // Change from username to email to match your backend
+  // 🔥 No TextEditingController fields – only reactive strings
   final RxString email = ''.obs;
   final RxString password = ''.obs;
+
   final RxBool loading = false.obs;
   final RxString emailError = ''.obs;
   final RxString passwordError = ''.obs;
@@ -19,86 +19,85 @@ class LoginController extends GetxController {
   final RxBool isAdminMode = false.obs;
   final RxBool canCheckBiometrics = false.obs;
 
-  void toggleMode() 
-  {
-    isAdminMode.value = !isAdminMode.value;
-    clearAll();
-  }
-  
   final ApiService _apiService = ApiService();
   final LocalAuthentication _auth = LocalAuthentication();
 
   @override
   void onInit() {
     super.onInit();
-    _checkBiometricSupport();
+    _checkBiometricSupport(); // still needed
   }
 
-  // Validation methods
+  // 🔥 No onClose – nothing to dispose
+
+  /// Switches between Admin and User login modes and clears all inputs
+  void toggleMode() {
+    isAdminMode.value = !isAdminMode.value;
+
+    // ✅ Clear only the reactive values – controllers are handled in widgets
+    email.value = '';
+    password.value = '';
+
+    // ✅ Clear all error messages
+    emailError.value = '';
+    passwordError.value = '';
+    formError.value = '';
+  }
+
+  // --- VALIDATION LOGIC (unchanged, works with email.value / password.value) ---
   bool validateEmail() {
     emailError.value = '';
-    
     if (email.value.isEmpty) {
       emailError.value = 'Email is required';
       return false;
     }
-    
     final emailRegex = RegExp(
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
       caseSensitive: false,
-      multiLine: false,
     );
-    
     if (!emailRegex.hasMatch(email.value)) {
       emailError.value = 'Please enter a valid email address';
       return false;
     }
-    
     return true;
   }
-  
+
   bool validatePassword() {
     passwordError.value = '';
-    
     if (password.value.isEmpty) {
       passwordError.value = 'Password is required';
       return false;
     }
-    
     if (password.value.length < 6) {
       passwordError.value = 'Password must be at least 6 characters';
       return false;
     }
-    
     return true;
   }
-  
+
   bool validateForm() {
     formError.value = '';
-    
     final isEmailValid = validateEmail();
     final isPasswordValid = validatePassword();
-    
-    if (!isEmailValid && emailError.value.isNotEmpty) {
+
+    if (!isEmailValid) {
       formError.value = emailError.value;
       return false;
     }
-    
-    if (!isPasswordValid && passwordError.value.isNotEmpty) {
+    if (!isPasswordValid) {
       formError.value = passwordError.value;
       return false;
     }
-    
-    return isEmailValid && isPasswordValid;
+    return true;
   }
 
+  // --- BIOMETRIC LOGIC (unchanged) ---
   Future<void> _checkBiometricSupport() async {
     bool canCheck = await _auth.canCheckBiometrics;
     bool isSupported = await _auth.isDeviceSupported();
     canCheckBiometrics.value = canCheck && isSupported;
   }
 
-  // --- BIOMETRIC LOGIN LOGIC ---
   Future<void> loginWithBiometrics() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -107,7 +106,7 @@ class LoginController extends GetxController {
       if (savedUserId == null || savedUserId.isEmpty) {
         Get.snackbar(
           'Manual Login Required',
-          'Please log in with your email and password at least once first.',
+          'Please log in with your email and password first.',
           backgroundColor: Colors.orange,
           colorText: Colors.white,
         );
@@ -119,17 +118,15 @@ class LoginController extends GetxController {
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: true,
-          useErrorDialogs: true, // Automatically shows system dialogs for errors
+          useErrorDialogs: true,
         ),
       );
 
       if (authenticated) {
         String role = prefs.getString('user_role') ?? 'trainee';
-        
-        Get.snackbar('Welcome Back!', 'Biometric login successful',
+        Get.snackbar('Welcome Back!', 'Login successful',
             backgroundColor: const Color(0xFF00C7A7), colorText: Colors.white);
 
-        // Navigate based on stored role
         if (role == 'admin') {
           Get.offAllNamed(AppRoutes.adminReport);
         } else {
@@ -137,12 +134,12 @@ class LoginController extends GetxController {
         }
       }
     } catch (e) {
-      Get.snackbar('Error', 'Biometric authentication failed: $e',
+      Get.snackbar('Error', 'Authentication failed: $e',
           backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
 
-  // --- TRADITIONAL LOGIN LOGIC ---
+  // --- MAIN LOGIN LOGIC (uses email.value / password.value directly) ---
   Future<void> login() async {
     if (!validateForm()) return;
     loading.value = true;
@@ -150,50 +147,56 @@ class LoginController extends GetxController {
 
     try {
       final result = await _apiService.loginUser(
-        email: email.value.trim(),
+        email: email.value.trim(),   // ✅ no controller needed
         password: password.value,
       );
 
-      loading.value = false;
-
-      if (result['success'] == true) 
-      {
+      if (result['success'] == true) {
         final responseData = result['data'];
-        
+        final String actualRole = responseData['user']?['role'] ?? 'trainee';
+
+        // Role enforcement
+        if (isAdminMode.value && actualRole != 'admin') {
+          loading.value = false;
+          formError.value = 'Access denied. You do not have Admin privileges.';
+          return;
+        }
+
+        if (!isAdminMode.value && actualRole == 'admin') {
+          loading.value = false;
+          formError.value = 'Admins must use the Admin Login toggle.';
+          return;
+        }
+
         final prefs = await SharedPreferences.getInstance();
 
-        String newUserId = responseData['user']['id'] ?? '';
-
-        // 1. Store Data for Persistence
         String id = responseData['user']?['id'] ?? '';
         String name = responseData['user']?['name'] ?? '';
         String emailAddr = responseData['user']?['email'] ?? '';
-        String assignedRole = isAdminMode.value ? 'admin' : (responseData['user']?['role'] ?? 'trainee');
 
         await prefs.setString('user_id', id);
         await prefs.setString('user_name', name);
         await prefs.setString('user_email', emailAddr);
-        await prefs.setString('user_role', assignedRole);
-        
+        await prefs.setString('user_role', actualRole);
+
         if (result['token'] != null) {
           await prefs.setString('auth_token', result['token']);
         }
 
-        // 2. Update Global Controller
         final userController = Get.find<UserController>();
         userController.userId.value = id;
         await userController.fetchUserProfile();
 
+        loading.value = false;
         clearAll();
 
-        // 3. Navigation
-        if (assignedRole == 'admin') {
-          Get.offAllNamed(AppRoutes.adminReport); 
+        if (actualRole == 'admin') {
+          Get.offAllNamed(AppRoutes.adminReport);
         } else {
           Get.offAllNamed(AppRoutes.main);
         }
-        
       } else {
+        loading.value = false;
         formError.value = result['msg'] ?? 'Login failed';
       }
     } catch (e) {
@@ -201,42 +204,28 @@ class LoginController extends GetxController {
       formError.value = 'Connection failed. Please check your server.';
     }
   }
-  
-  bool get isFormValid {
-    return email.value.isNotEmpty && 
-          password.value.isNotEmpty &&
-          emailError.value.isEmpty &&
-          passwordError.value.isEmpty &&
-          formError.value.isEmpty;
-  }
-  
-  // Real-time validation as user types
+
+  // --- UI HELPER METHODS (update reactive values) ---
   void onEmailChanged(String value) {
     email.value = value;
     if (emailError.value.isNotEmpty || formError.value.isNotEmpty) {
       validateEmail();
     }
   }
-  
+
   void onPasswordChanged(String value) {
     password.value = value;
     if (passwordError.value.isNotEmpty || formError.value.isNotEmpty) {
       validatePassword();
     }
   }
-  
-  // Clear all fields and errors
+
+  // ✅ Clears reactive values and errors – no controllers to clear
   void clearAll() {
     email.value = '';
     password.value = '';
     emailError.value = '';
     passwordError.value = '';
     formError.value = '';
-  }
-  
-  // Get stored user ID
-  Future<String?> getUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_id');
   }
 }
