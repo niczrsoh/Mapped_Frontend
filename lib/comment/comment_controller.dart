@@ -80,7 +80,6 @@ class CommentsController extends GetxController {
   }
 
   Future<void> loadComments(String postId, {bool forceReload = false}) async {
-    // Avoid reloading if already loaded for this post (unless forced)
     if (_currentPostId == postId && !forceReload && comments.isNotEmpty) {
       return;
     }
@@ -113,7 +112,6 @@ class CommentsController extends GetxController {
   // Fetch previously submitted posts/comments from backend
   Future<void> fetchSubmittedPosts() async {
     try {
-      // 🔥 FIXED: Use .value to get the plain String
       final userId = forumController.currentUserId;
       if (userId.isEmpty) return;
 
@@ -154,7 +152,6 @@ class CommentsController extends GetxController {
       final response = await http.post(
         Uri.parse('${forumController.baseUrl}/api/forum/comment/$postId'),
         headers: {'Content-Type': 'application/json'},
-        // 🔥 FIXED: Use .value
         body: jsonEncode({
           'userId': forumController.currentUserId,
           'text': text.trim(),
@@ -162,7 +159,6 @@ class CommentsController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        // Force reload comments to get the new comment
         await loadComments(postId, forceReload: true);
         await _updatePostCount();
         Get.snackbar("Success", "Comment added");
@@ -177,7 +173,7 @@ class CommentsController extends GetxController {
     }
   }
 
-  // Mark post/comment as submitted with duplicate prevention and target capping
+  // Mark post/comment 
   Future<void> markPostAsSubmitted(String commentId) async {
     final userId = forumController.currentUserId;
     submittedPostIds.add(commentId);
@@ -211,7 +207,6 @@ class CommentsController extends GetxController {
 
   Future<void> _updatePostCount() async {
     try {
-      // 🔥 FIXED: Use .value
       final userId = forumController.currentUserId;
 
       await _apiService.updateBeltProgress(
