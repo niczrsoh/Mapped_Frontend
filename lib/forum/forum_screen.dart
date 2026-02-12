@@ -14,8 +14,9 @@ import 'package:mapped_frontend/controller/user_controller';
 
 class ForumScreen extends StatelessWidget {
   ForumScreen({super.key});
-  final ForumController controller = Get.put(ForumController());
+  final ForumController forumcontroller = Get.put(ForumController());
   final UserController userController = Get.find<UserController>();
+  final ForumController controller = Get.find<ForumController>();
 
   @override
   Widget build(BuildContext context) {
