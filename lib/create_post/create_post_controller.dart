@@ -14,7 +14,7 @@ import '../forum/forum_controller.dart';
 class CreatePostController extends GetxController {
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "https://mapped-backend-node-js.onrender.com";
+      : "https://mapped-backend-node-js-1.onrender.com";
 
   final TextEditingController textController = TextEditingController();
   // Removed tagsController since we extract from text now

@@ -114,15 +114,15 @@ class LoginScreen extends GetView<LoginController> {
                     const SizedBox(height: 15),
 
                     // Biometrics button (only for user mode)
-                   Obx(() => Visibility(
-                      visible: !controller.isAdminMode.value,
-                      child: _RoundedActionButton(
-                        label: "Login with Fingerprint",
-                        onPressed: () {
-                          Get.to(() => const TouchIdScreen()); 
-                        },
-                      ),
-                    )),
+                  //  Obx(() => Visibility(
+                  //     visible: !controller.isAdminMode.value,
+                  //     child: _RoundedActionButton(
+                  //       label: "Login with Fingerprint",
+                  //       onPressed: () {
+                  //         Get.to(() => const TouchIdScreen()); 
+                  //       },
+                  //     ),
+                  //   )),
 
                     const SizedBox(height: 35),
 
