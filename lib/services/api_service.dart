@@ -240,27 +240,6 @@ class ApiService {
     }
   }
 
-  // Future<Map<String, dynamic>> getTraineeById(String id) async {
-  //   final url = Uri.parse('$baseUrl/trainee/$id');
-  //   try {
-  //     final response = await http.get(
-  //       url,
-  //       headers: {'Content-Type': 'application/json; charset=UTF-8'},
-  //     );
-
-  //     print('Get Trainee($id) Status: ${response.statusCode}');
-  //     if (response.statusCode == 200) {
-  //       final Map<String, dynamic> responseBody = json.decode(response.body);
-  //       return {'success': true, 'data': responseBody['data'] ?? responseBody};
-  //     } else {
-  //       return {'success': false, 'error': 'Failed to load trainee'};
-  //     }
-  //   } catch (e) {
-  //     print('API Error getting trainee: $e');
-  //     return {'success': false, 'error': 'Network Error'};
-  //   }
-  // }
-
   Future<Map<String, dynamic>> updateTrainee(
     String id,
     Map<String, dynamic> data, {
