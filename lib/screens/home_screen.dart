@@ -5,7 +5,7 @@ import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/forum/forum_screen.dart';
 import 'package:mapped_frontend/forum/forum_controller.dart';
-import 'package:mapped_frontend/screens/coaching_screen.dart';
+import 'package:mapped_frontend/recommendation/coaching_screen.dart';
 import 'package:mapped_frontend/resource/resource_screen.dart';
 import 'package:mapped_frontend/Participants/trainee_screen.dart';
 import 'package:mapped_frontend/session/session_planner.dart';
