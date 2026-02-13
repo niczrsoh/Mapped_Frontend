@@ -30,11 +30,21 @@ class CreatePostController extends GetxController {
   var videoUrl = ''.obs;
   var videoThumbnail = ''.obs;
   var hasContent = false.obs;
+  var userBelt = 'White'.obs;
 
   String? currentUserId;
 
   YoutubePlayerController? ytPlayerController;
   var sharedTipPostIds = <String>{}.obs;
+
+  final List<String> beltHierarchy = [
+    'White',
+    'Yellow',
+    'Green',
+    'Blue', 
+    'Brown',
+    'Black'
+  ];
 
   @override
   void onInit() {
@@ -60,104 +70,6 @@ class CreatePostController extends GetxController {
         videoUrl.value.isNotEmpty;
   }
 
-    // Fetch previously shared tips from backend
-  Future<void> fetchSharedTips() async {
-    try {
-      if (currentUserId == null || currentUserId!.isEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        currentUserId = prefs.getString('user_id');
-      }
-
-      if (currentUserId == null || currentUserId!.isEmpty) return;
-
-      final result = await _apiService.getUserShareTipProgress(currentUserId!);
-
-      if (result['success'] == true && result['data'] != null) {
-        final List<dynamic> postIds = result['data'] as List<dynamic>;
-        sharedTipPostIds.value = postIds
-            .map((id) => id.toString())
-            .where((id) => id.isNotEmpty)
-            .toSet();
-      }
-    } catch (e) {
-      // Silent fail - user can still share tips
-    }
-  }
-
-   // Mark tip/resource share as submitted with duplicate prevention
-  Future<void> markShareTipAsSubmitted(String postId) async {
-
-    sharedTipPostIds.add(postId);
-
-    try {
-      try {
-        await _apiService.recordShareTipSubmission(postId, currentUserId!);
-      } catch (e) {
-      
-        print("⚠️ Individual share tip tracking not available: $e");
-      }
-      await _updateShareTipCount();
-
-      if (Get.isRegistered<BeltProgressRingController>()) {
-        await Get.find<BeltProgressRingController>().fetchBeltProgress();
-      }
-    } catch (e) {
-      sharedTipPostIds.remove(postId);
-    }
-  }
-
-  Future<void> _updateShareTipCount() async {
-    try {
-      if (currentUserId == null || currentUserId!.isEmpty) {
-        return;
-      }
-      await _apiService.updateBeltProgress(
-        userId: currentUserId!,
-        beltColor: 'B',
-        actionType: 'shareTip',
-      );
-
-      if (Get.isRegistered<BeltProgressRingController>()) {
-        await Get.find<BeltProgressRingController>().fetchBeltProgress();
-      }
-
-    } catch (e) {
-      print("⚠️ Failed to update share tip count: $e");
-    }
-  }
-
-
-  Future<void> removePostFromSharedTips(String postId) async {
-
-    if (sharedTipPostIds.isEmpty) {
-      await fetchSharedTips();
-    }
-
-    if (sharedTipPostIds.contains(postId)) {
-      sharedTipPostIds.remove(postId);
-      print("✅ Removed from local Set. New size: ${sharedTipPostIds.length}");
-    } else {
-      print("⚪ Post $postId not found in local shared tips Set");
-    }
-
-    if (Get.isRegistered<BeltProgressRingController>()) {
-      try {
-        final beltCtrl = Get.find<BeltProgressRingController>();
-        if (beltCtrl.backendShareTipCount.value > 0) {
-          beltCtrl.backendShareTipCount.value =
-              beltCtrl.backendShareTipCount.value - 1;
-        } else {
-          print("➡️ backendShareTipCount already zero; no decrement");
-        }
-      } catch (e) {
-        print("⚠️ Could not adjust backendShareTipCount: $e");
-      }
-    }
-
-    if (Get.isRegistered<BeltProgressRingController>()) {
-      await Get.find<BeltProgressRingController>().fetchBeltProgress();
-    }
-  }
 
   Future<void> fetchCurrentUser() async {
     try {
@@ -411,6 +323,8 @@ class CreatePostController extends GetxController {
         // Set success flag FIRST to trigger navigation immediately
         postSuccess.value = true;
 
+        await _updateShareTipCount();
+
         // Wait a bit for navigation to start
         await Future.delayed(const Duration(milliseconds: 200));
 
@@ -442,6 +356,92 @@ class CreatePostController extends GetxController {
       Get.snackbar("Error", "Connection error: $e");
     } finally {
       isPosting.value = false;
+    }
+  }
+
+  // Fetch previously shared tips from backend
+  Future<void> fetchSharedTips() async {
+    try {
+      if (currentUserId == null || currentUserId!.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        currentUserId = prefs.getString('user_id');
+      }
+
+      if (currentUserId == null || currentUserId!.isEmpty) return;
+
+      final result = await _apiService.getUserShareTipProgress(currentUserId!);
+
+      if (result['success'] == true && result['data'] != null) {
+        final List<dynamic> postIds = result['data'] as List<dynamic>;
+        sharedTipPostIds.value = postIds
+            .map((id) => id.toString())
+            .where((id) => id.isNotEmpty)
+            .toSet();
+      }
+    } catch (e) {
+      // Silent fail - user can still share tips
+    }
+  }
+
+  // Mark tip/resource share as submitted with duplicate prevention
+  Future<void> markShareTipAsSubmitted(String postId) async {
+
+    sharedTipPostIds.add(postId);
+
+    try {
+      try {
+        await _apiService.recordShareTipSubmission(postId, currentUserId!);
+      } catch (e) {
+      
+        print("⚠️ Individual share tip tracking not available: $e");
+      }
+      await _updateShareTipCount();
+
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+      }
+    } catch (e) {
+      sharedTipPostIds.remove(postId);
+    }
+  }
+
+  Future<void> _updateShareTipCount() async {
+    try {
+      if (currentUserId == null || currentUserId!.isEmpty) {
+        return;
+      }
+      await _apiService.updateBeltProgress(
+        userId: currentUserId!,
+        beltColor: 'B',
+        actionType: 'shareTip',
+      );
+
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+      }
+
+    } catch (e) {
+      print("⚠️ Failed to update share tip count: $e");
+    }
+  }
+
+
+  Future<void> removePostFromSharedTips(String postId) async {
+
+    if (sharedTipPostIds.isEmpty) {
+      await fetchSharedTips();
+    }
+
+    if (sharedTipPostIds.contains(postId)) {
+      sharedTipPostIds.remove(postId);
+      print("✅ Removed from local Set. New size: ${sharedTipPostIds.length}");
+    } else {
+      print("⚪ Post $postId not found in local shared tips Set");
+    }
+
+
+    if (Get.isRegistered<BeltProgressRingController>()) {
+      await Get.find<BeltProgressRingController>().fetchBeltProgress();
     }
   }
 }

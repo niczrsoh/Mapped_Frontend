@@ -17,7 +17,10 @@ class ResourceController extends GetxController {
 
   final ApiService _apiService = ApiService();
 
-  TrainerController get trainerController => Get.find<TrainerController>();
+  TrainerController get trainerController =>
+      Get.isRegistered<TrainerController>()
+      ? Get.find<TrainerController>()
+      : Get.put(TrainerController());
 
   String currentUserId = '';
 
@@ -126,15 +129,27 @@ class ResourceController extends GetxController {
     }
 
     if (viewedResourceIds.contains(id)) {
-      return; 
+      return;
     }
 
     const int resourceTarget = 3;
     if (viewedResourceIds.length >= resourceTarget) {
-      return; 
+      return;
     }
 
     viewedResourceIds.add(id);
+
+    // Optimistically increment local resource counter so UI updates immediately
+    try {
+      if (Get.isRegistered<BeltProgressRingController>()) {
+        // increase both openResourceCount and resourceCount to be safe
+        Get.find<BeltProgressRingController>().incrementProgressCounter(
+          beltColor: 'G',
+          counter: 'openResource',
+          delta: 1,
+        );
+      }
+    } catch (_) {}
 
     try {
       final result = await _apiService.recordResourceView(id, userId);

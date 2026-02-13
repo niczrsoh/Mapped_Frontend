@@ -4,6 +4,7 @@ import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
 import 'package:mapped_frontend/forum/forum_screen.dart';
+import 'package:mapped_frontend/forum/forum_controller.dart';
 import 'package:mapped_frontend/screens/coaching_screen.dart';
 import 'package:mapped_frontend/resource/resource_screen.dart';
 import 'package:mapped_frontend/Participants/trainee_screen.dart';
@@ -19,6 +20,7 @@ import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
 import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
+import 'package:mapped_frontend/screens/home_search.dart';
 
 final customGradient = const LinearGradient(
   colors: [Color(0xFF00C7A7), Color(0xFF00FF66)],
@@ -33,26 +35,62 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Ensure ForumController is registered before controllers that depend on it
+    Get.put(ForumController());
     Get.put(TrainerController());
     Get.put(SessionController());
     Get.put(ResourceController());
     Get.put(CommentsController());
     Get.put(CreatePostController());
     Get.put(BeltProgressRingController());
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
+  }
+
+  Future<void> _refreshData() async {
+    try {
+      final trainerCtrl = Get.find<TrainerController>();
+      final beltCtrl = Get.find<BeltProgressRingController>();
+      final sessionCtrl = Get.isRegistered<SessionController>()
+          ? Get.find<SessionController>()
+          : Get.put(SessionController());
+
+      await trainerCtrl.updateActiveDays();
+      // Ensure server-side daily-check completes, then refresh belt progress before sessions
+      await beltCtrl.fetchBeltProgress();
+      await sessionCtrl.fetchDashboardData();
+    } catch (e) {
+      print("Error refreshing home data: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final sessionController = Get.find<SessionController>();
+    final sessionController = Get.isRegistered<SessionController>()
+        ? Get.find<SessionController>()
+        : Get.put(SessionController());
     final themeBg = const Color(0xFF141823);
     final UserController userController = Get.find<UserController>();
-    final TrainerController trainerController = Get.find<TrainerController>();
-    final commentsController = Get.find<CommentsController>();
-    final createPostController = Get.find<CreatePostController>();
     final BeltProgressRingController beltController =
         Get.find<BeltProgressRingController>();
 
@@ -82,10 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
         child: RefreshIndicator(
           onRefresh: () async {
             await Get.find<TrainerController>().updateActiveDays();
-            await Future.wait([
-              beltController.fetchBeltProgress(),
-              sessionController.fetchDashboardData(),
-            ]);
+            await beltController.fetchBeltProgress();
+            await sessionController.fetchDashboardData();
           },
           color: const Color.fromARGB(255, 255, 255, 255),
           child: SingleChildScrollView(
@@ -94,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Greeting - Using actual user name
+                // Greeting
                 Obx(() {
                   final userName = userController.userName;
                   return Text(
@@ -110,7 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 Row(
                   children: [
-                    // Display current date
                     Text(
                       _getCurrentDate(),
                       style: GoogleFonts.poppins(
@@ -140,16 +175,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Search bar
                 GestureDetector(
                   onTap: () {
-                    Get.snackbar(
-                      'Coming Soon',
-                      'Search feature will be available soon',
-                      snackPosition: SnackPosition.BOTTOM,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeSearchScreen(),
+                      ),
                     );
                   },
-
                   child: Container(
                     height: 56,
-                    padding: const EdgeInsets.all(1.0), // Border Width
+                    padding: const EdgeInsets.all(1.0),
                     decoration: BoxDecoration(
                       gradient: customGradient,
                       borderRadius: BorderRadius.circular(40),
@@ -158,12 +193,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0E1517),
-                        borderRadius: BorderRadius.circular(39), // 40 - 1
+                        borderRadius: BorderRadius.circular(39),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: TextField(
+                              enabled: false,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -192,25 +228,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () {
-                              Get.snackbar(
-                                'Coming Soon',
-                                'Search feature will be available soon',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                            },
-                            child: SizedBox(
-                              height: 40,
-                              width: 40,
-                              child: const Center(
-                                child: Icon(
-                                  Icons.search,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
+                          const Icon(
+                            Icons.search,
+                            color: Colors.white,
+                            size: 20,
                           ),
                         ],
                       ),
@@ -219,28 +240,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 const SizedBox(height: 18),
+
+                // Belt Progress Card
                 GestureDetector(
                   onTap: () {
-                    Get.to(() => const BeltDashboardScreen());
+                    Get.to(
+                      () => const BeltDashboardScreen(),
+                    )?.then((_) => _refreshData());
                   },
                   child: sectionCard(
                     child: Obx(() {
-                      trainerController.activeDaysCount.value;
                       final belts = BeltDefinitions.belts;
                       final beltOrder = belts.map((b) => b.id).toList();
-                      int totalPosts =
-                          commentsController.submittedPostIds.length;
-                      int totalShareTipsBackend =
-                          beltController.backendShareTipCount.value;
-                      int totalShareTipsLocal =
-                          createPostController.sharedTipPostIds.length;
-                      int totalShareTips =
-                          (totalShareTipsBackend > totalShareTipsLocal)
-                          ? totalShareTipsBackend
-                          : totalShareTipsLocal;
-                      int totalReflections = sessionController
-                          .submittedReflectionSessionIds
-                          .length;
 
                       BeltProgressModelV2? currentBeltData;
                       String currentBeltCode = BeltDefinitions.white;
@@ -252,18 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         final data = beltController.detailedBeltData
                             .firstWhereOrNull((b) => b.beltColor == code);
-
-                        bool isPassed = false;
-                        if (data != null) {
-                          final reqCheck = BeltRequirementsData.getFor(code);
-                          isPassed = _isBeltStrictlyPassed(
-                            reqCheck,
-                            data,
-                            totalPosts,
-                            totalShareTips,
-                            totalReflections, 
-                          );
-                        }
+                            
+                        bool isPassed = data?.isCompleted ?? false;
 
                         if (!isPassed) {
                           currentBeltData = data;
@@ -287,9 +288,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         progress = _calculateProgressPercentageFromModel(
                           requirement,
                           currentBeltData,
-                          totalPosts,
-                          totalShareTips,
-                          totalReflections, 
                         );
                       }
 
@@ -345,10 +343,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: List.generate(beltOrder.length, (index) {
-                              final code = beltOrder[index];
+                              final thisCode = beltOrder[index];
 
                               bool isLocked = false;
-                              if (code == BeltDefinitions.black &&
+                              if (thisCode == BeltDefinitions.black &&
                                   currentBeltCode != BeltDefinitions.black) {
                                 isLocked = true;
                               }
@@ -367,22 +365,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                   } else {
                                     Get.to(
                                       () => BeltProgressScreen(
-                                        beltName: _getBeltName(code),
-                                        beltColor: _getBeltColor(code),
+                                        beltName: _getBeltName(thisCode),
+                                        beltColor: _getBeltColor(thisCode),
                                       ),
-                                    );
+                                    )?.then((_) => _refreshData());
                                   }
                                 },
                                 child: Column(
                                   children: [
                                     Image.asset(
-                                      _getBeltImage(code),
+                                      _getBeltImage(thisCode),
                                       width: 34,
                                       height: 34,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      _getBeltName(code),
+                                      _getBeltName(thisCode),
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                         fontSize: 10,
@@ -448,12 +446,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Builder(
                                   builder: (context) {
                                     String nextCode;
-                                    if (currentBeltIndex <
-                                        beltOrder.length - 1) {
-                                      nextCode =
-                                          beltOrder[currentBeltIndex + 1];
+                                    if (currentBeltIndex < belts.length - 1) {
+                                      nextCode = belts[currentBeltIndex + 1].id;
                                     } else {
-                                      nextCode = beltOrder.last;
+                                      nextCode = belts.last.id;
                                     }
                                     final nextColor = _getBeltColor(nextCode);
                                     final nextName = _getBeltName(nextCode);
@@ -505,12 +501,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             _buildRequirementText(
                               currentBeltCode,
                               currentBeltData,
-                              totalPosts,
-                              totalShareTips,
-                              totalReflections,
                             ),
                           ] else ...[
-                            // OPTIONAL: Display Mastery Text when Black Belt is achieved
                             const SizedBox(height: 20),
                             Row(
                               children: [
@@ -587,11 +579,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 12),
                 GestureDetector(
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const DailyCoachingScreen(),
-                      ),
-                    );
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (context) => const DailyCoachingScreen(),
+                          ),
+                        )
+                        .then((_) => _refreshData());
                   },
                   child: sectionCard(
                     child: Column(
@@ -632,11 +626,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ResourceScreen(),
-                                  ),
-                                );
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (context) => ResourceScreen(),
+                                      ),
+                                    )
+                                    .then((_) => _refreshData());
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -666,11 +662,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ForumScreen(),
-                                  ),
-                                );
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (context) => ForumScreen(),
+                                      ),
+                                    )
+                                    .then((_) => _refreshData());
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -735,7 +733,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           MaterialPageRoute(
                             builder: (context) => SessionPlannerScreen(),
                           ),
-                        );
+                        ).then((_) => _refreshData());
                       },
                       child: Text(
                         'Plan a Session',
@@ -775,26 +773,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day} ${now.year}';
   }
 
-  Widget _buildRequirementText(
-    String code,
-    BeltProgressModelV2? data,
-    int totalPosts,
-    int totalShareTips,
-    int totalReflections,
-  ) {
+  Widget _buildRequirementText(String code, BeltProgressModelV2? data) {
     final requirement = BeltRequirementsData.getFor(code);
 
     List<Widget> reqs = [];
 
     for (var task in requirement.tasks) {
-      int currentValue = _getProgressValue(
-        task,
-        data,
-        requirement,
-        totalPosts,
-        totalShareTips,
-        totalReflections,
-      );
+      int currentValue = _getProgressValue(task, data, requirement);
 
       String text = "${task.homeLabel}: $currentValue / ${task.target}";
 
@@ -831,9 +816,6 @@ class _HomeScreenState extends State<HomeScreen> {
     BeltTaskDef task,
     BeltProgressModelV2? data,
     BeltRequirement requirement,
-    int totalPosts,
-    int totalShareTips,
-    int totalReflections,
   ) {
     if (data == null) return 0;
 
@@ -842,10 +824,12 @@ class _HomeScreenState extends State<HomeScreen> {
         return data.planSessionCount.clamp(0, task.target);
 
       case RequirementType.activeDay:
-        final liveActiveDays =
-            Get.find<TrainerController>().activeDaysCount.value;
-        int calculated = liveActiveDays - requirement.cumulativeDayOffset;
-        return calculated.clamp(0, task.target);
+        final trainerCtrl = Get.find<TrainerController>();
+        int modelCount = data.progress.activeDayCount;
+        int freshCount = trainerCtrl.activeDaysCount.value;
+        int displayCount = (freshCount > modelCount) ? freshCount : modelCount;
+
+        return displayCount.clamp(0, task.target);
 
       case RequirementType.resource:
         return data.progress.openResourceCount.clamp(0, task.target);
@@ -854,104 +838,47 @@ class _HomeScreenState extends State<HomeScreen> {
         return data.progress.recommendationCount.clamp(0, task.target);
 
       case RequirementType.reflection:
-        return totalReflections.clamp(0, task.target);
+        return data.progress.reflectionCount.clamp(0, task.target);
 
       case RequirementType.forumPost:
-        int calculated = totalPosts - requirement.cumulativePostOffset;
-        return calculated < 0 ? 0 : calculated;
+        return data.progress.postCount.clamp(0, task.target);
 
       case RequirementType.shareTip:
-        int shareTipOffset = 0;
-        if (requirement.beltId == 'Brown' || requirement.beltId == 'R') {
-          shareTipOffset = 1;
-        }
+        return data.progress.shareTipCount.clamp(0, task.target);
 
-        int calculated = totalShareTips - shareTipOffset;
-        return calculated < 0 ? 0 : calculated.clamp(0, task.target);
+      case RequirementType.mastery:
+        return 1;
     }
-  }
-
-  bool _isBeltStrictlyPassed(
-    BeltRequirement req,
-    BeltProgressModelV2 data,
-    int totalPosts,
-    int totalShareTips,
-    int totalReflections,
-  ) {
-    if (req.beltId == BeltDefinitions.black) {
-      return true;
-    }
-
-    for (var task in req.tasks) {
-      int val = 0;
-      switch (task.type) {
-        // ... [Cases remain the same]
-        case RequirementType.session:
-          val = data.planSessionCount;
-          break;
-        case RequirementType.activeDay:
-          final liveDays = Get.find<TrainerController>().activeDaysCount.value;
-          val = liveDays - req.cumulativeDayOffset;
-          break;
-        case RequirementType.resource:
-          val = data.progress.openResourceCount;
-          break;
-        case RequirementType.recommendation:
-          val = data.progress.recommendationCount;
-          break;
-        case RequirementType.reflection:
-          val = totalReflections;
-          break;
-        case RequirementType.forumPost:
-          val = (totalPosts - req.cumulativePostOffset).clamp(0, 999);
-          break;
-        case RequirementType.shareTip:
-          int shareTipOffset = 0;
-          if (req.beltId == 'Brown' || req.beltId == 'R') {
-            shareTipOffset = 1;
-          }
-
-          val = (totalShareTips - shareTipOffset).clamp(0, 999);
-          break;
-      }
-      if (val < task.target) {
-        return false;
-      }
-    }
-    return true;
   }
 
   double _calculateProgressPercentageFromModel(
     BeltRequirement req,
     BeltProgressModelV2 data,
-    int totalPosts,
-    int totalShareTips,
-    int totalReflections,
   ) {
-    // FIX: Black Belt is always 100%
     if (req.beltId == BeltDefinitions.black) {
       return 100.0;
     }
 
+    if (data.progressPercentage != null && data.progressPercentage! > 0) {
+      return data.progressPercentage!;
+    }
+
+    final trainerCtrl = Get.find<TrainerController>();
     double currentProgressSum = 0;
     double targetProgressSum = 0;
 
     for (var task in req.tasks) {
-      // ... [Calculation logic remains the same]
       targetProgressSum += task.target;
-
       int val = 0;
+
       switch (task.type) {
         case RequirementType.session:
           val = data.planSessionCount;
           break;
         case RequirementType.activeDay:
-          final liveActiveDays =
-              Get.find<TrainerController>().activeDaysCount.value;
-          val = (liveActiveDays - req.cumulativeDayOffset).clamp(
-            0,
-            task.target,
-          );
+          int modelCount = data.progress.activeDayCount;
+          int freshCount = trainerCtrl.activeDaysCount.value;
+          val = (freshCount > modelCount) ? freshCount : modelCount;
           break;
         case RequirementType.resource:
           val = data.progress.openResourceCount;
@@ -960,18 +887,16 @@ class _HomeScreenState extends State<HomeScreen> {
           val = data.progress.recommendationCount;
           break;
         case RequirementType.reflection:
-          val = totalReflections;
+          val = data.progress.reflectionCount;
           break;
         case RequirementType.forumPost:
-          val = (totalPosts - req.cumulativePostOffset).clamp(0, 999);
+          val = data.progress.postCount;
           break;
         case RequirementType.shareTip:
-          int shareTipOffset = 0;
-          if (req.beltId == 'Brown' || req.beltId == 'R') {
-            shareTipOffset = 1;
-          }
-
-          val = (totalShareTips - shareTipOffset).clamp(0, 999);
+          val = data.progress.shareTipCount;
+          break;
+        case RequirementType.mastery:
+          val = 1;
           break;
       }
       currentProgressSum += val.clamp(0, task.target);

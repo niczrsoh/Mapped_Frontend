@@ -304,18 +304,25 @@ class SessionCurrentScreen extends StatelessWidget {
                             ),
                           )
                         else
-                          ...List.generate(controller.currentList.length, (i) {
-                            final session = controller.currentList[i];
-                            return Column(
-                              children: [
-                                _smallSessionRow(
+                          // Make the sessions list scrollable inside the card
+                          SizedBox(
+                            height: 260,
+                            child: ListView.separated(
+                              padding: EdgeInsets.zero,
+                              itemCount: controller.currentList.length,
+                              separatorBuilder: (_, __) => const Divider(
+                                color: Colors.white24,
+                                height: 24,
+                              ),
+                              itemBuilder: (context, i) {
+                                final session = controller.currentList[i];
+                                return _smallSessionRow(
                                   date: session.uiDate ?? session.date ?? '-',
                                   time: () {
                                     final d = session.duration;
                                     if (d != null &&
                                         d.isNotEmpty &&
                                         d != 'null') {
-                                      // Try extract numeric value and pluralize
                                       final numMatch = RegExp(
                                         r"(\d+)",
                                       ).firstMatch(d);
@@ -325,7 +332,6 @@ class SessionCurrentScreen extends StatelessWidget {
                                             0;
                                         return n == 1 ? '$n Min' : '$n Mins';
                                       }
-                                      // If it already contains 'min' or 'mins', normalize casing
                                       if (d.toLowerCase().contains('min')) {
                                         return d.replaceAllMapped(
                                           RegExp(
@@ -339,7 +345,6 @@ class SessionCurrentScreen extends StatelessWidget {
                                           },
                                         );
                                       }
-                                      // Fallback: append 'Mins'
                                       return '$d Mins';
                                     }
                                     return '-';
@@ -347,15 +352,10 @@ class SessionCurrentScreen extends StatelessWidget {
                                   venue: session.venue ?? '-',
                                   trainees: '${session.totalTrainees} Trainees',
                                   trainer: session.trainer ?? '-',
-                                ),
-                                if (i < controller.currentList.length - 1)
-                                  const Divider(
-                                    color: Colors.white24,
-                                    height: 24,
-                                  ),
-                              ],
-                            );
-                          }),
+                                );
+                              },
+                            ),
+                          ),
                       ],
                     ),
                   ),

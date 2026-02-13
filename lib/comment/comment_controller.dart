@@ -1,39 +1,92 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../forum/forum_controller.dart';
 import 'comment_model.dart';
 import '../services/api_service.dart';
 import '../TProgress/belt_progress_ring_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CommentsController extends GetxController {
   // Lazy initialization - retrieve ForumController only when actually needed
   ForumController get forumController => Get.find<ForumController>();
   final ApiService _apiService = ApiService();
+  final BeltProgressRingController beltController = Get.put(
+    BeltProgressRingController(),
+  );
 
   var comments = <Comment>[].obs;
   var isLoading = false.obs;
   var isPosting = false.obs;
+  var userBelt = 'White'.obs;
 
   String? _currentPostId;
 
   var submittedPostIds = <String>{}.obs;
 
+  final List<String> beltHierarchy = [
+    'White',
+    'Yellow',
+    'Green',
+    'Blue',
+    'Brown',
+    'Black',
+  ];
+
   @override
   void onInit() {
     super.onInit();
     fetchSubmittedPosts();
+    fetchUserBelt();
+    if (beltController.detailedBeltData.isEmpty) {
+      beltController.fetchBeltProgress();
+    }
+  }
+
+  Future<void> fetchUserBelt() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String userId = forumController.currentUserId;
+
+      if (userId.isEmpty) return;
+
+      final response = await http.get(
+        Uri.parse('${forumController.baseUrl}/api/auth/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        var userData = data['user'] ?? data;
+        userBelt.value = userData['currentBelt'] ?? 'White';
+      }
+    } catch (e) {
+      print("Error fetching belt: $e");
+    }
+  }
+
+  bool get isEligibleToComment {
+    if (beltController.detailedBeltData.isNotEmpty) {
+      bool isGreenLocked = beltController.isBeltLocked('Green');
+      return !isGreenLocked;
+    }
+
+    int userBeltIndex = beltHierarchy.indexOf(userBelt.value);
+    int requiredBeltIndex = beltHierarchy.indexOf('Green');
+
+    if (userBeltIndex == -1) return false;
+
+    return userBeltIndex >= requiredBeltIndex;
   }
 
   Future<void> loadComments(String postId, {bool forceReload = false}) async {
-    // Avoid reloading if already loaded for this post (unless forced)
     if (_currentPostId == postId && !forceReload && comments.isNotEmpty) {
       return;
     }
 
     _currentPostId = postId;
     isLoading.value = true;
-    
+
     try {
       final response = await http.get(
         Uri.parse('${forumController.baseUrl}/api/forum/$postId'),
@@ -59,7 +112,6 @@ class CommentsController extends GetxController {
   // Fetch previously submitted posts/comments from backend
   Future<void> fetchSubmittedPosts() async {
     try {
-      // 🔥 FIXED: Use .value to get the plain String
       final userId = forumController.currentUserId;
       if (userId.isEmpty) return;
 
@@ -78,6 +130,21 @@ class CommentsController extends GetxController {
   }
 
   Future<void> addComment(String postId, String text) async {
+    if (!isEligibleToComment) {
+      Get.snackbar(
+        "Access Denied",
+        "You are not allowed to reply in the forum until you achieve the green belt.",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+        icon: const Icon(Icons.lock, color: Colors.white),
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+      return;
+    }
+
     if (text.trim().isEmpty) return;
 
     isPosting.value = true;
@@ -85,7 +152,6 @@ class CommentsController extends GetxController {
       final response = await http.post(
         Uri.parse('${forumController.baseUrl}/api/forum/comment/$postId'),
         headers: {'Content-Type': 'application/json'},
-        // 🔥 FIXED: Use .value
         body: jsonEncode({
           'userId': forumController.currentUserId,
           'text': text.trim(),
@@ -93,8 +159,8 @@ class CommentsController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        // Force reload comments to get the new comment
         await loadComments(postId, forceReload: true);
+        await _updatePostCount();
         Get.snackbar("Success", "Comment added");
       } else {
         Get.snackbar("Error", "Could not add comment");
@@ -107,14 +173,23 @@ class CommentsController extends GetxController {
     }
   }
 
-  // Mark post/comment as submitted with duplicate prevention and target capping
+  // Mark post/comment 
   Future<void> markPostAsSubmitted(String commentId) async {
-    // 🔥 FIXED: Use .value
     final userId = forumController.currentUserId;
     submittedPostIds.add(commentId);
 
     try {
       try {
+        try {
+          if (Get.isRegistered<BeltProgressRingController>()) {
+            Get.find<BeltProgressRingController>().incrementProgressCounter(
+              beltColor: 'G',
+              counter: 'post',
+              delta: 1,
+            );
+          }
+        } catch (_) {}
+
         await _apiService.recordPostSubmission(commentId, userId);
       } catch (e) {
         print("⚠️ Individual post tracking not available: $e");
@@ -132,7 +207,6 @@ class CommentsController extends GetxController {
 
   Future<void> _updatePostCount() async {
     try {
-      // 🔥 FIXED: Use .value
       final userId = forumController.currentUserId;
 
       await _apiService.updateBeltProgress(

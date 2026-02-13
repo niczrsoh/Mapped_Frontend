@@ -11,9 +11,12 @@ import '../forum/forum_model.dart';
 import '../forum_searchtags/forum_searchtags_screen.dart';
 import '../comment/comment_screen.dart';
 import '../create_post/create_post_screen.dart';
+import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 
 class ForumScreen extends StatefulWidget {
   const ForumScreen({super.key});
+
+  
 
   @override
   State<ForumScreen> createState() => _ForumScreenState();
@@ -34,6 +37,9 @@ class _ForumScreenState extends State<ForumScreen> {
       controller.loadPosts();
     });
   }
+
+  final BeltProgressRingController beltController = Get.put(BeltProgressRingController());
+
 
   @override
   Widget build(BuildContext context) {
@@ -123,83 +129,111 @@ class _ForumScreenState extends State<ForumScreen> {
 
   // ---------- CREATE POST SECTION ----------
   Widget _buildCreatePostSection() {
-    return Builder(
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Obx(() {
-              final avatar = userController.userAvatar;
-              return CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.grey[300],
-                backgroundImage: avatar.isNotEmpty
-                    ? NetworkImage(
-                        avatar.startsWith('http')
-                            ? avatar
-                            : 'https://mapped-backend-node-js.onrender.com/$avatar',
-                      )
-                    : null,
-                child: avatar.isEmpty
-                    ? const Icon(Icons.person, color: Colors.grey)
-                    : null,
-              );
-            }),
-            const SizedBox(width: 12),
-            Expanded(
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CreatePostScreen(),
-                  ),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252836),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFF09FACA).withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    'What\'s on your mind?',
-                    style: GoogleFonts.roboto(
-                      color: Colors.white54,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => CreatePostScreen(),
-                ),
-              ),
+
+    void handlePostCreation() async {
+      // Check if Blue Belt is LOCKED (meaning Green is not finished)
+     if (beltController.detailedBeltData.isEmpty) {
+        // Show loading indicator
+        Get.dialog(
+          const Center(child: CircularProgressIndicator(color: Color(0xFF09FACA))),
+          barrierDismissible: false,
+        );
+        
+        // Force a refresh
+        await beltController.fetchBeltProgress();
+        
+        // Close loading indicator
+        if (Get.isDialogOpen ?? false) Get.back();
+      }
+
+      // 2. Perform the check
+      // We check if it IS locked (True = Blocked)
+      if (beltController.isBeltLocked('Blue')) {
+        Get.snackbar(
+          "Access Denied",
+          "You are not allowed to post in the forum until you achieve the blue belt.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          icon: const Icon(Icons.lock, color: Colors.white),
+          duration: const Duration(seconds: 4),
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+        );
+      } else {
+        // Unlocked -> Go to Create Screen
+        Get.to(() => CreatePostScreen());
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Obx(() {
+            final avatar = userController.userAvatar;
+            return CircleAvatar(
+              radius: 22,
+              backgroundColor: Colors.grey[300],
+              backgroundImage: avatar.isNotEmpty
+                  ? NetworkImage(
+                      avatar.startsWith('http')
+                          ? avatar
+                          : 'https://mapped-backend-node-js.onrender.com/$avatar',
+                    )
+                  : null,
+              child: avatar.isEmpty
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
+            );
+          }),
+          const SizedBox(width: 12),
+          Expanded(
+            child: GestureDetector(
+              onTap: handlePostCreation, 
               child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-                child: const Icon(
-                  Icons.collections,
-                  color: Colors.white,
-                  size: 22,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF252836),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF09FACA).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'What\'s on your mind?',
+                  style: GoogleFonts.roboto(
+                    color: Colors.white54,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: handlePostCreation,
+            //onTap: () => Get.to(() => CreatePostScreen()),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF09FACA), Color(0xFF0D7C7C)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.collections,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

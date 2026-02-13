@@ -5,6 +5,7 @@ import 'session_controller.dart';
 import 'session_details.dart';
 import 'session_reflect.dart';
 import 'session_model.dart';
+import 'session_reflect_preview.dart';
 
 class SessionHistoryScreen extends StatelessWidget {
   const SessionHistoryScreen({super.key});
@@ -160,23 +161,40 @@ class SessionHistoryScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+  
                   TextButton(
                     onPressed: () async {
-                      // 1. Refresh data to ensure we have the latest reflection info
+
                       await controller.fetchDashboardData();
 
-                      // 2. Find the fresh session object from the list
                       final upToDateSession = controller.historyList.firstWhere(
                         (s) => s.id == sessionData.id,
                         orElse: () => sessionData,
                       );
 
-                      Get.to(
-                        () => SessionReflectionsScreen(
-                          sessionData: upToDateSession.toJson(),
-                        ),
-                      );
+                      final sessionMap = upToDateSession.toJson();
+                      final reflection = sessionMap['reflection'];
+
+                      bool hasReflection =
+                          reflection != null &&
+                          reflection is Map &&
+                          reflection.isNotEmpty;
+
+                      if (hasReflection) {
+                        Get.to(
+                          () => SessionReflectionsPreviewScreen(
+                            sessionData: sessionMap,
+                          ),
+                        );
+                      } else {
+                        Get.to(
+                          () => SessionReflectionsScreen(
+                            sessionData: sessionMap,
+                          ),
+                        );
+                      }
                     },
+
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 4,

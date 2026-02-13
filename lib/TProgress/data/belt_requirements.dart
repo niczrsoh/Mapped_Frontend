@@ -9,6 +9,7 @@ enum RequirementType {
   reflection,
   forumPost,
   shareTip,
+  mastery,
 }
 
 class BeltTaskDef {
@@ -39,9 +40,9 @@ class BeltRequirement {
 
   const BeltRequirement({
     required this.beltId,
-    required this.cumulativeSessionOffset,
-    required this.cumulativeDayOffset,
-    required this.cumulativePostOffset,
+    this.cumulativeSessionOffset = 0,
+    this.cumulativeDayOffset = 0,
+    this.cumulativePostOffset = 0,
     required this.tasks,
   });
 }
@@ -50,9 +51,6 @@ class BeltRequirementsData {
   static const Map<String, BeltRequirement> requirements = {
     BeltDefinitions.white: BeltRequirement(
       beltId: BeltDefinitions.white,
-      cumulativeSessionOffset: 0,
-      cumulativeDayOffset: 0,
-      cumulativePostOffset: 0,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -81,12 +79,8 @@ class BeltRequirementsData {
       ],
     ),
 
-    // --- YELLOW BELT ---
     BeltDefinitions.yellow: BeltRequirement(
       beltId: BeltDefinitions.yellow,
-      cumulativeSessionOffset: 3,
-      cumulativeDayOffset: 3,
-      cumulativePostOffset: 0,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -115,12 +109,8 @@ class BeltRequirementsData {
       ],
     ),
 
-    // --- GREEN BELT ---
     BeltDefinitions.green: BeltRequirement(
       beltId: BeltDefinitions.green,
-      cumulativeSessionOffset: 8,
-      cumulativeDayOffset: 8,
-      cumulativePostOffset: 0,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -165,12 +155,8 @@ class BeltRequirementsData {
       ],
     ),
 
-    // --- BLUE BELT ---
     BeltDefinitions.blue: BeltRequirement(
       beltId: BeltDefinitions.blue,
-      cumulativeSessionOffset: 16,
-      cumulativeDayOffset: 22,
-      cumulativePostOffset: 1,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -207,12 +193,8 @@ class BeltRequirementsData {
       ],
     ),
 
-    // --- BROWN BELT ---
     BeltDefinitions.brown: BeltRequirement(
       beltId: BeltDefinitions.brown,
-      cumulativeSessionOffset: 36,
-      cumulativeDayOffset: 52,
-      cumulativePostOffset: 2,
       tasks: [
         BeltTaskDef(
           type: RequirementType.session,
@@ -249,38 +231,16 @@ class BeltRequirementsData {
       ],
     ),
 
-  //   // --- BLACK BELT ---
-  //   BeltDefinitions.black: BeltRequirement(
-  //     beltId: BeltDefinitions.black,
-  //     cumulativeSessionOffset: 56,
-  //     cumulativeDayOffset: 112,
-  //     cumulativePostOffset: 2,
-  //     tasks: [
-  //       BeltTaskDef(
-  //         type: RequirementType.activeDay,
-  //         target: 15,
-  //         dashboardLabel: 'Be active in the app for',
-  //         progressLabel: 'Be active in the app',
-  //         homeLabel: 'Be active',
-  //         icon: Icons.directions_run,
-  //       ),
-  //     ],
-  //   ),
-  // };
-  BeltDefinitions.black: BeltRequirement(
+    BeltDefinitions.black: BeltRequirement(
       beltId: BeltDefinitions.black,
-      cumulativeSessionOffset: 56, // Irrelevant based on tasks
-      cumulativeDayOffset: 112,    // Irrelevant based on tasks
-      cumulativePostOffset: 2,     // Irrelevant based on tasks
       tasks: [
-        // FIX: Set target to 0 so it's always complete immediately
         BeltTaskDef(
-          type: RequirementType.activeDay,
+          type: RequirementType.mastery,
           target: 0, 
           dashboardLabel: 'Mastery Achieved',
           progressLabel: 'Mastery Achieved',
           homeLabel: 'Mastery',
-          icon: Icons.star, // Changed icon to Star for mastery
+          icon: Icons.star, 
         ),
       ],
     ),
@@ -290,21 +250,15 @@ class BeltRequirementsData {
     if (requirements.containsKey(beltCode)) {
       return requirements[beltCode]!;
     }
-
     try {
       String simpleName = beltCode.split(' - ')[0];
-
       final def = BeltDefinitions.getByName(simpleName);
       if (requirements.containsKey(def.id)) {
         return requirements[def.id]!;
       }
     } catch (e) {
-      print("Error resolving belt requirement for $beltCode: $e");
+      // Fallback
     }
-
-    print(
-      "Warning: Belt Requirements not found for $beltCode, falling back to White.",
-    );
     return requirements[BeltDefinitions.white]!;
   }
 }

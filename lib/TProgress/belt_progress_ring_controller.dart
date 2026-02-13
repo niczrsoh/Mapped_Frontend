@@ -1,94 +1,26 @@
 import 'package:get/get.dart';
-import 'package:flutter/widgets.dart';
-import 'package:http/http.dart' as http;
-import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
-import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
-import 'dart:convert';
-import '../controller/controller/trainer_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
-import '../session/session_controller.dart';
-import '../comment/comment_controller.dart';
-import '../create_post/create_post_controller.dart';
+import 'belt_progress_modelV2.dart';
+import '../controller/controller/trainer_controller.dart';
 
 class BeltProgressRingController extends GetxController {
+  var isLoading = false.obs;
+  var detailedBeltData = <BeltProgressModelV2>[].obs;
+  var beltPercentages = <String, int>{}.obs;
+
+  final ApiService _apiService = ApiService();
   final TrainerController _trainerController =
       Get.isRegistered<TrainerController>()
       ? Get.find<TrainerController>()
       : Get.put(TrainerController());
-  final ApiService _apiService = ApiService();
 
-  var beltPercentages = <String, int>{}.obs;
-  var detailedBeltData = <BeltProgressModelV2>[].obs;
-  var isLoading = true.obs;
-  // Expose backend share tip total so UI can reference authoritative count
   var backendShareTipCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
-
-    ever(_trainerController.currentUserId, (String uid) {
-      if (uid.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          fetchBeltProgress();
-        });
-      }
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchBeltProgress();
-    });
-  }
-
-  Future<void> syncCalculatedProgress({
-    required String beltColor,
-    required int sessionCount,
-    required int activeDayCount,
-    double? progressPercentage,
-    int? openResourceCount,
-  }) async {
-    try {
-      String userId = _trainerController.currentUserId.value;
-      if (userId.isEmpty) {
-        isLoading.value = false;
-        return;
-      }
-
-      var url = Uri.parse('${_apiService.baseUrl}/belt-progress/sync-belt');
-
-      Map<String, dynamic> requestBody = {
-        "userId": userId,
-        "beltColor": beltColor,
-        "planSessionCount": sessionCount,
-        "activeDayCount": activeDayCount,
-      };
-
-      if (progressPercentage != null) {
-        requestBody["progressPercentage"] = progressPercentage;
-      }
-
-      if (openResourceCount != null) {
-        requestBody["openResourceCount"] = openResourceCount;
-      }
-
-      var body = jsonEncode(requestBody);
-
-      var response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: body,
-      );
-
-      if (response.statusCode == 200) {
-        print(
-          "Synced $beltColor: Sessions=$sessionCount, Days=$activeDayCount, Progress=$progressPercentage",
-        );
-      } else {
-        print("Failed to sync: ${response.body}");
-      }
-    } catch (e) {
-      print("Error syncing belt progress: $e");
-    }
+    fetchBeltProgress();
   }
 
   Future<void> fetchBeltProgress() async {
@@ -96,74 +28,22 @@ class BeltProgressRingController extends GetxController {
       isLoading.value = true;
       String userId = _trainerController.currentUserId.value;
       if (userId.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        userId = prefs.getString('user_id') ?? '';
+      }
+
+      if (userId.isEmpty) {
         isLoading.value = false;
         return;
       }
 
       final result = await _apiService.fetchBeltProgress(userId);
 
-      //update data
-
       if (result['success'] == true && result['belts'] != null) {
         Map<String, dynamic> beltsData = result['belts'];
 
         List<BeltProgressModelV2> parsedModels = [];
         Map<String, int> newMap = {};
-
-        int backendTotalPosts = 0;
-        int backendTotalShareTips = 0;
-        ['W', 'Y', 'G', 'B', 'R', 'L'].forEach((code) {
-          if (beltsData.containsKey(code)) {
-            var data = beltsData[code];
-            backendTotalPosts += (data['postCount'] ?? 0) as int;
-            backendTotalShareTips += (data['shareTipCount'] ?? 0) as int;
-          }
-        });
-
-        backendShareTipCount.value = backendTotalShareTips;
-
-        if (Get.isRegistered<CommentsController>()) {
-          final commentsCtrl = Get.find<CommentsController>();
-          print(
-            "📊 CommentsController found. Current Set size: ${commentsCtrl.submittedPostIds.length}, Backend count: $backendTotalPosts",
-          );
-          if (commentsCtrl.submittedPostIds.length < backendTotalPosts) {
-            for (
-              int i = commentsCtrl.submittedPostIds.length;
-              i < backendTotalPosts;
-              i++
-            ) {
-              commentsCtrl.submittedPostIds.add('backend_post_$i');
-            }
-          }
-        } else {
-          print("⚠️ CommentsController not registered!");
-        }
-
-        if (Get.isRegistered<CreatePostController>()) {
-          final postCtrl = Get.find<CreatePostController>();
-          int localShareCount = postCtrl.sharedTipPostIds.length;
-
-          if (localShareCount < backendTotalShareTips) {
-            for (int i = localShareCount; i < backendTotalShareTips; i++) {
-              postCtrl.sharedTipPostIds.add('backend_share_$i');
-            }
-          } else if (localShareCount > backendTotalShareTips) {
-            postCtrl.sharedTipPostIds.removeWhere(
-              (id) => id.startsWith('backend_share_'),
-            );
-          }
-        }
-
-        int totalPosts = 0;
-        int totalShareTips = 0;
-        if (Get.isRegistered<CommentsController>()) {
-          totalPosts = Get.find<CommentsController>().submittedPostIds.length;
-        }
-        if (Get.isRegistered<CreatePostController>()) {
-          totalShareTips =
-              Get.find<CreatePostController>().sharedTipPostIds.length;
-        }
 
         ['W', 'Y', 'G', 'B', 'R', 'L'].forEach((code) {
           if (beltsData.containsKey(code)) {
@@ -184,12 +64,7 @@ class BeltProgressRingController extends GetxController {
             parsedModels.add(model);
 
             String uiName = _getUiNameFromCode(code);
-            int percentage = _calculatePercentageForBelt(
-              model,
-              uiName,
-              totalPosts,
-              totalShareTips,
-            );
+            int percentage = _calculatePercentageForBelt(model);
             newMap[uiName] = percentage;
           }
         });
@@ -198,38 +73,77 @@ class BeltProgressRingController extends GetxController {
         beltPercentages.assignAll(newMap);
       }
     } catch (e) {
-      print("Error: $e");
+      print("Error fetching belt progress: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> updateBeltProgress(String beltCode, String actionType) async {
-    try {
-      String userId = _trainerController.currentUserId.value;
-      if (userId.isEmpty) {
-        isLoading.value = false;
-        return;
-      }
-      final result = await _apiService.updateBeltProgress(
-        userId: userId,
-        beltColor: beltCode,
-        actionType: actionType,
-      );
+  int _calculatePercentageForBelt(BeltProgressModelV2 model) {
+    if (model.isCompleted) return 100;
+    double currentProgress = model.progressPercentage ?? 0.0;
 
-      if (result['success'] == true) {
-        await fetchBeltProgress();
-      } else {
-        Get.snackbar("Error", result['msg'] ?? "Failed to update progress");
-      }
-    } catch (e) {
-      print("Network Error: $e");
+    if (currentProgress > 0) {
+      return currentProgress.round();
+    }
+
+    return 0;
+  }
+
+  Future<void> syncCalculatedProgress({
+    required String beltColor,
+    int? sessionCount,
+    int? activeDayCount,
+    int? openResourceCount,
+    double? progressPercentage,
+  }) async {
+    String uiName = _getUiNameFromCode(beltColor);
+    if (progressPercentage != null) {
+      beltPercentages[uiName] = progressPercentage.round();
     }
   }
 
-  int getPercentage(String beltName) {
-    String cleanName = beltName.replaceAll(' Belt', '');
-    return beltPercentages[cleanName] ?? 0;
+  // Optimistically increment a progress counter locally so UI updates immediately
+  void incrementProgressCounter({
+    required String beltColor,
+    required String counter,
+    int delta = 1,
+  }) {
+    int idx = detailedBeltData.indexWhere((b) => b.beltColor == beltColor);
+    if (idx == -1) return;
+
+    final old = detailedBeltData[idx];
+    final oldP = old.progress;
+
+    // Build new ProgressCounters copying existing values and applying delta
+    final newP = ProgressCounters(
+      recommendationCount:
+          oldP.recommendationCount + (counter == 'recommendation' ? delta : 0),
+      sessionPhotoCount:
+          oldP.sessionPhotoCount + (counter == 'sessionPhoto' ? delta : 0),
+      activeDayCount:
+          oldP.activeDayCount + (counter == 'activeDay' ? delta : 0),
+      postCount: oldP.postCount + (counter == 'post' ? delta : 0),
+      shareTipCount: oldP.shareTipCount + (counter == 'shareTip' ? delta : 0),
+      resourceCount: oldP.resourceCount + (counter == 'resource' ? delta : 0),
+      openResourceCount:
+          oldP.openResourceCount + (counter == 'openResource' ? delta : 0),
+      reflectionCount:
+          oldP.reflectionCount + (counter == 'reflection' ? delta : 0),
+    );
+
+    final newModel = BeltProgressModelV2(
+      beltColor: old.beltColor,
+      planSessionCount: old.planSessionCount,
+      reqSessionCount: old.reqSessionCount,
+      progress: newP,
+      isCompleted: old.isCompleted,
+      assignedTrainerId: old.assignedTrainerId,
+      progressPercentage: old.progressPercentage,
+    );
+
+    detailedBeltData[idx] = newModel;
+    detailedBeltData.refresh();
   }
 
   String _getUiNameFromCode(String code) {
@@ -251,79 +165,41 @@ class BeltProgressRingController extends GetxController {
     }
   }
 
-  int _calculatePercentageForBelt(
-    BeltProgressModelV2 belt,
-    String beltName,
-    int totalPosts,
-    int totalShareTips,
-  ) {
-    if (belt.progressPercentage != null) {
-      return belt.progressPercentage!.round();
-    }
+  int getPercentage(String beltName) {
+    String key = beltName.split(' ')[0];
+    return beltPercentages[key] ?? 0;
+  }
 
-    double current = 0;
-    double target = 0;
+  bool isBeltLocked(String beltId) {
+    int index = -1;
+    List<String> order = ['W', 'Y', 'G', 'B', 'R', 'L'];
 
-    var p = belt.progress;
-    int sessions = belt.planSessionCount;
-    int activeDays = p.activeDayCount;
-    int openResources = p.openResourceCount;
-    int recommendations = p.recommendationCount;
-    int reflections = 0;
+    // Normalize input
+    String code = '';
+    if (beltId == 'White')
+      code = 'W';
+    else if (beltId == 'Yellow')
+      code = 'Y';
+    else if (beltId == 'Green')
+      code = 'G';
+    else if (beltId == 'Blue')
+      code = 'B';
+    else if (beltId == 'Brown')
+      code = 'R';
+    else if (beltId == 'Black')
+      code = 'L';
+    else
+      code = beltId;
 
-    if (Get.isRegistered<SessionController>()) {
-      final sessionController = Get.find<SessionController>();
-      reflections = sessionController.submittedReflectionSessionIds.length;
-    }
+    index = order.indexOf(code);
+    if (index <= 0) return false;
 
-    final req = BeltRequirementsData.getFor(belt.beltColor);
-    int currentPosts = (totalPosts - req.cumulativePostOffset).clamp(0, 999);
-
-    int cumulativeShareTipOffset = 0;
-    if (beltName == 'Brown') {
-      cumulativeShareTipOffset = 1;
-    }
-    int currentShareTips = (totalShareTips - cumulativeShareTipOffset).clamp(
-      0,
-      999,
+    String prevCode = order[index - 1];
+    var prevBelt = detailedBeltData.firstWhereOrNull(
+      (b) => b.beltColor == prevCode,
     );
 
-    for (var task in req.tasks) {
-      switch (task.type) {
-        case RequirementType.session:
-          current += sessions.toDouble();
-          target += task.target.toDouble();
-          break;
-        case RequirementType.activeDay:
-          current += activeDays.toDouble();
-          target += task.target.toDouble();
-          break;
-        case RequirementType.resource:
-          current += openResources.clamp(0, task.target).toDouble();
-          target += task.target.toDouble();
-          break;
-        case RequirementType.recommendation:
-          current += recommendations.clamp(0, task.target).toDouble();
-          target += task.target.toDouble();
-          break;
-        case RequirementType.reflection:
-          current += reflections.clamp(0, task.target).toDouble();
-          target += task.target.toDouble();
-          break;
-        case RequirementType.forumPost:
-          current += currentPosts.clamp(0, task.target).toDouble();
-          target += task.target.toDouble();
-          break;
-        case RequirementType.shareTip:
-          current += currentShareTips.clamp(0, task.target).toDouble();
-          target += task.target.toDouble();
-          break;
-      }
-    }
-
-    if (target == 0) return 0;
-
-    double fraction = (current / target).clamp(0.0, 1.0);
-    return (fraction * 100).round();
+    if (prevBelt == null) return true;
+    return !prevBelt.isCompleted;
   }
 }
