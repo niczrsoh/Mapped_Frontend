@@ -8,8 +8,8 @@ plugins {
 
 android {
     namespace = "com.example.mapped_frontend"
-    compileSdk = 35
-    ndkVersion = "27.0.12077973"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -44,8 +44,11 @@ flutter {
     source = "../.."
 }
 
-
 dependencies {
+    
   implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
+
   implementation("com.google.firebase:firebase-analytics")
+
+  // https://firebase.google.com/docs/android/setup#available-libraries
 }

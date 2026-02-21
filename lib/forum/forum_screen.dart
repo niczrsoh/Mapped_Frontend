@@ -179,7 +179,7 @@ class _ForumScreenState extends State<ForumScreen> {
                   ? NetworkImage(
                       avatar.startsWith('http')
                           ? avatar
-                          : 'https://mapped-backend-node-js.onrender.com/$avatar',
+                          : 'https://mapped-backend-node-js-1.onrender.com/$avatar',
                     )
                   : null,
               child: avatar.isEmpty

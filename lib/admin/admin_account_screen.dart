@@ -46,7 +46,7 @@ class AdminAccountScreen extends StatelessWidget {
                       backgroundImage: const AssetImage('assets/images/user.png'),
                       foregroundImage: (controller.reportedPosts.isNotEmpty && 
                                         controller.reportedPosts[0].authorImage != null)
-                          ? NetworkImage("http://10.0.2.2:5000/api/${controller.reportedPosts[0].authorImage}")
+                          ? NetworkImage("https://mapped-backend-node-js-1.onrender.com/api/${controller.reportedPosts[0].authorImage}")
                           : null,
                     ),
                     const SizedBox(width: 20),

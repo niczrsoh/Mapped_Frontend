@@ -13,7 +13,7 @@ class ResourceController extends GetxController {
   // CONFIGURATION
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "http://10.0.2.2:5000";
+      : "https://mapped-backend-node-js-1.onrender.com";
 
   final ApiService _apiService = ApiService();
 

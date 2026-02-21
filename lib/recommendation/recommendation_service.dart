@@ -8,7 +8,7 @@ class RecommendationService {
   
   // Update this to your actual API URL
   static const String baseUrl = '$apiBaseUrl/api/recommendations';
-  // For Android emulator: 'http://10.0.2.2:5000/api/recommendations'
+  // For Android emulator: 'https://mapped-backend-node-js-1.onrender.com/api/recommendations'
   // For iOS simulator: 'http://localhost:5000/api/recommendations'
   // For production: 'https://your-domain.com/api/recommendations'
   
