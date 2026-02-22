@@ -83,13 +83,13 @@ class AccountController extends GetxController {
             text: 'Edit profile information',
             onTap: () => navigateToProfileEditor(context),
           ),
-          AccountMenuItem(
-            iconPath: 'assets/images/notification.png',
-            text: 'Notifications',
-            badge: notificationsEnabled.value ? 'ON' : 'OFF',
-            badgeColor: Color(0xFF09FACA),
-            onTap: () => navigateToNotifications(context),
-          ),
+          // AccountMenuItem(
+          //   iconPath: 'assets/images/notification.png',
+          //   text: 'Notifications',
+          //   badge: notificationsEnabled.value ? 'ON' : 'OFF',
+          //   badgeColor: Color(0xFF09FACA),
+          //   onTap: () => navigateToNotifications(context),
+          // ),
           AccountMenuItem(
             iconPath: 'assets/images/logout.png',
             text: 'Log Out',

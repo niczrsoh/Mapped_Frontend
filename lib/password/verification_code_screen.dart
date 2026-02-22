@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/password/reset_password_controller.dart';
+import 'package:mapped_frontend/screens/login_screen.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
   const VerificationCodeScreen({super.key});
@@ -148,17 +149,6 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                   )),
                 ),
                 const SizedBox(height: 30),
-                TextButton(
-                  onPressed: () => Get.back(),
-                  child: Text(
-                    "Skip, I'll confirm later",
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

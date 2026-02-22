@@ -67,7 +67,7 @@ class AccountHeaderData {
     }
 
     // Relative path, prepend backend URL
-    final baseUrl = 'http://10.0.2.2:5000/$avatar';
+    final baseUrl = 'https://mapped-backend-node-js-1.onrender.com/$avatar';
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     return '$baseUrl?t=$timestamp';
   }

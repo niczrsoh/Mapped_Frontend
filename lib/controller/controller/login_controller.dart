@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
@@ -8,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../global/routes.dart';
 
 class LoginController extends GetxController {
-  // 🔥 No TextEditingController fields – only reactive strings
   final RxString email = ''.obs;
   final RxString password = ''.obs;
 
@@ -17,44 +17,45 @@ class LoginController extends GetxController {
   final RxString passwordError = ''.obs;
   final RxString formError = ''.obs;
   final RxBool isAdminMode = false.obs;
-  final RxBool canCheckBiometrics = false.obs;
+  
+  // 🔥 Reactive name to display on the Touch ID Screen
+  final RxString storedName = ''.obs;
+  var isAuthenticating = false.obs;
 
   final ApiService _apiService = ApiService();
   final LocalAuthentication _auth = LocalAuthentication();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  final RxString googleName = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _checkBiometricSupport(); // still needed
+    _loadStoredName();
   }
 
-  // 🔥 No onClose – nothing to dispose
+  /// Loads the name from local storage to display "Welcome back, [Name]"
+  Future<void> _loadStoredName() async {
+    final prefs = await SharedPreferences.getInstance();
+    storedName.value = prefs.getString('user_name') ?? '';
+  }
 
-  /// Switches between Admin and User login modes and clears all inputs
   void toggleMode() {
     isAdminMode.value = !isAdminMode.value;
-
-    // ✅ Clear only the reactive values – controllers are handled in widgets
     email.value = '';
     password.value = '';
-
-    // ✅ Clear all error messages
     emailError.value = '';
     passwordError.value = '';
     formError.value = '';
   }
 
-  // --- VALIDATION LOGIC (unchanged, works with email.value / password.value) ---
+  // --- VALIDATION LOGIC ---
   bool validateEmail() {
     emailError.value = '';
     if (email.value.isEmpty) {
       emailError.value = 'Email is required';
       return false;
     }
-    final emailRegex = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-      caseSensitive: false,
-    );
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(email.value)) {
       emailError.value = 'Please enter a valid email address';
       return false;
@@ -79,67 +80,86 @@ class LoginController extends GetxController {
     formError.value = '';
     final isEmailValid = validateEmail();
     final isPasswordValid = validatePassword();
-
-    if (!isEmailValid) {
-      formError.value = emailError.value;
-      return false;
-    }
-    if (!isPasswordValid) {
-      formError.value = passwordError.value;
-      return false;
-    }
+    if (!isEmailValid) { formError.value = emailError.value; return false; }
+    if (!isPasswordValid) { formError.value = passwordError.value; return false; }
     return true;
-  }
-
-  // --- BIOMETRIC LOGIC (unchanged) ---
-  Future<void> _checkBiometricSupport() async {
-    bool canCheck = await _auth.canCheckBiometrics;
-    bool isSupported = await _auth.isDeviceSupported();
-    canCheckBiometrics.value = canCheck && isSupported;
   }
 
   Future<void> loginWithBiometrics() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      String? savedUserId = prefs.getString('user_id');
+      isAuthenticating.value = true;
 
-      if (savedUserId == null || savedUserId.isEmpty) {
-        Get.snackbar(
-          'Manual Login Required',
-          'Please log in with your email and password first.',
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
+      // 1. Hardware & Biometric Verification
+      final bool canCheck = await _auth.canCheckBiometrics;
+      final bool isSupported = await _auth.isDeviceSupported();
+      if (!isSupported || !canCheck) {
+        Get.snackbar('Security', 'Biometrics not supported or registered.');
         return;
       }
 
       bool authenticated = await _auth.authenticate(
-        localizedReason: 'Please scan your fingerprint to log in',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-          useErrorDialogs: true,
-        ),
+        localizedReason: 'Scan fingerprint to log in with Google',
+        options: const AuthenticationOptions(biometricOnly: true, stickyAuth: true),
       );
 
       if (authenticated) {
-        String role = prefs.getString('user_role') ?? 'trainee';
-        Get.snackbar('Welcome Back!', 'Login successful',
-            backgroundColor: const Color(0xFF00C7A7), colorText: Colors.white);
+        // 2. Get Google Data
+        GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
+        googleUser ??= await _googleSignIn.signIn();
 
-        if (role == 'admin') {
-          Get.offAllNamed(AppRoutes.adminReport);
+        if (googleUser == null) return;
+
+        final result = await _apiService.registerUserWithGoogle(
+          uid: googleUser.id,
+          email: googleUser.email,
+          name: googleUser.displayName ?? '',
+          photoUrl: googleUser.photoUrl,
+        );
+
+        if (result['success'] == true) {
+          final responseData = result['data'];
+          final String actualRole = responseData['role'] ?? 'trainee';
+          final String id = responseData['id'] ?? responseData['_id'] ?? '';
+
+          // 4. Persistence (Sync with SharedPreferences)
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_id', id);
+          await prefs.setString('user_name', googleUser.displayName ?? '');
+          await prefs.setString('user_email', googleUser.email);
+          await prefs.setString('user_role', actualRole);
+          if (result['token'] != null) await prefs.setString('auth_token', result['token']);
+
+          // 5. Update UserController State
+          final userController = Get.find<UserController>();
+          userController.userId.value = id;
+          userController.userData.assignAll({
+            'name': googleUser.displayName ?? 'User',
+            'email': googleUser.email,
+            'avatar': googleUser.photoUrl ?? '',
+            'role': actualRole,
+          });
+
+          Get.snackbar('Success', 'Welcome, ${googleUser.displayName}',
+              backgroundColor: const Color(0xFF00C7A7), colorText: Colors.white);
+
+          if (actualRole == 'admin') {
+            Get.offAllNamed(AppRoutes.adminReport);
+          } else {
+            Get.offAllNamed(AppRoutes.main);
+          }
         } else {
-          Get.offAllNamed(AppRoutes.main);
+          Get.snackbar('Error', result['error'] ?? 'Backend sync failed');
         }
       }
     } catch (e) {
-      Get.snackbar('Error', 'Authentication failed: $e',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      debugPrint("Biometric Login Error: $e");
+      Get.snackbar('Error', 'Authentication failed');
+    } finally {
+      isAuthenticating.value = false;
     }
   }
 
-  // --- MAIN LOGIN LOGIC (uses email.value / password.value directly) ---
+  // --- MANUAL LOGIN LOGIC ---
   Future<void> login() async {
     if (!validateForm()) return;
     loading.value = true;
@@ -147,7 +167,7 @@ class LoginController extends GetxController {
 
     try {
       final result = await _apiService.loginUser(
-        email: email.value.trim(),   // ✅ no controller needed
+        email: email.value.trim(),
         password: password.value,
       );
 
@@ -155,29 +175,23 @@ class LoginController extends GetxController {
         final responseData = result['data'];
         final String actualRole = responseData['user']?['role'] ?? 'trainee';
 
-        // Role enforcement
         if (isAdminMode.value && actualRole != 'admin') {
           loading.value = false;
           formError.value = 'Access denied. You do not have Admin privileges.';
           return;
         }
 
-        if (!isAdminMode.value && actualRole == 'admin') {
-          loading.value = false;
-          formError.value = 'Admins must use the Admin Login toggle.';
-          return;
-        }
-
         final prefs = await SharedPreferences.getInstance();
-
         String id = responseData['user']?['id'] ?? '';
         String name = responseData['user']?['name'] ?? '';
         String emailAddr = responseData['user']?['email'] ?? '';
 
+        // ✅ Save these values so biometric login works next time
         await prefs.setString('user_id', id);
         await prefs.setString('user_name', name);
         await prefs.setString('user_email', emailAddr);
         await prefs.setString('user_role', actualRole);
+        storedName.value = name; // Update UI immediately
 
         if (result['token'] != null) {
           await prefs.setString('auth_token', result['token']);
@@ -201,26 +215,20 @@ class LoginController extends GetxController {
       }
     } catch (e) {
       loading.value = false;
-      formError.value = 'Connection failed. Please check your server.';
+      formError.value = 'Connection failed.';
     }
   }
 
-  // --- UI HELPER METHODS (update reactive values) ---
   void onEmailChanged(String value) {
     email.value = value;
-    if (emailError.value.isNotEmpty || formError.value.isNotEmpty) {
-      validateEmail();
-    }
+    if (emailError.value.isNotEmpty || formError.value.isNotEmpty) validateEmail();
   }
 
   void onPasswordChanged(String value) {
     password.value = value;
-    if (passwordError.value.isNotEmpty || formError.value.isNotEmpty) {
-      validatePassword();
-    }
+    if (passwordError.value.isNotEmpty || formError.value.isNotEmpty) validatePassword();
   }
 
-  // ✅ Clears reactive values and errors – no controllers to clear
   void clearAll() {
     email.value = '';
     password.value = '';
