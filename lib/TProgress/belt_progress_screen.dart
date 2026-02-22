@@ -28,6 +28,13 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
   final TrainerController controller = Get.put(TrainerController());
   late BeltProgressRingController ringController;
 
+  final List<double> _highContrastMatrix = [
+       1.5, 0.0, 0.0, 0.0, -63.75, 
+       0.0, 1.5, 0.0, 0.0, -63.75, 
+       0.0, 0.0, 1.5, 0.0, -63.75, 
+       0.0, 0.0, 0.0, 1.0, 0.0,   
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -195,6 +202,29 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
     return BeltDefinitions.getByName(beltName).assetPath;
   }
 
+  Widget _buildMainBeltImage() {
+    Widget baseImage = Image.asset(
+      _getBeltAssetPath(widget.beltName),
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(
+          Icons.image_not_supported,
+          color: widget.beltColor,
+          size: 100,
+        );
+      },
+    );
+
+    if (widget.beltName.contains('Black')) {
+      return ColorFiltered(
+        colorFilter: ColorFilter.matrix(_highContrastMatrix),
+        child: baseImage,
+      );
+    }
+
+    return baseImage;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeBg = ColorConstant.themeBg;
@@ -270,17 +300,18 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                       child: SizedBox(
                         width: 220,
                         height: 180,
-                        child: Image.asset(
-                          _getBeltAssetPath(widget.beltName),
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.image_not_supported,
-                              color: widget.beltColor,
-                              size: 100,
-                            );
-                          },
-                        ),
+                        // child: Image.asset(
+                        //   _getBeltAssetPath(widget.beltName),
+                        //   fit: BoxFit.contain,
+                        //   errorBuilder: (context, error, stackTrace) {
+                        //     return Icon(
+                        //       Icons.image_not_supported,
+                        //       color: widget.beltColor,
+                        //       size: 100,
+                        //     );
+                        //   },
+                        // ),
+                        child: _buildMainBeltImage(),
                       ),
                     ),
 
@@ -543,10 +574,11 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                     // Call to Action
                     Center(
                       child: Text(
-                        "Ready to level up? Start the course now",
+                        "Need help? Visit our online course to learn more about inclusive practice in martial arts.",
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
-                          color: Colors.white54,
-                          fontSize: 12,
+                        color: Colors.white54,
+                        fontSize: 12,
                         ),
                       ),
                     ),
