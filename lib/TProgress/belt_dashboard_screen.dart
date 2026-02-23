@@ -389,12 +389,6 @@ class BeltCard extends StatelessWidget {
     required this.tasks,
   });
 
-  static const List<double> _highContrastMatrix = [
-    1.5, 0.0, 0.0, 0.0, -63.75, 
-    0.0, 1.5, 0.0, 0.0, -63.75, 
-    0.0, 0.0, 1.5, 0.0, -63.75, 
-    0.0, 0.0, 0.0, 1.0, 0.0,   
-  ];
 
   String _getBeltImagePath(String name) {
     final coreName = name.split(' - ').first;
@@ -458,31 +452,12 @@ class BeltCard extends StatelessWidget {
                 SizedBox(
                   width: 100,
                   height: 100,
-                  child: Builder(
-                    builder: (context) {
-                      Widget imageWidget = Image.asset(
-                        _getBeltImagePath(beltName),
-                        width: 85,
-                        height: 85,
-                        fit: BoxFit.contain,
-                      );
-
-                      if (beltName.contains('Black')) {
-                        return ColorFiltered(
-                          colorFilter: ColorFilter.matrix(_highContrastMatrix),
-                          child: imageWidget,
-                        );
-                      }
-
-                      return imageWidget;
-                    },
+                  child: Image.asset(
+                    _getBeltImagePath(beltName),
+                    width: 85,
+                    height: 85,
+                    fit: BoxFit.contain,
                   ),
-                  // child: Image.asset(
-                  //   _getBeltImagePath(beltName),
-                  //   width: 85,
-                  //   height: 85,
-                  //   fit: BoxFit.contain,
-                  // ),
                 ),
                 const SizedBox(height: 8),
                 Text(
