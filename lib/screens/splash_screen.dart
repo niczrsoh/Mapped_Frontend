@@ -144,8 +144,8 @@ class _SplashScreenState extends State<SplashScreen>
           children: [
             // Animated glow
             Container(
-              width: 280,
-              height: 280,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
@@ -162,8 +162,8 @@ class _SplashScreenState extends State<SplashScreen>
             // Image asset
             Image.asset(
               'assets/images/splash1.png',
-              width: 220,
-              height: 220,
+              width: 50,
+              height: 50,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return Icon(
@@ -566,7 +566,7 @@ class WelcomeScreen extends StatelessWidget {
 }
 
 // ------------------------------------------------------------
-// Onboarding Screens (Splash 6‑8)
+// Onboarding Screens (Splash 6‑8) – FIXED VERSION
 // ------------------------------------------------------------
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -671,7 +671,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
 
     // Default layout for screens 0 and 2: image with gradient border + title/subtitle
-    // For screen 2 (index 2) we make the subtitle scrollable to avoid overflow
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: LayoutBuilder(
@@ -679,11 +678,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Image with gradient border – image fills the circle
+              // Image with gradient border – FIXED: border now appears as a ring
               SizedBox(
                 width: 328,
                 height: 328,
                 child: Stack(
+                  clipBehavior: Clip.none, // Allow border to extend beyond image
                   children: [
                     ClipOval(
                       child: Image.asset(
@@ -699,10 +699,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           );
                         },
                       ),
-                    ),
-                    CustomPaint(
-                      size: const Size(328, 328),
-                      painter: GradientBorderCirclePainter(),
                     ),
                   ],
                 ),
@@ -867,9 +863,10 @@ class GradientBorderCirclePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2; // exact radius (164 for 328x328)
+    final double strokeWidth = 2.0;
+    final double radius = size.width / 2; // Inner edge = radius - 1
 
-    // Gradient parameters: angle 136.44° in radians
+    // Gradient angle: 136.44° in radians
     const double angle = 136.44 * math.pi / 180;
     final dx = math.cos(angle);
     final dy = math.sin(angle);
@@ -890,7 +887,7 @@ class GradientBorderCirclePainter extends CustomPainter {
     final paint = Paint()
       ..shader = gradient
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2; // slightly thicker for better visibility
+      ..strokeWidth = strokeWidth;
 
     canvas.drawCircle(center, radius, paint);
   }

@@ -104,19 +104,6 @@ class AccountScreen extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-
-          SizedBox(height: 4),
-
-          // Member since
-          if (headerData.formattedCreatedDate.isNotEmpty)
-            Text(
-              headerData.formattedCreatedDate,
-              style: GoogleFonts.roboto(
-                fontWeight: FontWeight.w300,
-                fontSize: 12,
-                color: Colors.white.withOpacity(0.8),
-              ),
-            ),
         ],
       ),
     );

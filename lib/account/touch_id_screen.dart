@@ -11,17 +11,14 @@ class TouchIdScreen extends StatefulWidget {
 
 class _TouchIdScreenState extends State<TouchIdScreen> {
   final LoginController controller = Get.find<LoginController>();
-  bool _isLoading = false; // Local loading state
+  bool _isLoading = false;
 
   Future<void> _handleBiometricLogin() async {
-    if (_isLoading) return; // Prevent double taps
+    if (_isLoading) return;
     setState(() => _isLoading = true);
     try {
       await controller.loginWithBiometrics();
-      // After successful login, you might want to navigate away
-      // The controller should handle navigation or error messages
     } catch (e) {
-      // Optionally show a snackbar or dialog
       Get.snackbar('Error', 'Biometric authentication failed');
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -31,89 +28,127 @@ class _TouchIdScreenState extends State<TouchIdScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1219),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+      // Radial gradient background to match the "glow" in the image center
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.1),
+            radius: 0.8,
+            colors: [
+              Color(0xFF1A2B2F), // Lighter teal/dark center
+              Color(0xFF0D1017), // Very dark blue/black edge
+            ],
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.lock_outline,
-              color: Colors.teal,
-              size: 80,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              "Biometric Login",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(flex: 2),
+              
+              // Title
+              const Text(
+                "Touch ID",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "Please use your fingerprint or face to continue secure access.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white60, fontSize: 16),
-            ),
-            const SizedBox(height: 60),
-
-            // Biometric button with local loading state
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _handleBiometricLogin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.teal.withOpacity(0.3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              const SizedBox(height: 16),
+              
+              // Subtitle
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 40),
+                child: Text(
+                  "Place and hold your finger on the\nFinger reader",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    height: 1.4,
                   ),
-                  elevation: 4,
                 ),
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
+              ),
+              
+              const Spacer(),
+
+              // Fingerprint Reader Circle
+              GestureDetector(
+                onTap: _handleBiometricLogin,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.05),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
                       )
-                    : const Icon(Icons.fingerprint),
-                label: Text(
-                  _isLoading ? "Authenticating..." : "Login with Touch ID",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ],
+                  ),
+                  child: Center(
+                    child: _isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white70)
+                      : const Icon(
+                          Icons.fingerprint,
+                          color: Colors.white,
+                          size: 45,
+                        ),
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 100),
 
-            // Back to manual login
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: TextButton(
-                onPressed: () => Get.back(),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white70,
+              // "One Moment..." Text
+              Text(
+                _isLoading ? "Processing..." : "One Moment...",
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
                 ),
-                child: const Text("Use Email & Password instead"),
               ),
-            ),
-          ],
+
+              const Spacer(flex: 2),
+
+              // Login with Email Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 45),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: () => Get.back(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      "Login with Email",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
