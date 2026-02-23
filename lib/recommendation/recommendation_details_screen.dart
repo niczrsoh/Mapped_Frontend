@@ -22,14 +22,14 @@ class RecommendationDetailsScreen extends StatelessWidget {
           'Session Details',
           style: TextStyle(color: Colors.white),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share, color: Color(0xFF5eead4)),
-            onPressed: () {
-              // Implement share functionality
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.share, color: Color(0xFF5eead4)),
+        //     onPressed: () {
+        //       // Implement share functionality
+        //     },
+        //   ),
+        // ],
       ),
       body: Obx(() {
         if (controller.currentRecommendation.value == null) {

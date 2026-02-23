@@ -104,23 +104,23 @@ class CoachBotScreen extends StatelessWidget {
                       // Quick Action Buttons
                       _buildQuickActionButton(
                         icon: Icons.school_outlined, // Good for history/learning
-                        title: 'Explain Taekwondo History & Philosophy',
+                        title: 'What is a safe way to teach blocks to a participant with poor vision?',
                         onTap: () => controller.explainHistory(),
                       ),
 
                       const SizedBox(height: 12),
 
                       _buildQuickActionButton(
-                        icon: Icons.sports_martial_arts, // Perfect for techniques
-                        title: 'Show me Taekwondo Techniques',
+                        icon: Icons.center_focus_strong, // Perfect for techniques
+                        title: 'What are good ways to support a participant who struggles to focus?',
                         onTap: () => controller.showTechniques(),
                       ),
 
                       const SizedBox(height: 12),
 
                       _buildQuickActionButton(
-                        icon: Icons.location_on_outlined, // Good for location
-                        title: 'Find a Training Hall Nearby',
+                        icon: Icons.sports_martial_arts, // Good for location
+                        title: 'Give me ideas for warm-up games that include everyone.',
                         onTap: () => controller.findDojang(),
                       ),
 
@@ -128,7 +128,7 @@ class CoachBotScreen extends StatelessWidget {
 
                       _buildQuickActionButton(
                         icon: Icons.explore,
-                        title: 'Show me other options',
+                        title: 'How can I help a student who is very shy and afraid to spar?',
                         onTap: () => controller.showOtherOptions(),
                       ),
 

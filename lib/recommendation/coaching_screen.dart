@@ -56,7 +56,10 @@ class DailyCoachingScreen extends StatelessWidget {
   }
 
   Widget _buildLoadingState() {
-    return Column(
+    return Center(
+      child:
+      Column(
+      crossAxisAlignment: CrossAxisAlignment.center,  
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const CircularProgressIndicator(
@@ -81,7 +84,7 @@ class DailyCoachingScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ));
   }
 
   Widget _buildErrorState(RecommendationController controller) {
