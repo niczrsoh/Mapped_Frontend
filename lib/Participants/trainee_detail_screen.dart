@@ -268,45 +268,45 @@ class TraineeDetailScreen extends StatelessWidget {
                                         color: Color(0xFF0f1720),
                                       ),
                                     ),
-                                    SizedBox(
-                                      width: circleInner,
-                                      height: circleInner,
-                                      child: RotatedBox(
-                                        quarterTurns: 1,
-                                        child: Obx(() {
-                                          final currentTrainee = controller
-                                              .traineeList
-                                              .firstWhere(
-                                                (t) => t['id'] == traineeId,
-                                                orElse: () => null,
-                                              );
+                          //           SizedBox(
+                          //             width: circleInner,
+                          //             height: circleInner,
+                          //             child: RotatedBox(
+                          //               quarterTurns: 1,
+                          //               child: Obx(() {
+                          //                 final currentTrainee = controller
+                          //                     .traineeList
+                          //                     .firstWhere(
+                          //                       (t) => t['id'] == traineeId,
+                          //                       orElse: () => null,
+                          //                     );
 
-                                          return CircularProgressIndicator(
-                                            value: progressController
-                                                .overallAverage
-                                                .value,
-                                            strokeWidth: 6,
-                                            valueColor:
-                                                const AlwaysStoppedAnimation(
-                                                  Color(0xFF00FFA6),
-                                                ),
-                                            backgroundColor:
-                                                Colors.grey.shade800,
-                                          );
-                                        }),
-                                      ),
-                                    ),
-                                    Obx(
-                                      // BIND TO OVERALL AVERAGE
-                                      () => Text(
-                                        '${(progressController.overallAverage.value * 100).round()}%',
-                                        style: GoogleFonts.roboto(
-                                          color: const Color(0xFF00FFA6),
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: compact ? 11 : 12,
-                                        ),
-                                      ),
-                                    ),
+                          //                 return CircularProgressIndicator(
+                          //                   value: progressController
+                          //                       .overallAverage
+                          //                       .value,
+                          //                   strokeWidth: 6,
+                          //                   valueColor:
+                          //                       const AlwaysStoppedAnimation(
+                          //                         Color(0xFF00FFA6),
+                          //                       ),
+                          //                   backgroundColor:
+                          //                       Colors.grey.shade800,
+                          //                 );
+                          //               }),
+                          //             ),
+                          //           ),
+                          //           Obx(
+                          //             // BIND TO OVERALL AVERAGE
+                          //             () => Text(
+                          //               '${(progressController.overallAverage.value * 100).round()}%',
+                          //               style: GoogleFonts.roboto(
+                          //                 color: const Color(0xFF00FFA6),
+                          //                 fontWeight: FontWeight.w700,
+                          //                 fontSize: compact ? 11 : 12,
+                          //               ),
+                          //             ),
+                          //           ),
                                   ],
                                 ),
                               ),
@@ -508,42 +508,42 @@ class TraineeDetailScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.fitness_center_outlined,
-                                      color: Colors.grey.shade300,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: 'Circular Progress: ',
-                                              style: GoogleFonts.roboto(
-                                                color: Colors.grey.shade300,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  '${(progressController.overallAverage.value * 100).round()}%',
-                                              style: GoogleFonts.roboto(
-                                                color: const Color(0xFF00FFA6),
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                // const SizedBox(height: 6),
+                                // Row(
+                                //   children: [
+                                //     Icon(
+                                //       Icons.fitness_center_outlined,
+                                //       color: Colors.grey.shade300,
+                                //       size: 16,
+                                //     ),
+                                //     const SizedBox(width: 8),
+                                //     Expanded(
+                                //       child: RichText(
+                                //         text: TextSpan(
+                                //           children: [
+                                //             TextSpan(
+                                //               text: 'Circular Progress: ',
+                                //               style: GoogleFonts.roboto(
+                                //                 color: Colors.grey.shade300,
+                                //                 fontSize: 12,
+                                //                 fontWeight: FontWeight.w400,
+                                //               ),
+                                //             ),
+                                //             TextSpan(
+                                //               text:
+                                //                   '${(progressController.overallAverage.value * 100).round()}%',
+                                //               style: GoogleFonts.roboto(
+                                //                 color: const Color(0xFF00FFA6),
+                                //                 fontSize: 12,
+                                //                 fontWeight: FontWeight.w400,
+                                //               ),
+                                //             ),
+                                //           ],
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
                               ],
                             ),
                           ),

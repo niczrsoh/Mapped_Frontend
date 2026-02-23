@@ -814,14 +814,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, 
         children: [
-          const Icon(Icons.circle, size: 6, color: Colors.white70),
+          const Padding(
+            padding: EdgeInsets.only(top: 6.0), 
+            child: Icon(Icons.circle, size: 6, color: Colors.white70),
+          ),
           const SizedBox(width: 8),
-          Text(
-            text,
-            style: GoogleFonts.poppins(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              fontSize: 12,
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(
+                color: const Color.fromARGB(255, 255, 255, 255),
+                fontSize: 12,
+              ),
             ),
           ),
         ],

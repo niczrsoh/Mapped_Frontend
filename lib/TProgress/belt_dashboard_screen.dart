@@ -389,6 +389,7 @@ class BeltCard extends StatelessWidget {
     required this.tasks,
   });
 
+
   String _getBeltImagePath(String name) {
     final coreName = name.split(' - ').first;
     return BeltDefinitions.getByName(coreName).assetPath;
