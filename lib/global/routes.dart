@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:mapped_frontend/account/touch_id_screen.dart';
 import 'package:mapped_frontend/admin/admin_main_screen.dart';
 import 'package:mapped_frontend/coachBot/coachBot_controller.dart';
 import 'package:mapped_frontend/coachBot/coachBot_screen.dart';
@@ -12,7 +13,6 @@ import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/check_mail_screen.dart';
-import '../screens/touch_id_screen.dart';
 import '../controller/controller/register_controller.dart';
 import 'login_binding.dart';
 import '../screens/splash_screen.dart';

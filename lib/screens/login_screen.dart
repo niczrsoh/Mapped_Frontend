@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/account/touch_id_screen.dart';
 import 'package:mapped_frontend/controller/controller/login_controller.dart';
-import 'package:mapped_frontend/screens/touch_id_screen.dart';
 import '../global/routes.dart';
 
 class LoginScreen extends GetView<LoginController> {
@@ -105,24 +105,24 @@ class LoginScreen extends GetView<LoginController> {
                     const SizedBox(height: 20),
 
                     // Login button
-                    _RoundedActionButton(
+                    Obx(() => _RoundedActionButton(
                       label: "Login",
                       onPressed: () => controller.login(),
                       isLoading: controller.loading.value,
-                    ),
+                    )),
 
                     const SizedBox(height: 15),
 
                     // Biometrics button (only for user mode)
-                  //  Obx(() => Visibility(
-                  //     visible: !controller.isAdminMode.value,
-                  //     child: _RoundedActionButton(
-                  //       label: "Login with Fingerprint",
-                  //       onPressed: () {
-                  //         Get.to(() => const TouchIdScreen()); 
-                  //       },
-                  //     ),
-                  //   )),
+                   Obx(() => Visibility(
+                      visible: !controller.isAdminMode.value,
+                      child: _RoundedActionButton(
+                        label: "Login with Fingerprint",
+                        onPressed: () {
+                          Get.to(() => const TouchIdScreen()); 
+                        },
+                      ),
+                    )),
 
                     const SizedBox(height: 35),
 

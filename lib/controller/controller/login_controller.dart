@@ -119,7 +119,7 @@ class LoginController extends GetxController {
         if (result['success'] == true) {
           final responseData = result['data'];
           final String actualRole = responseData['role'] ?? 'trainee';
-          final String id = responseData['id'] ?? responseData['_id'] ?? '';
+          final String id = responseData['user']['id'];
 
           // 4. Persistence (Sync with SharedPreferences)
           final prefs = await SharedPreferences.getInstance();
@@ -159,11 +159,11 @@ class LoginController extends GetxController {
     }
   }
 
-  // --- MANUAL LOGIN LOGIC ---
   Future<void> login() async {
     if (!validateForm()) return;
+
     loading.value = true;
-    formError.value = '';
+    formError.value = ''; // Clear any previous validation errors
 
     try {
       final result = await _apiService.loginUser(
@@ -177,7 +177,15 @@ class LoginController extends GetxController {
 
         if (isAdminMode.value && actualRole != 'admin') {
           loading.value = false;
-          formError.value = 'Access denied. You do not have Admin privileges.';
+          Get.snackbar(
+            'Access Denied',
+            'You do not have Admin privileges.',
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(10),
+            borderRadius: 8,
+          );
           return;
         }
 
@@ -186,12 +194,11 @@ class LoginController extends GetxController {
         String name = responseData['user']?['name'] ?? '';
         String emailAddr = responseData['user']?['email'] ?? '';
 
-        // ✅ Save these values so biometric login works next time
         await prefs.setString('user_id', id);
         await prefs.setString('user_name', name);
         await prefs.setString('user_email', emailAddr);
         await prefs.setString('user_role', actualRole);
-        storedName.value = name; // Update UI immediately
+        storedName.value = name;
 
         if (result['token'] != null) {
           await prefs.setString('auth_token', result['token']);
@@ -211,11 +218,28 @@ class LoginController extends GetxController {
         }
       } else {
         loading.value = false;
-        formError.value = result['msg'] ?? 'Login failed';
+        // Show snackbar with the error message from API
+        Get.snackbar(
+          'Login Failed',
+          result['msg'] ?? 'Invalid credentials',
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(10),
+          borderRadius: 8,
+        );
       }
     } catch (e) {
       loading.value = false;
-      formError.value = 'Connection failed.';
+      Get.snackbar(
+        'Connection Error',
+        'Failed to connect. Please check your internet.',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(10),
+        borderRadius: 8,
+      );
     }
   }
 

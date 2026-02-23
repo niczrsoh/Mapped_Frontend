@@ -36,6 +36,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  bool _isLoading = true; // 👈 Loading flag
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +70,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _refreshData() async {
+    if (mounted) setState(() => _isLoading = true); // 👈 Show loader
+
     try {
       final trainerCtrl = Get.find<TrainerController>();
       final beltCtrl = Get.find<BeltProgressRingController>();
@@ -81,11 +85,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       await sessionCtrl.fetchDashboardData();
     } catch (e) {
       print("Error refreshing home data: $e");
+      // Optionally show a snackbar here
+    } finally {
+      if (mounted) setState(() => _isLoading = false); // 👈 Hide loader
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // If still loading, show a centered progress indicator
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF141823),
+        body: const Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF00FF66),
+          ),
+        ),
+      );
+    }
+
+    // Otherwise, show the normal content
     final sessionController = Get.isRegistered<SessionController>()
         ? Get.find<SessionController>()
         : Get.put(SessionController());
@@ -118,11 +138,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       backgroundColor: themeBg,
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () async {
-            await Get.find<TrainerController>().updateActiveDays();
-            await beltController.fetchBeltProgress();
-            await sessionController.fetchDashboardData();
-          },
+          onRefresh: _refreshData, // 👈 Now uses the same refresh method
           color: const Color.fromARGB(255, 255, 255, 255),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -752,6 +768,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  // All helper methods remain unchanged
   String _getCurrentDate() {
     final now = DateTime.now();
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
