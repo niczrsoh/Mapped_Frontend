@@ -28,19 +28,19 @@ class CoachBotController extends GetxController {
   
   // Quick action buttons matching your screen
   void explainHistory() {
-    _navigateToChatWithDraft('Explain Taekwondo History & Philosophy');
+    _navigateToChatWithDraft('What is a safe way to teach blocks to a participant with poor vision?');
   }
 
   void showTechniques() {
-    _navigateToChatWithDraft('Show me Taekwondo Techniques');
+    _navigateToChatWithDraft('What are good ways to support a participant who struggles to focus?');
   }
 
   void findDojang() {
-    _navigateToChatWithDraft('Find a Training Hall Nearby');
+    _navigateToChatWithDraft('Give me ideas for warm-up games that include everyone.');
   }
 
   void showOtherOptions() {
-    _navigateToChatWithDraft('Show me other options');
+    _navigateToChatWithDraft('How can I help a student who is very shy and afraid to spar?');
   }
 
   // ==================== ADDITIONAL USEFUL METHODS ====================
