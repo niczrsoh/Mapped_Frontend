@@ -7,12 +7,14 @@ import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/text_size/text_size_controller.dart';
 import 'global/app_binding.dart';
 import 'global/routes.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 void main() async 
 {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
+  await EasyLocalization.ensureInitialized();
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
@@ -23,7 +25,18 @@ void main() async
 
   Get.put(TextSizeController());
 
-  runApp(const MyApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [
+        Locale('en', 'US'), 
+        Locale('fr', 'FR'), 
+        Locale('de', 'DE')
+      ],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en', 'US'),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -35,6 +48,9 @@ class MyApp extends StatelessWidget {
     Get.put(AccountController());
     
     return GetMaterialApp(
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       title: 'MAPPED',
       debugShowCheckedModeBanner: false,
       initialBinding: AppBinding(),
