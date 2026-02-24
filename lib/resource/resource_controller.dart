@@ -175,9 +175,9 @@ class ResourceController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       currentUserId = prefs.getString('user_id') ?? '';
 
-      String role = prefs.getString('user_role') ?? prefs.getString('role') ?? 'user';
+      String role =
+          prefs.getString('user_role') ?? prefs.getString('role') ?? 'user';
       isAdmin.value = (role.trim().toLowerCase() == 'admin');
-      
 
       if (currentUserId.isEmpty) {
         print("Warning: No User ID found. User might be a guest.");
@@ -197,18 +197,7 @@ class ResourceController extends GetxController {
       // Build query parameters for filtering
       // Note: Resources are stored in posts database with category='resource'
       String endpoint = '$baseUrl/api/resources';
-
-      // Add filter parameters
-      List<String> queryParams = [];
-      if (selectedFilter.value != 'All') {
-        queryParams.add('type=${selectedFilter.value}');
-      }
-      // Ensure we only fetch resources (if backend supports this)
-      queryParams.add('category=resource');
-
-      if (queryParams.isNotEmpty) {
-        endpoint += '?${queryParams.join('&')}';
-      }
+      endpoint = '$baseUrl/api/resources?category=resource';
 
       print('📡 Fetching resources from: $endpoint');
       final response = await http
@@ -330,7 +319,6 @@ class ResourceController extends GetxController {
     String? videoUrl,
     List<String>? imagePaths,
   }) async {
-
     if (!isAdmin.value) {
       Get.snackbar("Permission Denied", "Only admins can upload resources.");
       return false;
@@ -474,7 +462,8 @@ class ResourceController extends GetxController {
         case 'Images':
           return resource.resourceType == 'image';
         case 'Videos':
-          return resource.resourceType == 'video';
+          // Videos tab should show link resources (same as Links tab)
+          return resource.resourceType == 'link';
         case 'Links':
           return resource.resourceType == 'link';
         default:
