@@ -1,140 +1,97 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapped_frontend/global/routes.dart';
 
 class ResetPasswordController extends GetxController {
-  // Text Editing Controllers for UI fields
   final emailController = TextEditingController();
-  final otpController = TextEditingController(); 
-  final newPasswordController = TextEditingController();
-
+  
   // Observable states
   final isLoading = false.obs;
   final errorMessage = "".obs;
-
-  final String baseUrl = "https://mapped-backend-node-js-1.onrender.com/api/users";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
 
   Future<void> sendResetEmail() async {
-    final email = emailController.text.trim();
-    if (!_validateEmail(email)) return;
+    String email = emailController.text.trim();
 
-    try {
-      isLoading.value = true;
-      errorMessage.value = "";
+    if (email.isNotEmpty && !GetUtils.isEmail(email)) {
+      try {
+        isLoading.value = true;
+        errorMessage.value = "";
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/forgot-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
-      );
+        final response = await http.post(
+          Uri.parse('$baseUrl/forgot-password'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'identifier': email}), 
+        );
 
-      final data = jsonDecode(response.body);
+        final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && data['success'] == true) {
-        // Move to the OTP input screen (CheckMail)
-        Get.toNamed(AppRoutes.checkMail, arguments: email);
-      } else {
-        errorMessage.value = data['msg'] ?? "Failed to send code.";
+        if (response.statusCode == 200 && data['success'] == true) {
+          email = data['email']; 
+          emailController.text = email; 
+        } else {
+          errorMessage.value = data['msg'] ?? "User not found.";
+          isLoading.value = false;
+          return; 
+        }
+      } catch (e) {
+        errorMessage.value = "Backend connection failed.";
+        isLoading.value = false;
+        return;
       }
-    } catch (e) {
-      errorMessage.value = "Server connection failed.";
-    } finally {
-      isLoading.value = false;
     }
-  }
 
-  Future<void> verifyOtp() async {
-    final email = Get.arguments; 
-    final otp = otpController.text.trim();
-
-    // Changed from 6 to 4 to match your new backend logic
-    if (otp.length < 4) {
-      errorMessage.value = "Please enter the full 4-digit code.";
+    if (!_validateEmail(email)) {
+      // Stop loading if validation fails
+      isLoading.value = false; 
       return;
     }
 
-    try {
-      isLoading.value = true;
-      errorMessage.value = "";
+    isLoading.value = true;
+    errorMessage.value = "";
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/verify-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'otp': otp,
-        }),
+    try {
+      // 1. Firebase handles the email delivery
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      // 3. Show Success Feedback
+      Get.snackbar(
+        "Success",
+        "A reset link has been sent to your email.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF00C7A7),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(15),
       );
 
-      final data = jsonDecode(response.body);
+      Future.delayed(const Duration(seconds: 2), () => Get.back());
 
-      if (response.statusCode == 200 && data['success'] == true) {
-        // SUCCESS: Move to next screen (Replace with your route)
-        // Get.toNamed(AppRoutes.newPassword, arguments: {'email': email, 'otp': otp}); 
-        Get.toNamed(AppRoutes.createNewPassword, arguments: {
-          'email': email,
-          'otp': otp,
-        });
-        Get.snackbar("Success", "Code verified!");
-      } else {
-        errorMessage.value = data['msg'] ?? "Invalid or expired code.";
-      }
+    } on FirebaseAuthException catch (e) {
+      errorMessage.value = e.message ?? "An error occurred";
     } catch (e) {
-      errorMessage.value = "Verification failed.";
+      errorMessage.value = "An unexpected error occurred.";
     } finally {
       isLoading.value = false;
     }
   }
-
-  Future<void> resetPassword() async {
-    final email = Get.arguments;
-    final otp = otpController.text.trim();
-    final newPass = newPasswordController.text.trim();
-
-    if (newPass.length < 8) {
-      errorMessage.value = "Password must be at least 8 characters.";
-      return;
-    }
-
-    try {
-      isLoading.value = true;
-      errorMessage.value = "";
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/reset-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'otp': otp,
-          'newPassword': newPass,
-        }),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        // Password changed! Go back to login
-        Get.offAllNamed(AppRoutes.login);
-        Get.snackbar("Success", "Password reset successfully. Please login.");
-      } else {
-        errorMessage.value = data['msg'] ?? "Reset failed.";
-      }
-    } catch (e) {
-      errorMessage.value = "Could not update password.";
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  // Helper validation
+  // --- HELPER VALIDATION ---
   bool _validateEmail(String email) {
-    if (email.isEmpty) return false;
+    if (email.isEmpty) {
+      errorMessage.value = "Please enter your email address.";
+      return false;
+    }
     if (!GetUtils.isEmail(email)) {
-      errorMessage.value = "Enter a valid email.";
+      errorMessage.value = "Enter a valid email address.";
       return false;
     }
     return true;
+  }
+
+  @override
+  void onClose() {
+    emailController.dispose();
+    super.onClose();
   }
 }

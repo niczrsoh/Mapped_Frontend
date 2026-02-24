@@ -12,7 +12,6 @@ import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/register_screen.dart';
-import '../screens/check_mail_screen.dart';
 import '../controller/controller/register_controller.dart';
 import 'login_binding.dart';
 import '../screens/splash_screen.dart';
@@ -39,7 +38,6 @@ class AppRoutes {
   static const String touchId = '/touch_id';
   static const String resetPassword = '/reset_password';
 
-  static const String checkMail = '/check_mail';
   static const String verification = '/verification';
   static const String createNewPassword = '/create_new_password';
   static const String home = '/home';
@@ -97,15 +95,14 @@ class AppPages {
       name: AppRoutes.resetPassword,
       page: () => const ResetPasswordScreen(),
     ),
-    GetPage(name: AppRoutes.checkMail, page: () => const CheckMailScreen()),
-    GetPage(
-      name: AppRoutes.verification,
-      page: () => const VerificationCodeScreen(),
-    ),
-    GetPage(
-      name: AppRoutes.createNewPassword,
-      page: () => const CreateNewPasswordScreen(),
-    ),
+    // GetPage(
+    //   name: AppRoutes.verification,
+    //   page: () => const VerificationCodeScreen(),
+    // ),
+    // GetPage(
+    //   name: AppRoutes.createNewPassword,
+    //   page: () => const CreateNewPasswordScreen(),
+    // ),
     GetPage(
       name: AppRoutes.account,
       page: () => AccountScreen(),
@@ -139,11 +136,11 @@ class AppPages {
     GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
     GetPage(name: AppRoutes.forumSearchTags, page: () => ForumSearchtagsScreen()),
     GetPage(name: AppRoutes.createPost, page: () => CreatePostScreen()),
-    GetPage(
-      name: AppRoutes.verificationCode,
-      page: () => const VerificationCodeScreen(),
-      transition: Transition.rightToLeft,
-    ),
+    // GetPage(
+    //   name: AppRoutes.verificationCode,
+    //   page: () => const VerificationCodeScreen(),
+    //   transition: Transition.rightToLeft,
+    // ),
     GetPage(
       name: AppRoutes.adminReport, 
       page: () => AdminMainScreen(),
