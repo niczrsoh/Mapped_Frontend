@@ -233,20 +233,17 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                   ),
                 ),
 
-             Text(
-              _getContentWithoutTags(widget.resource.content),
-              textAlign: TextAlign.justify, // Maintains the straight edges on both sides
-              softWrap: true,                // Ensures text wraps to the next line properly
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                height: 1.5,
-                // Adding a tiny bit of negative letter spacing often helps 
-                // the engine fit words better and reduces those huge gaps.
-                letterSpacing: -0.2, 
-                color: Colors.white.withOpacity(0.9),
-                fontWeight: FontWeight.w400,
+              // 3. Content
+              Text(
+                _getContentWithoutTags(widget.resource.content),
+                textAlign: TextAlign.justify,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  height: 1.5,
+                  color: Colors.white.withOpacity(0.9),
+                  fontWeight: FontWeight.w400,
+                ),
               ),
-            ),
 
               const SizedBox(height: 12),
 
