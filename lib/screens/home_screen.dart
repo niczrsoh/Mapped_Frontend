@@ -8,6 +8,7 @@ import 'package:mapped_frontend/forum/forum_controller.dart';
 import 'package:mapped_frontend/recommendation/coaching_screen.dart';
 import 'package:mapped_frontend/resource/resource_screen.dart';
 import 'package:mapped_frontend/Participants/trainee_screen.dart';
+import 'package:mapped_frontend/controller/bottom_nav_controller.dart';
 import 'package:mapped_frontend/session/session_planner.dart';
 import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -50,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Get.put(CommentsController());
     Get.put(CreatePostController());
     Get.put(BeltProgressRingController());
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshData();
     });
@@ -260,9 +260,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Belt Progress Card
                 GestureDetector(
                   onTap: () {
-                    Get.to(
-                      () => const BeltDashboardScreen(),
-                    )?.then((_) => _refreshData());
+                   Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => const BeltDashboardScreen()))
+                    .then((_) => _refreshData());
                   },
                   child: sectionCard(
                     child: Obx(() {
@@ -678,18 +678,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.of(context)
-                                    .push(
-                                      MaterialPageRoute(
-                                        builder: (context) => ForumScreen(),
-                                      ),
-                                    )
-                                    .then((_) => _refreshData());
+                                Get.find<BottomNavController>().changeIndex(2);
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
                                   color: Colors.white24,
                                   borderRadius: BorderRadius.circular(28),
@@ -699,15 +691,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   children: [
                                     Text(
                                       'Forum',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                      ),
+                                      style: GoogleFonts.poppins(color: Colors.white),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.forum_outlined,
-                                      color: Colors.white,
-                                    ),
+                                    const Icon(Icons.forum_outlined, color: Colors.white),
                                   ],
                                 ),
                               ),
@@ -758,8 +745,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 80),
               ],
             ),
           ),
@@ -940,80 +925,5 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   String _getBeltImage(String code) {
     return BeltDefinitions.getByCode(code).assetPath;
-  }
-}
-
-class BottomNav extends StatefulWidget {
-  const BottomNav({super.key});
-
-  @override
-  State<BottomNav> createState() => _BottomNavState();
-}
-
-class _BottomNavState extends State<BottomNav> {
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    if (index == 1) {
-      Get.to(() => const SessionDashboardScreen());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 70,
-      decoration: const BoxDecoration(
-        color: Color(0xFF1C1C23),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(22),
-          topRight: Radius.circular(22),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.sports_gymnastics_outlined, "Home", 0),
-          _buildNavItem(Icons.fitness_center_outlined, "Session", 1),
-          _buildNavItem(Icons.forum_outlined, "Forum", 2),
-          _buildNavItem(Icons.smart_toy_outlined, "Coach Bot", 3),
-          _buildNavItem(Icons.account_circle_outlined, "Account", 4),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    bool isSelected = _selectedIndex == index;
-
-    return GestureDetector(
-      onTap: () => _onItemTapped(index),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 26,
-            color: isSelected
-                ? const Color(0xFF00FF66)
-                : const Color(0xFFEFE4F8),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isSelected
-                  ? const Color(0xFF00FF66)
-                  : const Color(0xFFEFE4F8),
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

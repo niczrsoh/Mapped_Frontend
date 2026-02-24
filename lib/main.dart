@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:mapped_frontend/account/account_controller.dart';
 import 'package:mapped_frontend/controller/user_controller';
+import 'package:mapped_frontend/controller/bottom_nav_controller.dart';
+import 'package:mapped_frontend/screens/home_screen.dart';
 import 'package:mapped_frontend/text_size/text_size_controller.dart';
 import 'global/app_binding.dart';
 import 'global/routes.dart';
@@ -22,7 +24,7 @@ void main() async
   );
 
   Get.put(TextSizeController());
-
+  Get.put(BottomNavController(), permanent: true);
   runApp(const MyApp());
 }
 

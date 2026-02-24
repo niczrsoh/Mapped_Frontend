@@ -81,7 +81,6 @@ class AppPages {
       page: () => const LoginScreen(),
       binding: LoginBinding(),
     ),
-    GetPage(name: AppRoutes.bottomNav, page: () => const BottomNav()),
     GetPage(name: AppRoutes.home, page: () => const HomeScreen()),
     GetPage(name: AppRoutes.touchId, page: () => const TouchIdScreen()),
     GetPage(

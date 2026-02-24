@@ -349,10 +349,12 @@ class _TextSizeBottomSheetState extends State<TextSizeBottomSheet> {
               // Cancel Button
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {
+                  onPressed: () async{
                     // Revert to original scale if cancelled
                     textSizeController.textScale.value = _originalScale;
                     Get.back();
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    Get.offAllNamed(AppRoutes.main);
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF09FACA)),
