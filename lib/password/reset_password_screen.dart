@@ -82,7 +82,7 @@ class ResetPasswordScreen extends StatelessWidget {
             child: SizedBox(
               width: 294.0,
               child: Text(
-                "Enter the email associated with your account and we'll send a secure link to reset your password.",
+                "Enter the email or username associated with your account and we'll send a secure link to reset your password.",
                 style: GoogleFonts.poppins(
                   color: Colors.white70,
                   fontSize: 14,
@@ -103,7 +103,7 @@ class ResetPasswordScreen extends StatelessWidget {
                 controller: controller.emailController,
                 style: const TextStyle(color: Colors.white),
                 cursorColor: const Color(0xFF00C7A7),
-                decoration: _inputDecoration('Email'),
+                decoration: _inputDecoration('Email/Username'),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
