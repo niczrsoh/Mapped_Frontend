@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mapped_frontend/admin/admin_account_screen.dart';
 import 'package:mapped_frontend/admin/admin_screen.dart';
+import 'package:mapped_frontend/admin/admin_resource.dart';
 
 
 class AdminMainScreen extends StatelessWidget {
@@ -11,6 +12,7 @@ class AdminMainScreen extends StatelessWidget {
 
   final List<Widget> _screens = [
      AdminManageUsersScreen(), // The content screen below
+     AdminResource(),
     const AdminAccountScreen(),
   ];
 
@@ -28,6 +30,7 @@ class AdminMainScreen extends StatelessWidget {
         onTap: (index) => _currentIndex.value = index,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.security), label: 'Report'),
+          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Resource'),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: 'Account'),
         ],
       )),

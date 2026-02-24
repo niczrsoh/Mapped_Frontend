@@ -38,6 +38,7 @@ class ResourceController extends GetxController {
   // --- REPORTING STATE ---
   var selectedReason = ''.obs;
   var isReportConfirmed = false.obs;
+  var isAdmin = false.obs;
 
   final List<String> reportReasons = [
     "Harassment",
@@ -80,7 +81,7 @@ class ResourceController extends GetxController {
   }
 
   Future<void> _initializeController() async {
-    await _loadCurrentUser();
+    await loadCurrentUser();
     loadResources();
   }
 
@@ -169,10 +170,14 @@ class ResourceController extends GetxController {
     }
   }
 
-  Future<void> _loadCurrentUser() async {
+  Future<void> loadCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       currentUserId = prefs.getString('user_id') ?? '';
+
+      String role = prefs.getString('user_role') ?? prefs.getString('role') ?? 'user';
+      isAdmin.value = (role.trim().toLowerCase() == 'admin');
+      
 
       if (currentUserId.isEmpty) {
         print("Warning: No User ID found. User might be a guest.");
@@ -186,6 +191,7 @@ class ResourceController extends GetxController {
 
   // 1. FETCH RESOURCES
   Future<void> loadResources() async {
+    await loadCurrentUser();
     isLoading.value = true;
     try {
       // Build query parameters for filtering
@@ -324,6 +330,12 @@ class ResourceController extends GetxController {
     String? videoUrl,
     List<String>? imagePaths,
   }) async {
+
+    if (!isAdmin.value) {
+      Get.snackbar("Permission Denied", "Only admins can upload resources.");
+      return false;
+    }
+
     if (currentUserId.isEmpty) {
       Get.snackbar("Error", "You must be logged in to create resources.");
       return false;

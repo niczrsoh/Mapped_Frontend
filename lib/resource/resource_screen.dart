@@ -38,7 +38,11 @@ class ResourceScreen extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: _buildFloatingActionButton(),
+     floatingActionButton: Obx(() {
+        return controller.isAdmin.value 
+            ? _buildFloatingActionButton() 
+            : const SizedBox.shrink(); 
+      }),
     );
   }
 
