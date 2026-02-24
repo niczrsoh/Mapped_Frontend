@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'session_controller.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
 class SessionCurrentScreen extends StatelessWidget {
   const SessionCurrentScreen({super.key});
@@ -208,6 +209,7 @@ class SessionCurrentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SessionController controller = Get.put(SessionController());
+    final UserController userController = Get.find<UserController>();
     final themeBg = const Color(0xFF141823);
 
     return Scaffold(
@@ -351,7 +353,7 @@ class SessionCurrentScreen extends StatelessWidget {
                                   }(),
                                   venue: session.venue ?? '-',
                                   trainees: '${session.totalTrainees} Trainees',
-                                  trainer: session.trainer ?? '-',
+                                  trainer: userController.userName,
                                 );
                               },
                             ),
