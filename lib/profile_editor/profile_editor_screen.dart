@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'profile_editor_controller.dart';
 
@@ -44,7 +45,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           elevation: 0,
           centerTitle: true,
           title: Text(
-            'Profile Editor',
+            'profile_edit_title'.tr(),
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -181,7 +182,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       return Column(
         children: [
           Text(
-            profile?.displayName ?? 'User',
+            profile?.displayName ?? 'profile_edit_user_fallback'.tr(),
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w600,
               fontSize: 22,
@@ -214,24 +215,24 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           children: [
             _buildTextField(
               controller: controller.nameController,
-              label: 'Full name',
-              hint: 'Enter your full name',
+              label: 'profile_edit_lbl_name'.tr(),
+              hint: 'profile_edit_hint_name'.tr(),
               maxLength: 50,
             ),
             const SizedBox(height: 16),
 
             _buildTextField(
               controller: controller.usernameController,
-              label: 'Username',
-              hint: 'Enter your username',
+              label: 'profile_edit_lbl_username'.tr(),
+              hint: 'profile_edit_hint_username'.tr(),
               maxLength: 50,
             ),
             const SizedBox(height: 16),
 
             _buildTextField(
               controller: controller.emailController,
-              label: 'Email',
-              hint: 'Enter your email',
+              label: 'profile_edit_lbl_email'.tr(),
+              hint: 'profile_edit_hint_email'.tr(),
               keyboardType: TextInputType.emailAddress,
               maxLength: 50,
             ),
@@ -251,8 +252,8 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
 
             _buildTextField(
               controller: controller.addressController,
-              label: 'Address',
-              hint: 'Enter your address',
+              label: 'profile_edit_lbl_address'.tr(),
+              hint: 'profile_edit_hint_address'.tr(),
               maxLines: 2,
               maxLength: 100,
             ),
@@ -321,7 +322,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'This field is required';
+              return 'profile_edit_validator_required'.tr();
             }
             return null;
           },
@@ -336,7 +337,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Phone number',
+          'profile_edit_lbl_phone'.tr(),
           style: GoogleFonts.roboto(
             fontSize: 12,
             fontWeight: FontWeight.w400,
@@ -366,7 +367,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                 ],
               ),
             ),
-            hintText: 'Enter phone number',
+            hintText: 'profile_edit_hint_phone'.tr(),
             hintStyle: GoogleFonts.roboto(fontSize: 14, color: Colors.white38),
             filled: true,
             fillColor: const Color(0xFF252836),
@@ -385,7 +386,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Phone number is required';
+              return 'profile_edit_validator_phone'.tr();
             }
             return null;
           },
@@ -400,7 +401,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Country',
+          'profile_edit_lbl_country'.tr(),
           style: GoogleFonts.roboto(
             fontSize: 12,
             fontWeight: FontWeight.w400,
@@ -459,7 +460,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Gender',
+          'profile_edit_lbl_gender'.tr(),
           style: GoogleFonts.roboto(
             fontSize: 12,
             fontWeight: FontWeight.w400,
@@ -532,7 +533,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
           elevation: 0,
         ),
         child: Text(
-          'CANCEL',
+          'cancel_caps'.tr(),
           style: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -568,7 +569,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
                   ),
                 )
               : Text(
-                  'SAVE',
+                  'save_caps'.tr(),
                   style: GoogleFonts.roboto(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -595,7 +596,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Choose Image Source',
+                'profile_edit_dialog_img_title'.tr(),
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -605,7 +606,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
               const SizedBox(height: 20),
               _buildImageSourceOption(
                 icon: Icons.photo_library,
-                label: 'Gallery',
+                label: 'gallery'.tr(),
                 onTap: () {
                   Get.back();
                   controller.pickImageFromGallery();
@@ -614,7 +615,7 @@ class _ProfileEditorScreenState extends State<ProfileEditorScreen> {
               const SizedBox(height: 12),
               _buildImageSourceOption(
                 icon: Icons.camera_alt,
-                label: 'Camera',
+                label: 'camera'.tr(),
                 onTap: () {
                   Get.back();
                   controller.pickImageFromCamera();

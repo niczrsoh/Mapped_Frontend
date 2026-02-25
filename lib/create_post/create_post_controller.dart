@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -41,9 +42,9 @@ class CreatePostController extends GetxController {
     'White',
     'Yellow',
     'Green',
-    'Blue', 
+    'Blue',
     'Brown',
-    'Black'
+    'Black',
   ];
 
   @override
@@ -70,7 +71,6 @@ class CreatePostController extends GetxController {
         videoUrl.value.isNotEmpty;
   }
 
-
   Future<void> fetchCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -84,7 +84,7 @@ class CreatePostController extends GetxController {
         userAvatar.value = storedAvatar;
 
       if (currentUserId == null) {
-        userName.value = "Guest";
+        userName.value = 'user_guest'.tr();
         return;
       }
 
@@ -95,7 +95,7 @@ class CreatePostController extends GetxController {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         userName.value =
-            data['name'] ?? data['user']?['name'] ?? 'Unknown User';
+            data['name'] ?? data['user']?['name'] ?? 'unknown_user'.tr();
         userAvatar.value = data['avatar'] ?? data['user']?['avatar'] ?? '';
       }
     } catch (e) {
@@ -116,8 +116,8 @@ class CreatePostController extends GetxController {
         for (var image in images) {
           if (selectedImages.length >= maxImages) {
             Get.snackbar(
-              "Limit Reached",
-              "Maximum $maxImages images allowed",
+              'snackbar_limit_title'.tr(),
+              'snackbar_limit_msg'.tr(namedArgs: {'max': maxImages.toString()}),
               backgroundColor: Colors.orange,
               colorText: Colors.white,
             );
@@ -128,8 +128,13 @@ class CreatePostController extends GetxController {
           final fileSize = await image.length();
           if (fileSize > maxImageSizeBytes) {
             Get.snackbar(
-              "File Too Large",
-              "Image must be less than ${maxImageSizeMB}MB. File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB",
+              'snackbar_size_title'.tr(),
+              'snackbar_size_msg'.tr(
+                namedArgs: {
+                  'max': maxImageSizeMB.toString(),
+                  'size': (fileSize / 1024 / 1024).toStringAsFixed(2),
+                },
+              ),
               backgroundColor: Colors.red,
               colorText: Colors.white,
               duration: const Duration(seconds: 3),
@@ -150,8 +155,8 @@ class CreatePostController extends GetxController {
     try {
       if (selectedImages.length >= maxImages) {
         Get.snackbar(
-          "Limit Reached",
-          "Maximum $maxImages images allowed",
+          'snackbar_limit_title'.tr(),
+          'snackbar_limit_msg'.tr(namedArgs: {'max': maxImages.toString()}),
           backgroundColor: Colors.orange,
           colorText: Colors.white,
         );
@@ -164,8 +169,13 @@ class CreatePostController extends GetxController {
         final fileSize = await image.length();
         if (fileSize > maxImageSizeBytes) {
           Get.snackbar(
-            "File Too Large",
-            "Image must be less than ${maxImageSizeMB}MB. File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB",
+            'snackbar_size_title'.tr(),
+            'snackbar_size_msg'.tr(
+              namedArgs: {
+                'max': maxImageSizeMB.toString(),
+                'size': (fileSize / 1024 / 1024).toStringAsFixed(2),
+              },
+            ),
             backgroundColor: Colors.red,
             colorText: Colors.white,
             duration: const Duration(seconds: 3),
@@ -176,7 +186,7 @@ class CreatePostController extends GetxController {
         selectedImages.add(image);
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to take photo");
+      Get.snackbar('error'.tr(), 'error_pick_images'.tr());
     }
     _updateContentState();
   }
@@ -191,7 +201,7 @@ class CreatePostController extends GetxController {
     if (textController.text.trim().isEmpty &&
         selectedImages.isEmpty &&
         videoUrl.value.isEmpty) {
-      Get.snackbar("Error", "Please add some content (text, images, or video)");
+      Get.snackbar('error'.tr(), 'create_post_error_no_content_preview'.tr());
       return;
     }
     showPreview.value = true;
@@ -230,7 +240,7 @@ class CreatePostController extends GetxController {
       Get.back();
       _updateContentState();
     } else {
-      Get.snackbar("Error", "Please enter a valid YouTube URL");
+      Get.snackbar('error'.tr(), 'error_invalid_youtube'.tr());
     }
   }
 
@@ -256,7 +266,7 @@ class CreatePostController extends GetxController {
     if (textController.text.trim().isEmpty &&
         selectedImages.isEmpty &&
         videoUrl.value.isEmpty) {
-      Get.snackbar("Error", "Post must have at least some content");
+      Get.snackbar('error'.tr(), 'create_post_error_no_content_submit'.tr());
       return;
     }
 
@@ -264,7 +274,7 @@ class CreatePostController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       currentUserId = prefs.getString('user_id');
       if (currentUserId == null) {
-        Get.snackbar("Error", "User session expired. Please login again.");
+        Get.snackbar('error'.tr(), 'error_session_expired'.tr());
         return;
       }
     }
@@ -339,7 +349,7 @@ class CreatePostController extends GetxController {
         _updateContentState();
 
         // Show success message
-        Get.snackbar("Success", "Post published successfully");
+        Get.snackbar('success'.tr(), 'create_post_success_published'.tr());
 
         // Refresh Feed
         try {
@@ -349,11 +359,14 @@ class CreatePostController extends GetxController {
         }
       } else {
         print("Error: $responseBody");
-        Get.snackbar("Error", "Failed to upload post");
+        Get.snackbar('error'.tr(), 'create_post_error_upload_failed'.tr());
       }
     } catch (e) {
       print("Error sending post: $e");
-      Get.snackbar("Error", "Connection error: $e");
+      Get.snackbar(
+        'error'.tr(),
+        'error_connection'.tr(namedArgs: {'error': e.toString()}),
+      );
     } finally {
       isPosting.value = false;
     }
@@ -385,14 +398,12 @@ class CreatePostController extends GetxController {
 
   // Mark tip/resource share as submitted with duplicate prevention
   Future<void> markShareTipAsSubmitted(String postId) async {
-
     sharedTipPostIds.add(postId);
 
     try {
       try {
         await _apiService.recordShareTipSubmission(postId, currentUserId!);
       } catch (e) {
-      
         print("⚠️ Individual share tip tracking not available: $e");
       }
       await _updateShareTipCount();
@@ -419,15 +430,12 @@ class CreatePostController extends GetxController {
       if (Get.isRegistered<BeltProgressRingController>()) {
         await Get.find<BeltProgressRingController>().fetchBeltProgress();
       }
-
     } catch (e) {
       print("⚠️ Failed to update share tip count: $e");
     }
   }
 
-
   Future<void> removePostFromSharedTips(String postId) async {
-
     if (sharedTipPostIds.isEmpty) {
       await fetchSharedTips();
     }
@@ -438,7 +446,6 @@ class CreatePostController extends GetxController {
     } else {
       print("⚪ Post $postId not found in local shared tips Set");
     }
-
 
     if (Get.isRegistered<BeltProgressRingController>()) {
       await Get.find<BeltProgressRingController>().fetchBeltProgress();

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:mapped_frontend/helper/colorConstant.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'resource_controller.dart';
 import 'resource_model.dart';
 import 'resource_detail_screen.dart';
@@ -60,7 +61,7 @@ class ResourceScreen extends StatelessWidget {
             },
           ),
           Text(
-            'Resources',
+            'resource_screen_title'.tr(),
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -100,7 +101,7 @@ class ResourceScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Search images, videos, links...',
+                  'resource_screen_hint_search'.tr(),
                   style: GoogleFonts.roboto(
                     color: Colors.white54,
                     fontSize: 14,
@@ -125,20 +126,23 @@ class ResourceScreen extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildFilterChip('All', controller.selectedFilter.value == 'All'),
+              _buildFilterChip(
+                'all'.tr(),
+                controller.selectedFilter.value == 'All',
+              ),
               const SizedBox(width: 8),
               _buildFilterChip(
-                'Images',
+                'resource_filter_images'.tr(),
                 controller.selectedFilter.value == 'Images',
               ),
               const SizedBox(width: 8),
               _buildFilterChip(
-                'Videos',
+                'resource_filter_videos'.tr(),
                 controller.selectedFilter.value == 'Videos',
               ),
               const SizedBox(width: 8),
               _buildFilterChip(
-                'Links',
+                'resource_filter_links'.tr(),
                 controller.selectedFilter.value == 'Links',
               ),
             ],
@@ -203,7 +207,7 @@ class ResourceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No resources found',
+                  'resource_screen_empty_title'.tr(),
                   style: GoogleFonts.roboto(
                     color: Colors.white54,
                     fontSize: 16,
@@ -211,7 +215,7 @@ class ResourceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Be the first to add a resource!',
+                  'resource_screen_empty_sub'.tr(),
                   style: GoogleFonts.roboto(
                     color: Colors.white38,
                     fontSize: 14,
@@ -326,7 +330,10 @@ class ResourceScreen extends StatelessWidget {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                '${resource.authorName} • ${resource.timeAgo}',
+                                'resource_card_author_meta'.tr(args: [
+                                  resource.authorName,
+                                  resource.timeAgo,
+                                ]),
                                 style: GoogleFonts.roboto(
                                   fontSize: 11,
                                   color: Colors.white54,
@@ -422,7 +429,7 @@ class ResourceScreen extends StatelessWidget {
             const Icon(Icons.link, color: Color(0xFF09FACA), size: 28),
             const SizedBox(height: 4),
             Text(
-              'Link',
+              'resource_card_type_link'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 10,
                 color: Colors.white54,
@@ -443,7 +450,7 @@ class ResourceScreen extends StatelessWidget {
           const Icon(Icons.article_outlined, color: Colors.white54, size: 28),
           const SizedBox(height: 4),
           Text(
-            'Text',
+            'resource_card_type_text'.tr(),
             style: GoogleFonts.inter(
               fontSize: 10,
               color: Colors.white54,
@@ -469,7 +476,7 @@ class ResourceScreen extends StatelessWidget {
         PopupMenuItem(
           value: 'delete',
           child: Text(
-            'Delete Resource',
+            'resource_menu_delete'.tr(),
             style: GoogleFonts.roboto(color: Colors.red),
           ),
         ),
@@ -495,10 +502,10 @@ class ResourceScreen extends StatelessWidget {
   // --- DELETE CONFIRMATION DIALOG ---
   void _showDeleteConfirmationDialog(ResourcePost resource) {
     Get.defaultDialog(
-      title: 'Delete Resource',
-      middleText: 'Are you sure you want to delete this resource?',
-      textConfirm: 'Delete',
-      textCancel: 'Cancel',
+      title: 'resource_dialog_delete_title'.tr(),
+      middleText: 'resource_dialog_delete_msg'.tr(),
+      textConfirm: 'delete'.tr(),
+      textCancel: 'cancel'.tr(),
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
       onConfirm: () async {

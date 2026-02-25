@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/admin/admin_controller.dart';
 import 'package:mapped_frontend/forum/forum_controller.dart';
 import 'package:mapped_frontend/forum/forum_model.dart';
@@ -22,25 +23,31 @@ class AdminManageUsersScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              const Text(
-                "Admin Dashboard",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold),
+              Text(
+                "admin_manage_title_dashboard".tr(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 20),
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
                     return const Center(
-                        child: CircularProgressIndicator(color: Color(0xFF00C7A7)));
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF00C7A7),
+                      ),
+                    );
                   }
 
                   if (controller.reportedPosts.isEmpty) {
-                    return const Center(
-                      child: Text("No reports found",
-                          style: TextStyle(color: Colors.white54)),
+                    return Center(
+                      child: Text(
+                        "admin_manage_msg_no_reports".tr(),
+                        style: const TextStyle(color: Colors.white54),
+                      ),
                     );
                   }
 
@@ -50,7 +57,11 @@ class AdminManageUsersScreen extends StatelessWidget {
                       final post = controller.reportedPosts[index];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 20),
-                        child: _buildAdminCard(post, controller, forumController),
+                        child: _buildAdminCard(
+                          post,
+                          controller,
+                          forumController,
+                        ),
                       );
                     },
                   );
@@ -101,7 +112,7 @@ class AdminManageUsersScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _actionBtn(
-                      "CANCEL",
+                      "cancel_caps".tr(),
                       const Color(0xFF00C7A7),
                       Colors.black,
                       onTap: () => Get.back(),
@@ -110,7 +121,7 @@ class AdminManageUsersScreen extends StatelessWidget {
                   const SizedBox(width: 15),
                   Expanded(
                     child: _actionBtn(
-                      "OK",
+                      "ok".tr(),
                       const Color(0xFF00C7A7),
                       Colors.black,
                       onTap: () {
@@ -128,192 +139,215 @@ class AdminManageUsersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminCard(ForumPost post, AdminController controller, ForumController forumController) {
+  Widget _buildAdminCard(
+    ForumPost post,
+    AdminController controller,
+    ForumController forumController,
+  ) {
     final RxBool isUserBlocked = post.isUserBlocked;
 
-    String displayReason = "Reported content";
+    String displayReason = "admin_manage_reason_default".tr();
     if (post.reports.isNotEmpty) {
-      displayReason = post.reports[0]['reason'] ?? "Reason not specified";
+      displayReason =
+          post.reports[0]['reason'] ?? "admin_manage_reason_unspecified".tr();
     }
 
-    return Obx(() => Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF252836),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-            decoration: BoxDecoration(
-              color: isUserBlocked.value
-                  ? const Color(0xFF1F1D2B)
-                  : const Color(0xFF4A2B2B),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20)
+    return Obx(
+      () => Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF252836),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              decoration: BoxDecoration(
+                color: isUserBlocked.value
+                    ? const Color(0xFF1F1D2B)
+                    : const Color(0xFF4A2B2B),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Text(
+                isUserBlocked.value
+                    ? "admin_manage_badge_blocked".tr()
+                    : "admin_manage_badge_reported".tr(),
+                style: TextStyle(
+                  color: isUserBlocked.value ? Colors.grey : Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ),
-            child: Text(
-              isUserBlocked.value ? "BLOCKED USER" : "REPORTED POST",
-              style: TextStyle(
-                color: isUserBlocked.value ? Colors.grey : Colors.redAccent,
-                fontWeight: FontWeight.bold,
-                fontSize: 12
-              ),
-            ),
-          ),
 
-          Padding(
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundImage: (post.authorImage != null &&
-                          post.authorImage!.isNotEmpty)
-                          ? NetworkImage(forumController.getFullImageUrl(
-                              post.authorImage!))
-                          : const AssetImage('assets/images/user.png')
-                              as ImageProvider,
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          post.authorName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16
-                          )
-                        ),
-                        if (isUserBlocked.value)
-                          const Text(
-                            "Account Banned",
-                            style: TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold
-                            )
-                          ),
-                      ],
-                    )
-                  ],
-                ),
-                const SizedBox(height: 15),
-
-                if (!isUserBlocked.value) ...[
-                  Text(
-                    post.content,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      height: 1.4
-                    )
-                  ),
-                  if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    PostVideoPlayer(videoUrl: post.videoUrl!),
-                  ],
-                  if (post.images.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _buildPostImages(post, forumController),
-                  ],
-                  const SizedBox(height: 10),
-                ],
-
-                Text(
-                  isUserBlocked.value
-                      ? "User is currently restricted from posting."
-                      : "Reason: Reported for $displayReason",
-                  style: TextStyle(
-                    color: isUserBlocked.value
-                        ? Colors.white54
-                        : Colors.redAccent,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                if (isUserBlocked.value)
-                  _actionBtn(
-                    "UnBlock User",
-                    const Color(0xFF00C7A7).withOpacity(0.1),
-                    const Color(0xFF00C7A7),
-                    border: true,
-                    onTap: () => _showConfirmDialog(
-                      title: "Are you sure want to unblock this user?",
-                      onConfirm: () => controller.unblockUser(post.authorId ?? ""),
-                    )
-                  )
-                else
-                  Column(
+            Padding(
+              padding: const EdgeInsets.all(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _actionBtn(
-                              "Delete Post",
-                              Colors.redAccent.withOpacity(0.15),
-                              Colors.redAccent,
-                              icon: Icons.delete_outline,
-                              onTap: () => _showConfirmDialog(
-                                title: "Are you sure want to delete this post?",
-                                onConfirm: () => controller.deletePost(post.id),
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundImage:
+                            (post.authorImage != null &&
+                                post.authorImage!.isNotEmpty)
+                            ? NetworkImage(
+                                forumController.getFullImageUrl(
+                                  post.authorImage!,
+                                ),
                               )
-                            )
+                            : const AssetImage('assets/images/user.png')
+                                  as ImageProvider,
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            post.authorName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _actionBtn(
-                              "Dismiss",
-                              const Color(0xFF00C7A7).withOpacity(0.15),
-                              const Color(0xFF00C7A7),
-                              onTap: () => controller.dismissReport(post.id)
-                            )
-                          ),
+                          if (isUserBlocked.value)
+                            Text(
+                              "admin_manage_badge_banned".tr(),
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Obx(() => _actionBtn(
-                          post.isUserBlocked.value ? "UnBlock User" : "Block User",
-                          post.isUserBlocked.value
-                              ? const Color(0xFF00C7A7).withOpacity(0.1)
-                              : Colors.transparent,
-                          post.isUserBlocked.value
-                              ? const Color(0xFF00C7A7)
-                              : Colors.redAccent,
-                          border: true,
-                          onTap: () {
-                            final bool isBlocked = post.isUserBlocked.value;
-                            _showConfirmDialog(
-                              title: "Are you sure want to ${isBlocked ? 'unblock' : 'block'} this user?",
-                              onConfirm: () {
-                                if (isBlocked) {
-                                  controller.unblockUser(post.authorId ?? "");
-                                } else {
-                                  controller.blockUser(post.authorId ?? "");
-                                }
-                              },
-                            );
-                          },
-                      )),
                     ],
                   ),
-              ],
+                  const SizedBox(height: 15),
+
+                  if (!isUserBlocked.value) ...[
+                    Text(
+                      post.content,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                    if (post.videoUrl != null && post.videoUrl!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      PostVideoPlayer(videoUrl: post.videoUrl!),
+                    ],
+                    if (post.images.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _buildPostImages(post, forumController),
+                    ],
+                    const SizedBox(height: 10),
+                  ],
+
+                  Text(
+                    isUserBlocked.value
+                        ? "admin_manage_msg_user_restricted".tr()
+                        : "admin_manage_msg_reported_reason".tr(
+                            namedArgs: {'reason': displayReason},
+                          ),
+                    style: TextStyle(
+                      color: isUserBlocked.value
+                          ? Colors.white54
+                          : Colors.redAccent,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (isUserBlocked.value)
+                    _actionBtn(
+                      "admin_manage_btn_unblock".tr(),
+                      const Color(0xFF00C7A7).withOpacity(0.1),
+                      const Color(0xFF00C7A7),
+                      border: true,
+                      onTap: () => _showConfirmDialog(
+                        title: "admin_manage_confirm_unblock".tr(),
+                        onConfirm: () =>
+                            controller.unblockUser(post.authorId ?? ""),
+                      ),
+                    )
+                  else
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _actionBtn(
+                                "admin_manage_btn_delete".tr(),
+                                Colors.redAccent.withOpacity(0.15),
+                                Colors.redAccent,
+                                icon: Icons.delete_outline,
+                                onTap: () => _showConfirmDialog(
+                                  title: "admin_manage_confirm_delete".tr(),
+                                  onConfirm: () =>
+                                      controller.deletePost(post.id),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _actionBtn(
+                                "admin_manage_btn_dismiss".tr(),
+                                const Color(0xFF00C7A7).withOpacity(0.15),
+                                const Color(0xFF00C7A7),
+                                onTap: () => controller.dismissReport(post.id),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Obx(
+                          () => _actionBtn(
+                            post.isUserBlocked.value
+                                ? "admin_manage_btn_unblock".tr()
+                                : "admin_manage_btn_block".tr(),
+                            post.isUserBlocked.value
+                                ? const Color(0xFF00C7A7).withOpacity(0.1)
+                                : Colors.transparent,
+                            post.isUserBlocked.value
+                                ? const Color(0xFF00C7A7)
+                                : Colors.redAccent,
+                            border: true,
+                            onTap: () {
+                              final bool isBlocked = post.isUserBlocked.value;
+                              _showConfirmDialog(
+                                title: isBlocked
+                                    ? "admin_manage_confirm_unblock".tr()
+                                    : "admin_manage_confirm_block".tr(),
+                                onConfirm: () {
+                                  if (isBlocked) {
+                                    controller.unblockUser(post.authorId ?? "");
+                                  } else {
+                                    controller.blockUser(post.authorId ?? "");
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildPostImages(ForumPost post, ForumController controller) {
@@ -332,8 +366,12 @@ class AdminManageUsersScreen extends StatelessWidget {
             height: 200,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
-              height: 200, width: double.infinity, color: Colors.grey[800],
-              child: const Center(child: Icon(Icons.broken_image, color: Colors.white54)),
+              height: 200,
+              width: double.infinity,
+              color: Colors.grey[800],
+              child: const Center(
+                child: Icon(Icons.broken_image, color: Colors.white54),
+              ),
             ),
           ),
         ),
@@ -351,15 +389,28 @@ class AdminManageUsersScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
               controller.getFullImageUrl(post.images[0]),
-              width: double.infinity, height: 200, fit: BoxFit.cover,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
             ),
           ),
           Positioned(
-            top: 10, right: 10,
+            top: 10,
+            right: 10,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(12)),
-              child: Text('+${post.images.length - 1}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '+${post.images.length - 1}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
         ],
@@ -367,12 +418,28 @@ class AdminManageUsersScreen extends StatelessWidget {
     );
   }
 
-  void _openImageViewer(String imageUrl, int initialIndex, List<String> allImages) {
-    Get.to(() => FullScreenImageViewer(imageUrls: allImages, initialIndex: initialIndex), transition: Transition.fade);
+  void _openImageViewer(
+    String imageUrl,
+    int initialIndex,
+    List<String> allImages,
+  ) {
+    Get.to(
+      () => FullScreenImageViewer(
+        imageUrls: allImages,
+        initialIndex: initialIndex,
+      ),
+      transition: Transition.fade,
+    );
   }
 
-  Widget _actionBtn(String label, Color bg, Color txt,
-      {bool border = false, IconData? icon, required VoidCallback onTap}) {
+  Widget _actionBtn(
+    String label,
+    Color bg,
+    Color txt, {
+    bool border = false,
+    IconData? icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -388,9 +455,12 @@ class AdminManageUsersScreen extends StatelessWidget {
           children: [
             if (icon != null) ...[
               Icon(icon, color: txt, size: 18),
-              const SizedBox(width: 6)
+              const SizedBox(width: 6),
             ],
-            Text(label, style: TextStyle(color: txt, fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: TextStyle(color: txt, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -442,7 +512,10 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
     if (!_isReady) return const CircularProgressIndicator();
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: YoutubePlayer(controller: _controller!, showVideoProgressIndicator: true),
+      child: YoutubePlayer(
+        controller: _controller!,
+        showVideoProgressIndicator: true,
+      ),
     );
   }
 }
@@ -451,7 +524,11 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
 class FullScreenImageViewer extends StatelessWidget {
   final List<String> imageUrls;
   final int initialIndex;
-  const FullScreenImageViewer({super.key, required this.imageUrls, required this.initialIndex});
+  const FullScreenImageViewer({
+    super.key,
+    required this.imageUrls,
+    required this.initialIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -462,9 +539,17 @@ class FullScreenImageViewer extends StatelessWidget {
           PageView.builder(
             itemCount: imageUrls.length,
             controller: PageController(initialPage: initialIndex),
-            itemBuilder: (context, index) => InteractiveViewer(child: Image.network(imageUrls[index])),
+            itemBuilder: (context, index) =>
+                InteractiveViewer(child: Image.network(imageUrls[index])),
           ),
-          Positioned(top: 40, left: 20, child: IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Get.back())),
+          Positioned(
+            top: 40,
+            left: 20,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Get.back(),
+            ),
+          ),
         ],
       ),
     );

@@ -1,20 +1,22 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/global/routes.dart';
 
 class ResetPasswordController extends GetxController {
   // Text Editing Controllers for UI fields
   final emailController = TextEditingController();
-  final otpController = TextEditingController(); 
+  final otpController = TextEditingController();
   final newPasswordController = TextEditingController();
 
   // Observable states
   final isLoading = false.obs;
   final errorMessage = "".obs;
 
-  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
+  final String baseUrl =
+      "https://mapped-backend-node-js.onrender.com/api/users";
 
   Future<void> sendResetEmail() async {
     final email = emailController.text.trim();
@@ -36,22 +38,23 @@ class ResetPasswordController extends GetxController {
         // Move to the OTP input screen (CheckMail)
         Get.toNamed(AppRoutes.checkMail, arguments: email);
       } else {
-        errorMessage.value = data['msg'] ?? "Failed to send code.";
+        errorMessage.value =
+            data['msg'] ?? "reset_pwd_ctrl_error_send_failed".tr();
       }
     } catch (e) {
-      errorMessage.value = "Server connection failed.";
+      errorMessage.value = "reset_pwd_ctrl_error_connection".tr();
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> verifyOtp() async {
-    final email = Get.arguments; 
+    final email = Get.arguments;
     final otp = otpController.text.trim();
 
     // Changed from 6 to 4 to match your new backend logic
     if (otp.length < 4) {
-      errorMessage.value = "Please enter the full 4-digit code.";
+      errorMessage.value = "verify_code_error_incomplete".tr();
       return;
     }
 
@@ -62,27 +65,24 @@ class ResetPasswordController extends GetxController {
       final response = await http.post(
         Uri.parse('$baseUrl/verify-otp'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'otp': otp,
-        }),
+        body: jsonEncode({'email': email, 'otp': otp}),
       );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
         // SUCCESS: Move to next screen (Replace with your route)
-        // Get.toNamed(AppRoutes.newPassword, arguments: {'email': email, 'otp': otp}); 
-        Get.toNamed(AppRoutes.createNewPassword, arguments: {
-          'email': email,
-          'otp': otp,
-        });
-        Get.snackbar("Success", "Code verified!");
+        // Get.toNamed(AppRoutes.newPassword, arguments: {'email': email, 'otp': otp});
+        Get.toNamed(
+          AppRoutes.createNewPassword,
+          arguments: {'email': email, 'otp': otp},
+        );
+        Get.snackbar("success".tr(), "verify_code_success_verified".tr());
       } else {
-        errorMessage.value = data['msg'] ?? "Invalid or expired code.";
+        errorMessage.value = data['msg'] ?? "verify_code_error_invalid".tr();
       }
     } catch (e) {
-      errorMessage.value = "Verification failed.";
+      errorMessage.value = "verify_code_error_verification_failed".tr();
     } finally {
       isLoading.value = false;
     }
@@ -94,7 +94,7 @@ class ResetPasswordController extends GetxController {
     final newPass = newPasswordController.text.trim();
 
     if (newPass.length < 8) {
-      errorMessage.value = "Password must be at least 8 characters.";
+      errorMessage.value = "reset_pwd_ctrl_error_password_length".tr();
       return;
     }
 
@@ -105,11 +105,7 @@ class ResetPasswordController extends GetxController {
       final response = await http.post(
         Uri.parse('$baseUrl/reset-password'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'otp': otp,
-          'newPassword': newPass,
-        }),
+        body: jsonEncode({'email': email, 'otp': otp, 'newPassword': newPass}),
       );
 
       final data = jsonDecode(response.body);
@@ -117,12 +113,13 @@ class ResetPasswordController extends GetxController {
       if (response.statusCode == 200 && data['success'] == true) {
         // Password changed! Go back to login
         Get.offAllNamed(AppRoutes.login);
-        Get.snackbar("Success", "Password reset successfully. Please login.");
+        Get.snackbar("success".tr(), "reset_pwd_ctrl_success_reset".tr());
       } else {
-        errorMessage.value = data['msg'] ?? "Reset failed.";
+        errorMessage.value =
+            data['msg'] ?? "reset_pwd_ctrl_error_reset_failed".tr();
       }
     } catch (e) {
-      errorMessage.value = "Could not update password.";
+      errorMessage.value = "reset_pwd_ctrl_error_update_failed".tr();
     } finally {
       isLoading.value = false;
     }
@@ -132,7 +129,7 @@ class ResetPasswordController extends GetxController {
   bool _validateEmail(String email) {
     if (email.isEmpty) return false;
     if (!GetUtils.isEmail(email)) {
-      errorMessage.value = "Enter a valid email.";
+      errorMessage.value = "reset_pwd_ctrl_error_email_invalid".tr();
       return false;
     }
     return true;

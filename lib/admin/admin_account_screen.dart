@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/admin/admin_controller.dart';
 
 class AdminAccountScreen extends StatelessWidget {
@@ -7,7 +8,7 @@ class AdminAccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Assuming you have a way to get the current admin's data, 
+    // Assuming you have a way to get the current admin's data,
     // perhaps from the controller or a shared preference.
     final AdminController controller = Get.find<AdminController>();
 
@@ -20,16 +21,16 @@ class AdminAccountScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              const Text(
-                "Admin Account",
-                style: TextStyle(
+              Text(
+                "admin_account_title_main".tr(),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               // Profile Header Card
               Container(
                 padding: const EdgeInsets.all(20),
@@ -43,46 +44,62 @@ class AdminAccountScreen extends StatelessWidget {
                       radius: 35,
                       backgroundColor: Colors.grey[800],
                       // Added safety check for empty strings to avoid FormatException
-                      backgroundImage: const AssetImage('assets/images/user.png'),
-                      foregroundImage: (controller.reportedPosts.isNotEmpty && 
-                                        controller.reportedPosts[0].authorImage != null)
-                          ? NetworkImage("https://mapped-backend-node-js.onrender.com/api/${controller.reportedPosts[0].authorImage}")
+                      backgroundImage: const AssetImage(
+                        'assets/images/user.png',
+                      ),
+                      foregroundImage:
+                          (controller.reportedPosts.isNotEmpty &&
+                              controller.reportedPosts[0].authorImage != null)
+                          ? NetworkImage(
+                              "https://mapped-backend-node-js.onrender.com/api/${controller.reportedPosts[0].authorImage}",
+                            )
                           : null,
                     ),
                     const SizedBox(width: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Obx(() => Text(
-                          controller.adminName.value.isEmpty ? "Loading..." : controller.adminName.value,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                        Obx(
+                          () => Text(
+                            controller.adminName.value.isEmpty
+                                ? "admin_account_msg_loading".tr()
+                                : controller.adminName.value,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )),
-                        const Text(
-                          "System Administrator",
-                          style: TextStyle(
+                        ),
+                        Text(
+                          "admin_account_subtitle_role".tr(),
+                          style: const TextStyle(
                             color: Colors.white60,
                             fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF00C7A7).withOpacity(0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.security, color: Color(0xFF00C7A7), size: 14),
-                              SizedBox(width: 5),
+                              const Icon(
+                                Icons.security,
+                                color: Color(0xFF00C7A7),
+                                size: 14,
+                              ),
+                              const SizedBox(width: 5),
                               Text(
-                                "ADMIN",
-                                style: TextStyle(
+                                "admin_account_badge_admin".tr(),
+                                style: const TextStyle(
                                   color: Color(0xFF00C7A7),
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -96,7 +113,7 @@ class AdminAccountScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               const Spacer(),
               GestureDetector(
                 onTap: () => controller.logout(), // Calls the logout method
@@ -104,17 +121,17 @@ class AdminAccountScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2B1A1D), 
+                    color: const Color(0xFF2B1A1D),
                     borderRadius: BorderRadius.circular(25),
                   ),
-                  child: Row( // Removed 'const' here
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [ // Keep 'const' only for static widgets
-                      Icon(Icons.logout, color: Colors.redAccent),
-                      SizedBox(width: 10),
+                    children: [
+                      const Icon(Icons.logout, color: Colors.redAccent),
+                      const SizedBox(width: 10),
                       Text(
-                        "Log Out",
-                        style: TextStyle(
+                        "logout".tr(),
+                        style: const TextStyle(
                           color: Colors.redAccent,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,

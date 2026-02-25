@@ -266,6 +266,7 @@
   "coachbot_empty_title": "Bienvenue sur CoachBot !",
   "coachbot_empty_subtitle": "Votre assistant IA de Taekwondo",
   "coachbot_lbl_try_asking": "Essayez de demander :",
+  "coachbot_lbl_queries": "Anfragen",
   "coachbot_time_days_ago": "il y a {days} jours",
   "coachbot_badge_quick_answer": "📚 Réponse rapide",
   "coachbot_badge_instant": "⚡ Instantané",
@@ -552,6 +553,18 @@
   "verify_code_btn_skip": "Passer",
   "verify_code_snackbar_invalid_title": "Code invalide",
   "verify_code_snackbar_invalid_msg": "Veuillez entrer les 4 chiffres",
+  "verify_code_error_incomplete": "Bitte geben Sie den vollständigen 4-stelligen Code ein.",
+  "verify_code_error_invalid": "Ungültiger oder abgelaufener Code.",
+  "verify_code_error_verification_failed": "Verifizierung fehlgeschlagen.",
+  "verify_code_success_verified": "Code verifiziert!",
+
+  "reset_pwd_ctrl_error_email_invalid": "Geben Sie eine gültige E-Mail ein.",
+  "reset_pwd_ctrl_error_send_failed": "Senden des Codes fehlgeschlagen.",
+  "reset_pwd_ctrl_error_connection": "Serververbindung fehlgeschlagen.",
+  "reset_pwd_ctrl_error_password_length": "Das Passwort muss mindestens 8 Zeichen lang sein.",
+  "reset_pwd_ctrl_error_reset_failed": "Zurücksetzen fehlgeschlagen.",
+  "reset_pwd_ctrl_error_update_failed": "Passwort konnte nicht aktualisiert werden.",
+  "reset_pwd_ctrl_success_reset": "Passwort erfolgreich zurückgesetzt. Bitte melden Sie sich an.",
 
   "profile_edit_error_load": "Échec du chargement du profil",
   "profile_edit_error_name_req": "Le nom est requis",
@@ -618,6 +631,10 @@
   "rec_ctrl_focus_tech": "Technique : {focus}",
   "rec_ctrl_focus_safety": "Sécurité : {strategy}",
   "rec_ctrl_focus_finish": "Fin : {exercises} ({time} min)",
+  "rec_ctrl_default_focus_warmup": "Aufwärmen: Knöchel- + Hüftmobilität (5 Min.)",
+  "rec_ctrl_default_focus_tech": "Technik: Roundhouse -\nAusholen → Schnappen → Zurückziehen",
+  "rec_ctrl_default_focus_safety": "Sicherheit: Kein Partnerkontakt für Weißgurte",
+  "rec_ctrl_default_focus_finish": "Abschluss: Waden-/Hüftdehnung 3x20s",
 
   "rec_details_title": "Détails de la Session",
   "rec_details_empty": "Aucune recommandation",
@@ -938,5 +955,16 @@
   "language_screen_subtitle": "Choisissez votre langue",
 
   "lang_ctrl_snackbar_title": "Succès",
-  "lang_ctrl_snackbar_msg": "Langue changée : {name}"
+  "lang_ctrl_snackbar_msg": "Langue changée : {name}",
+
+  "about_title": "Über uns",
+  "about_para_1": "MAPPED ist Teil des Projekts Traditional Martial Arts for All (TMA4ALL) – einer wegweisenden europäischen Initiative, die sich dafür einsetzt, alle traditionellen Kampfkünste für alle zugänglich und inklusiv zu machen (Projekt 101133802 — TMA4ALL).",
+  "about_para_2": "Wir glauben, dass alle traditionellen Kampfkünste Leben durch körperliche, psychologische und soziale Entwicklung verändern können – unabhängig vom Stil. Tatsächlich zeigen Studien immer wieder, dass der Kampfsporttrainer der wichtigste Faktor für die Verbesserung von Gesundheit, Wohlbefinden und Lebensqualität der Praktizierenden ist, unabhängig von der jeweiligen Kampfkunst. Unsere Mission ist es, alle Trainer traditioneller Kampfkünste dabei zu unterstützen, sichere und stärkende Trainingseinheiten zu gestalten, die Menschen aller Fähigkeiten, Hintergründe, Altersgruppen und mit Behinderungen willkommen heißen.",
+  "about_para_3": "In Zusammenarbeit mit führenden Organisationen für inklusive Kampfkünste und Universitäten in ganz Europa entwickelt, ist MAPPED die erste vollständig barrierefreie und inklusive App, die speziell für Trainer im Breitensportbereich konzipiert wurde. Ob Sie angehender Trainer oder erfahrener Ausbilder sind, MAPPED bietet Ihnen die Werkzeuge, Unterstützung und Gemeinschaft, die Sie benötigen, um hochwertige inklusive Kampfsporteinheiten anzubieten.",
+  "about_para_4": "Werden Sie Teil unseres wachsenden internationalen Netzwerks von Trainern, die traditionelle Kampfkünste nutzen, um Leben zu verbessern und stärkere, inklusivere Gemeinschaften aufzubauen.",
+  "about_partners_title": "Unsere Partner",
+  "about_eu_funded_by": "Kofinanziert von",
+  "about_eu_name": "der Europäischen Union",
+  "about_disclaimer_title": "Haftungsausschluss",
+  "about_disclaimer_body": "Finanziert von der Europäischen Union. Die geäußerten Ansichten und Meinungen sind jedoch ausschließlich die der Autorinnen und Autoren und spiegeln nicht zwingend die der Europäischen Union oder der Europäischen Exekutivagentur für Bildung und Kultur (EACEA) wider. Weder die Europäische Union noch die EACEA können dafür verantwortlich gemacht werden."
 }

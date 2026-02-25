@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/password/reset_password_controller.dart';
 import '../global/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,20 +18,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final ResetPasswordController controller = Get.put(ResetPasswordController());
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        filled: true,
-        fillColor: Colors.white10,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          borderSide: const BorderSide(color: Color(0xFF00C7A7)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1.5),
-        ),
-      );
+    hintText: hint,
+    hintStyle: const TextStyle(color: Colors.white70),
+    filled: true,
+    fillColor: Colors.white10,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.0),
+      borderSide: const BorderSide(color: Color(0xFF00C7A7)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.0),
+      borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1.5),
+    ),
+  );
 
   Future<void> _sendReset() async {
     final email = _emailController.text.trim();
@@ -80,7 +81,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Login',
+                  'login'.tr(),
                   style: GoogleFonts.inter(
                     color: const Color(0xFFFFEEFF),
                     fontSize: 16,
@@ -95,7 +96,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             top: 147.0,
             left: 44.0,
             child: Text(
-              'Reset Password',
+              'reset_password_header'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 22,
@@ -111,7 +112,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             child: SizedBox(
               width: 294.0,
               child: Text(
-                "Enter the email associated with your account and we'll send an email with instructions and passcode to reset your password.",
+                "reset_password_description".tr(),
                 style: GoogleFonts.poppins(
                   color: Colors.white70,
                   fontSize: 14,
@@ -131,7 +132,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _emailController,
                 style: const TextStyle(color: Colors.white),
                 cursorColor: const Color(0xFF00C7A7),
-                decoration: _inputDecoration('Email'),
+                decoration: _inputDecoration('email'.tr()),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -144,32 +145,34 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             child: SizedBox(
               width: 303.0,
               height: 48.0,
-              child: Obx(() => ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
+              child: Obx(
+                () => ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
                     ),
-                    onPressed: controller.isLoading.value ? null : _sendReset,
-                    child: controller.isLoading.value
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.black,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'Reset Password',
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
+                  ),
+                  onPressed: controller.isLoading.value ? null : _sendReset,
+                  child: controller.isLoading.value
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
                           ),
-                  )),
+                        )
+                      : Text(
+                          'reset_password_btn_action'.tr(),
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                ),
+              ),
             ),
           ),
 
@@ -178,15 +181,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             top: 470.0,
             left: 44.0,
             right: 44.0,
-            child: Obx(() => Text(
-                  controller.errorMessage.value,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                )),
+            child: Obx(
+              () => Text(
+                controller.errorMessage.value,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ),
         ],
       ),

@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'resource_model.dart';
-import 'resource_controller.dart'; // Import to access baseUrl
+import 'resource_controller.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ResourceDetailScreen extends StatefulWidget {
   final ResourcePost resource;
@@ -169,7 +170,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
           },
         ),
         title: Text(
-          'Resource Detail',
+          'resource_detail_title'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -196,7 +197,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                         Text(
                           widget.resource.authorName.isNotEmpty
                               ? widget.resource.authorName
-                              : "Unknown User",
+                              : "unknown_user".tr(),
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -227,7 +228,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                     widget.resource.title,
                     style: GoogleFonts.poppins(
                       fontSize: 18,
-                      fontWeight: FontWeight.w700, // Bold to make it stand out
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
                   ),
@@ -360,14 +361,14 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                 borderRadius: BorderRadius.circular(20),
                 color: Colors.black,
               ),
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.broken_image, color: Colors.white24, size: 50),
                     SizedBox(height: 8),
                     Text(
-                      "Image not found",
+                      "resource_detail_img_not_found".tr(),
                       style: TextStyle(color: Colors.white24),
                     ),
                   ],
@@ -410,7 +411,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                     child: Image.network(
                       _getFixedUrl(widget.resource.images[index]),
                       fit: fitMode,
-                      errorBuilder: (ctx, err, stack) => const Center(
+                      errorBuilder: (ctx, err, stack) => Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -421,7 +422,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              "Image not found",
+                              "resource_detail_img_not_found".tr(),
                               style: TextStyle(color: Colors.white24),
                             ),
                           ],
@@ -448,7 +449,10 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
                 ),
                 child: Obx(
                   () => Text(
-                    '${currentImageIndex.value + 1}/${widget.resource.images.length}',
+                    'resource_detail_img_count'.tr(args: [
+                      '${currentImageIndex.value + 1}',
+                      '${widget.resource.images.length}'
+                    ]) ,
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -503,7 +507,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                "Could not load video: ${widget.resource.videoUrl}",
+                "resource_detail_video_error".tr(args: [widget.resource.videoUrl ?? ""]),
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -584,7 +588,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                       );
                     },
                     errorBuilder: (context, error, stackTrace) {
-                      return const Center(
+                      return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -595,7 +599,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                             ),
                             SizedBox(height: 16),
                             Text(
-                              'Failed to load image',
+                              'resource_detail_viewer_error'.tr(),
                               style: TextStyle(color: Colors.white54),
                             ),
                           ],
@@ -644,7 +648,10 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                   ),
                   child: Center(
                     child: Text(
-                      '${_currentIndex + 1} / ${widget.imageUrls.length}',
+                      'resource_detail_img_count'.tr(args: [
+                        '${_currentIndex + 1}',
+                        '${widget.imageUrls.length}'
+                      ]),
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontSize: 16,

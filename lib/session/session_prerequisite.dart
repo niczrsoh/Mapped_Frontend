@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:mapped_frontend/session/session_flow.dart';
 
@@ -50,9 +51,15 @@ class _SessionPrerequisitesScreenState
 
   bool _validateAll() {
     setState(() {
-      _riskError = _riskCtrl.text.isEmpty ? "Required" : null;
-      _resourcesError = _resourcesCtrl.text.trim().isEmpty ? "Required" : null;
-      _othersError = _othersCtrl.text.trim().isEmpty ? "Required" : null;
+      _riskError = _riskCtrl.text.isEmpty
+          ? 'trainee_error_required'.tr()
+          : null;
+      _resourcesError = _resourcesCtrl.text.trim().isEmpty
+          ? 'trainee_error_required'.tr()
+          : null;
+      _othersError = _othersCtrl.text.trim().isEmpty
+          ? 'trainee_error_required'.tr()
+          : null;
     });
 
     return _riskError == null &&
@@ -63,8 +70,8 @@ class _SessionPrerequisitesScreenState
   void _handleNext() async {
     if (!_validateAll()) {
       Get.snackbar(
-        'Error',
-        'Please fill in all required fields',
+        'error'.tr(),
+        'session_error_fill_required_fields'.tr(),
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
@@ -114,7 +121,9 @@ class _SessionPrerequisitesScreenState
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Session Dashboard',
+          'home_nav_session'.tr() +
+              ' ' +
+              'admin_manage_title_dashboard'.tr().split(' ').last,
           style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
         ),
       ),
@@ -123,10 +132,10 @@ class _SessionPrerequisitesScreenState
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Column(
             children: [
-              _buildBadge('Coaching Session Plan'),
+              _buildBadge('session_badge_coaching_plan'.tr()),
               const SizedBox(height: 12),
               Text(
-                'Fill in the details for your upcoming session.',
+                'session_msg_fill_details'.tr(),
                 style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 25),
@@ -157,7 +166,7 @@ class _SessionPrerequisitesScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Pre-requisites',
+                            'session_title_prerequisites'.tr(),
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 18,
@@ -166,27 +175,24 @@ class _SessionPrerequisitesScreenState
                           const SizedBox(height: 20),
 
                           _buildTextArea(
-                            label: 'Risk Assessment',
-                            hint:
-                                'Enter safety details... (e.g. Verified all students have trimmed fingernails...)',
+                            label: 'session_lbl_risk_assessment'.tr(),
+                            hint: 'session_hint_risk_assessment'.tr(),
                             controller: _riskCtrl,
                             error: _riskError,
                           ),
                           const SizedBox(height: 15),
 
                           _buildTextArea(
-                            label: 'Resources Required',
-                            hint:
-                                'List equipment... (e.g. 12 Double Kicking Paddles...)',
+                            label: 'session_lbl_resources_required'.tr(),
+                            hint: 'session_hint_resources_required'.tr(),
                             controller: _resourcesCtrl,
                             error: _resourcesError,
                           ),
                           const SizedBox(height: 15),
 
                           _buildTextArea(
-                            label: 'Others involved & Role',
-                            hint:
-                                'List all involvements (e.g. Assistant Instructor Sarah...)',
+                            label: 'session_lbl_others_involved_role'.tr(),
+                            hint: 'session_hint_others_involved_role'.tr(),
                             controller: _othersCtrl,
                             error: _othersError,
                           ),
@@ -235,7 +241,7 @@ class _SessionPrerequisitesScreenState
                       child: Stack(
                         children: [
                           Text(
-                            'Back',
+                            'session_btn_back'.tr(),
                             style: GoogleFonts.roboto(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -246,7 +252,7 @@ class _SessionPrerequisitesScreenState
                             ),
                           ),
                           Text(
-                            'Back',
+                            'session_btn_back'.tr(),
                             style: GoogleFonts.roboto(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -283,7 +289,7 @@ class _SessionPrerequisitesScreenState
                       child: Stack(
                         children: [
                           Text(
-                            'Next',
+                            'next'.tr(),
                             style: GoogleFonts.roboto(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -294,7 +300,7 @@ class _SessionPrerequisitesScreenState
                             ),
                           ),
                           Text(
-                            'Next',
+                            'next'.tr(),
                             style: GoogleFonts.roboto(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,

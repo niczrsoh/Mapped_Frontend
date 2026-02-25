@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/password/reset_password_controller.dart';
 
@@ -7,11 +8,13 @@ class CreateNewPasswordScreen extends StatefulWidget {
   const CreateNewPasswordScreen({super.key});
 
   @override
-  State<CreateNewPasswordScreen> createState() => _CreateNewPasswordScreenState();
+  State<CreateNewPasswordScreen> createState() =>
+      _CreateNewPasswordScreenState();
 }
 
 class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
-  final ResetPasswordController controller = Get.find<ResetPasswordController>();
+  final ResetPasswordController controller =
+      Get.find<ResetPasswordController>();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -23,41 +26,48 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
   }
 
   // Helper for consistent styling
-  InputDecoration _inputStyle(String hint, bool isObscure, VoidCallback toggle) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white38),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
-        suffixIcon: IconButton(
-          icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility, color: Colors.white38),
-          onPressed: toggle,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Color(0xFF00FAFE), width: 1.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: const BorderSide(color: Color(0xFF00FAFE), width: 2),
-        ),
-      );
+  InputDecoration _inputStyle(
+    String hint,
+    bool isObscure,
+    VoidCallback toggle,
+  ) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: Colors.white38),
+    filled: true,
+    fillColor: Colors.white.withOpacity(0.05),
+    suffixIcon: IconButton(
+      icon: Icon(
+        isObscure ? Icons.visibility_off : Icons.visibility,
+        color: Colors.white38,
+      ),
+      onPressed: toggle,
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Color(0xFF00FAFE), width: 1.5),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Color(0xFF00FAFE), width: 2),
+    ),
+  );
 
   void _handleSubmit() {
     final newPass = controller.newPasswordController.text.trim();
     final confirmPass = _confirmPasswordController.text.trim();
 
     if (newPass.isEmpty || confirmPass.isEmpty) {
-      controller.errorMessage.value = "Please fill in all fields.";
+      controller.errorMessage.value = "create_new_pwd_error_empty".tr();
       return;
     }
 
     if (newPass != confirmPass) {
-      controller.errorMessage.value = "Passwords do not match.";
+      controller.errorMessage.value = "create_new_pwd_error_mismatch".tr();
       return;
     }
 
     if (newPass.length < 8) {
-      controller.errorMessage.value = "Password must be at least 8 characters.";
+      controller.errorMessage.value = "create_new_pwd_error_length".tr();
       return;
     }
 
@@ -81,14 +91,24 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                 onTap: () => Get.back(),
                 child: Row(
                   children: [
-                    const Icon(Icons.chevron_left, color: Colors.white, size: 28),
-                    Text('Login', style: GoogleFonts.poppins(color: Colors.white, fontSize: 16)),
+                    const Icon(
+                      Icons.chevron_left,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    Text(
+                      'login'.tr(),
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 40),
               Text(
-                'Create New Password',
+                'create_new_pwd_title'.tr(),
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 24,
@@ -97,75 +117,114 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Your new password must be different from previously used password',
+                'create_new_pwd_subtitle'.tr(),
                 style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
               ),
               const SizedBox(height: 40),
 
               // Password Field
-              Text('Password', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500)),
+              Text(
+                'password'.tr(),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: controller.newPasswordController,
                 obscureText: _obscurePassword,
                 style: const TextStyle(color: Colors.white),
-                decoration: _inputStyle('Key-in password', _obscurePassword, () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                }),
+                decoration: _inputStyle(
+                  'create_new_pwd_hint_password'.tr(),
+                  _obscurePassword,
+                  () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                ),
               ),
               const SizedBox(height: 5),
-              Text('Must be at least 8 characters', style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12)),
+              Text(
+                'create_new_pwd_helper_password'.tr(),
+                style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12),
+              ),
 
               const SizedBox(height: 25),
 
               // Confirm Password Field
-              Text('Confirm', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500)),
+              Text(
+                'create_new_pwd_lbl_confirm'.tr(),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirm,
                 style: const TextStyle(color: Colors.white),
-                decoration: _inputStyle('Key-in password confirmation', _obscureConfirm, () {
-                  setState(() => _obscureConfirm = !_obscureConfirm);
-                }),
+                decoration: _inputStyle(
+                  'create_new_pwd_hint_confirm'.tr(),
+                  _obscureConfirm,
+                  () {
+                    setState(() => _obscureConfirm = !_obscureConfirm);
+                  },
+                ),
               ),
               const SizedBox(height: 5),
-              Text('Both passwords must match', style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12)),
+              Text(
+                'create_new_pwd_helper_confirm'.tr(),
+                style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12),
+              ),
 
               const SizedBox(height: 40),
 
               // Error Message
-              Obx(() => controller.errorMessage.value.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Text(
-                        controller.errorMessage.value,
-                        style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600),
-                      ),
-                    )
-                  : const SizedBox.shrink()),
+              Obx(
+                () => controller.errorMessage.value.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Text(
+                          controller.errorMessage.value,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
 
               // Reset Password Button
               SizedBox(
                 width: double.infinity,
                 height: 55,
-                child: Obx(() => ElevatedButton(
-                      onPressed: controller.isLoading.value ? null : _handleSubmit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                child: Obx(
+                  () => ElevatedButton(
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : _handleSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      child: controller.isLoading.value
-                          ? const CircularProgressIndicator(color: Color(0xFF141823))
-                          : Text(
-                              'Reset Password',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFF141823),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                    ),
+                    child: controller.isLoading.value
+                        ? const CircularProgressIndicator(
+                            color: Color(0xFF141823),
+                          )
+                        : Text(
+                            'create_new_pwd_btn_reset'.tr(),
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF141823),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
-                    )),
+                          ),
+                  ),
+                ),
               ),
             ],
           ),

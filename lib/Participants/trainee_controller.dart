@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'trainee_model.dart';
@@ -91,11 +92,13 @@ class TraineeController extends GetxController {
         success.value = true;
         await fetchTrainees();
       } else {
-        error.value = result['error'] ?? 'Failed to add trainee';
+        error.value = result['error'] ?? 'trainee_ctrl_add_failed'.tr();
         success.value = false;
       }
     } catch (e) {
-      error.value = 'Error: $e';
+      error.value = 'trainee_ctrl_error_general'.tr(
+        namedArgs: {'error': e.toString()},
+      );
       success.value = false;
     } finally {
       loading.value = false;
@@ -145,8 +148,8 @@ class TraineeController extends GetxController {
         Get.back();
 
         Get.snackbar(
-          'Success',
-          'Trainee updated successfully',
+          'success'.tr(),
+          'trainee_ctrl_snackbar_update_success'.tr(),
           backgroundColor: const Color(0xFF00FFA6),
           colorText: Colors.black,
           margin: const EdgeInsets.all(10),
@@ -155,7 +158,7 @@ class TraineeController extends GetxController {
       } else {
         error.value = result['error'];
         Get.snackbar(
-          'Error',
+          'error'.tr(),
           error.value,
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
@@ -168,7 +171,8 @@ class TraineeController extends GetxController {
       loading.value = false;
     }
   }
-// Delete Trainee
+
+  // Delete Trainee
   Future<void> deleteTrainee(String id) async {
     try {
       loading.value = true;
@@ -187,15 +191,15 @@ class TraineeController extends GetxController {
       if (result['success'] == true) {
         success.value = true;
         traineeList.removeWhere((t) => t['id'] == id);
-        update(); 
+        update();
 
         await fetchTrainees();
 
         Get.close(2);
 
         Get.snackbar(
-          'Deleted',
-          'Trainee and progress removed successfully',
+          'deleted'.tr(),
+          'trainee_ctrl_snackbar_delete_success'.tr(),
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
@@ -204,7 +208,7 @@ class TraineeController extends GetxController {
       } else {
         error.value = result['error'];
         Get.snackbar(
-          'Error',
+          'error'.tr(),
           error.value,
           backgroundColor: Colors.red,
           colorText: Colors.white,

@@ -2,11 +2,12 @@
 import '../../global/routes.dart';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/account/account_controller.dart';
 import 'package:mapped_frontend/account/account_model.dart';
 import 'package:mapped_frontend/text_size/text_size_controller.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AccountScreen extends StatelessWidget {
   AccountScreen({super.key});
@@ -295,9 +296,9 @@ class _TextSizeBottomSheetState extends State<TextSizeBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header
-          const Text(
-            "Adjust Text Size",
-            style: TextStyle(
+          Text(
+            "account_bottomsheet_text_size_title".tr(),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black,
@@ -373,8 +374,8 @@ class _TextSizeBottomSheetState extends State<TextSizeBottomSheet> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'CANCEL',
+                  child: Text(
+                    'cancel_caps'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -402,8 +403,8 @@ class _TextSizeBottomSheetState extends State<TextSizeBottomSheet> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'DONE',
+                  child: Text(
+                    'account_bottomsheet_btn_done'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

@@ -266,6 +266,7 @@
   "coachbot_empty_title": "Welcome to CoachBot!",
   "coachbot_empty_subtitle": "Your AI-powered Taekwondo coaching assistant",
   "coachbot_lbl_try_asking": "Try asking:",
+  "coachbot_lbl_queries": "queries",
   "coachbot_time_days_ago": "{days} days ago",
   "coachbot_badge_quick_answer": "📚 Quick Answer",
   "coachbot_badge_instant": "⚡ Instant",
@@ -552,6 +553,18 @@
   "verify_code_btn_skip": "Skip, I'll confirm later",
   "verify_code_snackbar_invalid_title": "Invalid Code",
   "verify_code_snackbar_invalid_msg": "Please enter all 4 digits",
+  "verify_code_error_incomplete": "Please enter the full 4-digit code.",
+  "verify_code_error_invalid": "Invalid or expired code.",
+  "verify_code_error_verification_failed": "Verification failed.",
+  "verify_code_success_verified": "Code verified!",
+
+  "reset_pwd_ctrl_error_email_invalid": "Enter a valid email.",
+  "reset_pwd_ctrl_error_send_failed": "Failed to send code.",
+  "reset_pwd_ctrl_error_connection": "Server connection failed.",
+  "reset_pwd_ctrl_error_password_length": "Password must be at least 8 characters.",
+  "reset_pwd_ctrl_error_reset_failed": "Reset failed.",
+  "reset_pwd_ctrl_error_update_failed": "Could not update password.",
+  "reset_pwd_ctrl_success_reset": "Password reset successfully. Please login.",
 
   "profile_edit_error_load": "Failed to load profile data",
   "profile_edit_error_name_req": "Name is required",
@@ -618,6 +631,10 @@
   "rec_ctrl_focus_tech": "Technique: {focus}",
   "rec_ctrl_focus_safety": "Safety: {strategy}",
   "rec_ctrl_focus_finish": "Finish: {exercises} ({time} min)",
+  "rec_ctrl_default_focus_warmup": "Warm-up: ankle + hip mobility (5 min)",
+  "rec_ctrl_default_focus_tech": "Technique: roundhouse -\nchamber → snap → recoil",
+  "rec_ctrl_default_focus_safety": "Safety: no partner contact for White belts",
+  "rec_ctrl_default_focus_finish": "Finish: calf/hip stretch 3x20s",
 
   "rec_details_title": "Session Details",
   "rec_details_empty": "No recommendation available",
@@ -938,5 +955,16 @@
   "language_screen_subtitle": "Select your preferred language",
 
   "lang_ctrl_snackbar_title": "Success",
-  "lang_ctrl_snackbar_msg": "Language changed to {name}"
+  "lang_ctrl_snackbar_msg": "Language changed to {name}",
+
+  "about_title": "About Us",
+  "about_para_1": "MAPPED is part of the Traditional Martial Arts for All (TMA4ALL) project - a groundbreaking European initiative dedicated to making all traditional martial arts accessible and inclusive for everyone (Project 101133802 — TMA4ALL).",
+  "about_para_2": "We believe that all traditional martial arts can transform lives through physical, psychological and social development, regardless of the style. In fact, research consistently shows that the martial arts coach is the most important factor in improving health, well-being and quality of life among practitioners, regardless of the martial art itself. Our mission is to support all traditional martial arts coaches in creating safe, empowering sessions that welcome people of all abilities, backgrounds, ages and disabilities.",
+  "about_para_3": "Developed through collaboration between leading inclusive martial arts organisations and universities across Europe, MAPPED is the first fully accessible and inclusive app designed specifically for grassroots martial arts coaches. Whether you're an aspiring coach or an experienced instructor, MAPPED provides the tools, support and community you need to deliver high-quality inclusive martial arts sessions.",
+  "about_para_4": "Join our growing international network of coaches who are using traditional martial arts to improve lives and build stronger, more inclusive communities.",
+  "about_partners_title": "Our Partners",
+  "about_eu_funded_by": "Co-funded by",
+  "about_eu_name": "the European Union",
+  "about_disclaimer_title": "Disclaimer",
+  "about_disclaimer_body": "Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Education and Culture Executive Agency (EACEA). Neither the European Union nor EACEA can be held responsible for them."
 }

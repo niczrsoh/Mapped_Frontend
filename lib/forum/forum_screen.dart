@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'dart:async';
@@ -15,8 +16,6 @@ import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 
 class ForumScreen extends StatefulWidget {
   const ForumScreen({super.key});
-
-  
 
   @override
   State<ForumScreen> createState() => _ForumScreenState();
@@ -38,8 +37,9 @@ class _ForumScreenState extends State<ForumScreen> {
     });
   }
 
-  final BeltProgressRingController beltController = Get.put(BeltProgressRingController());
-
+  final BeltProgressRingController beltController = Get.put(
+    BeltProgressRingController(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +63,7 @@ class _ForumScreenState extends State<ForumScreen> {
               ),
               _buildPostsListSliver(),
               // 🔁 Pagination at the bottom
-              SliverToBoxAdapter(
-                child: _buildPagination(),
-              ),
+              SliverToBoxAdapter(child: _buildPagination()),
             ],
           ),
         ),
@@ -99,9 +97,7 @@ class _ForumScreenState extends State<ForumScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: GestureDetector(
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ForumSearchtagsScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => ForumSearchtagsScreen()),
           ),
           child: Container(
             decoration: AppStyles.searchBarDeco,
@@ -129,19 +125,20 @@ class _ForumScreenState extends State<ForumScreen> {
 
   // ---------- CREATE POST SECTION ----------
   Widget _buildCreatePostSection() {
-
     void handlePostCreation() async {
       // Check if Blue Belt is LOCKED (meaning Green is not finished)
-     if (beltController.detailedBeltData.isEmpty) {
+      if (beltController.detailedBeltData.isEmpty) {
         // Show loading indicator
         Get.dialog(
-          const Center(child: CircularProgressIndicator(color: Color(0xFF09FACA))),
+          const Center(
+            child: CircularProgressIndicator(color: Color(0xFF09FACA)),
+          ),
           barrierDismissible: false,
         );
-        
+
         // Force a refresh
         await beltController.fetchBeltProgress();
-        
+
         // Close loading indicator
         if (Get.isDialogOpen ?? false) Get.back();
       }
@@ -150,8 +147,8 @@ class _ForumScreenState extends State<ForumScreen> {
       // We check if it IS locked (True = Blocked)
       if (beltController.isBeltLocked('Blue')) {
         Get.snackbar(
-          "Access Denied",
-          "You are not allowed to post in the forum until you achieve the blue belt.",
+          "forum_snackbar_access_denied_title".tr(),
+          "forum_snackbar_access_denied_blue_belt".tr(),
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
           icon: const Icon(Icons.lock, color: Colors.white),
@@ -190,7 +187,7 @@ class _ForumScreenState extends State<ForumScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
-              onTap: handlePostCreation, 
+              onTap: handlePostCreation,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -255,7 +252,7 @@ class _ForumScreenState extends State<ForumScreen> {
           hasScrollBody: false,
           child: Center(
             child: Text(
-              'No posts yet. Be the first to post!',
+              'forum_empty_state_posts'.tr(),
               style: GoogleFonts.roboto(color: Colors.white54, fontSize: 16),
             ),
           ),
@@ -265,13 +262,10 @@ class _ForumScreenState extends State<ForumScreen> {
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         sliver: SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final post = controller.displayedPosts[index];
-              return _buildPostCard(post);
-            },
-            childCount: controller.displayedPosts.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final post = controller.displayedPosts[index];
+            return _buildPostCard(post);
+          }, childCount: controller.displayedPosts.length),
         ),
       );
     });
@@ -332,10 +326,8 @@ class _ForumScreenState extends State<ForumScreen> {
               fontWeight: FontWeight.w600,
             ),
             recognizer: TapGestureRecognizer()
-              ..onTap = () => Get.to(
-                    () => ForumSearchtagsScreen(),
-                    arguments: tag,
-                  ),
+              ..onTap = () =>
+                  Get.to(() => ForumSearchtagsScreen(), arguments: tag),
           ),
         );
         return "";
@@ -362,8 +354,8 @@ class _ForumScreenState extends State<ForumScreen> {
           backgroundColor: Colors.grey[300],
           backgroundImage:
               post.authorImage != null && post.authorImage!.isNotEmpty
-                  ? NetworkImage(controller.getFullImageUrl(post.authorImage!))
-                  : null,
+              ? NetworkImage(controller.getFullImageUrl(post.authorImage!))
+              : null,
           child: post.authorImage == null || post.authorImage!.isEmpty
               ? const Icon(Icons.person, color: Colors.grey)
               : null,
@@ -400,10 +392,7 @@ class _ForumScreenState extends State<ForumScreen> {
               ),
               Text(
                 post.timeAgo,
-                style: GoogleFonts.roboto(
-                  fontSize: 12,
-                  color: Colors.white54,
-                ),
+                style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54),
               ),
             ],
           ),
@@ -412,7 +401,8 @@ class _ForumScreenState extends State<ForumScreen> {
       ],
     );
   }
-    // Helper to keep code clean
+
+  // Helper to keep code clean
   bool isAuthor(ForumPost post) {
     return post.authorId.toString() == controller.currentUserId;
   }
@@ -429,7 +419,7 @@ class _ForumScreenState extends State<ForumScreen> {
           const Icon(Icons.push_pin, size: 10, color: Color(0xFF09FACA)),
           const SizedBox(width: 4),
           Text(
-            "Pinned",
+            "forum_badge_pinned".tr(),
             style: GoogleFonts.roboto(
               fontSize: 10,
               color: const Color(0xFF09FACA),
@@ -450,7 +440,7 @@ class _ForumScreenState extends State<ForumScreen> {
         border: Border.all(color: Colors.red, width: 1),
       ),
       child: Text(
-        "Reported post",
+        "forum_badge_reported".tr(),
         style: GoogleFonts.roboto(
           fontSize: 10,
           color: Colors.red,
@@ -473,7 +463,7 @@ class _ForumScreenState extends State<ForumScreen> {
         PopupMenuItem(
           value: 'delete',
           child: Text(
-            'Delete Post',
+            'forum_menu_delete_post'.tr(),
             style: GoogleFonts.roboto(color: Colors.red),
           ),
         ),
@@ -501,8 +491,11 @@ class _ForumScreenState extends State<ForumScreen> {
                 height: 200,
                 width: double.infinity,
                 color: Colors.grey[800],
-                child: const Center(
-                  child: Icon(Icons.broken_image, color: Colors.white54),
+                child: Center(
+                  child: Text(
+                    'forum_image_error'.tr(),
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 ),
               );
             },
@@ -516,7 +509,7 @@ class _ForumScreenState extends State<ForumScreen> {
                   child: CircularProgressIndicator(
                     value: loadingProgress.expectedTotalBytes != null
                         ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
+                              loadingProgress.expectedTotalBytes!
                         : null,
                     color: const Color(0xFF09FACA),
                   ),
@@ -560,9 +553,7 @@ class _ForumScreenState extends State<ForumScreen> {
         children: [
           Obx(
             () => _buildInteractionButton(
-              icon: post.isLiked.value
-                  ? Icons.favorite
-                  : Icons.favorite_border,
+              icon: post.isLiked.value ? Icons.favorite : Icons.favorite_border,
               count: post.likes.value,
               color: post.isLiked.value ? Colors.red : Colors.white54,
               onTap: () => controller.toggleLike(post),
@@ -583,9 +574,7 @@ class _ForumScreenState extends State<ForumScreen> {
           Obx(
             () => IconButton(
               icon: Icon(
-                post.isPinned.value
-                    ? Icons.push_pin
-                    : Icons.push_pin_outlined,
+                post.isPinned.value ? Icons.push_pin : Icons.push_pin_outlined,
                 color: post.isPinned.value
                     ? const Color(0xFF09FACA)
                     : Colors.white54,
@@ -735,10 +724,10 @@ class _ForumScreenState extends State<ForumScreen> {
   // ---------- DELETE CONFIRMATION DIALOG (unchanged) ----------
   void _showDeleteConfirmationDialog(ForumPost post) {
     Get.defaultDialog(
-      title: 'Delete Post',
-      middleText: 'Are you sure you want to delete this post?',
-      textConfirm: 'Delete',
-      textCancel: 'Cancel',
+      title: 'forum_dialog_delete_title'.tr(),
+      middleText: 'forum_dialog_delete_msg'.tr(),
+      textConfirm: 'delete'.tr(),
+      textCancel: 'cancel'.tr(),
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
       barrierDismissible: false,
@@ -757,8 +746,8 @@ class _ForumScreenState extends State<ForumScreen> {
   void _showReportDialog(ForumPost post) {
     if (!controller.canReportPost(post)) {
       Get.snackbar(
-        "Info",
-        "You have already reported this post.",
+        "forum_snackbar_report_info_title".tr(),
+        "forum_snackbar_report_info_msg".tr(),
         backgroundColor: Colors.grey[800],
         colorText: Colors.white,
       );
@@ -925,8 +914,8 @@ class _ForumScreenState extends State<ForumScreen> {
                       Checkbox(
                         value: controller.isReportConfirmed.value,
                         activeColor: const Color(0xFF007AFF),
-                        onChanged: (val) => controller
-                            .toggleReportConfirmation(val ?? false),
+                        onChanged: (val) =>
+                            controller.toggleReportConfirmation(val ?? false),
                       ),
                       Expanded(
                         child: Text(
@@ -954,8 +943,9 @@ class _ForumScreenState extends State<ForumScreen> {
                       onPressed: controller.isReportConfirmed.value
                           ? () async {
                               Navigator.of(context).pop();
-                              final success =
-                                  await controller.submitReport(post);
+                              final success = await controller.submitReport(
+                                post,
+                              );
                               if (success) {
                                 _showReportSuccessDialog();
                               }
@@ -1081,8 +1071,9 @@ class _ForumScreenState extends State<ForumScreen> {
                       color: isCurrent
                           ? const Color(0xFF09FACA)
                           : Colors.white70,
-                      fontWeight:
-                          isCurrent ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isCurrent
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -1139,7 +1130,7 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
       }
 
       final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
-      
+
       if (videoId == null) {
         throw Exception('Invalid YouTube URL');
       }
@@ -1158,7 +1149,7 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
       );
 
       await Future.delayed(const Duration(milliseconds: 300));
-      
+
       if (mounted) {
         setState(() {
           _isReady = true;
@@ -1188,14 +1179,14 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
         color: Colors.grey[800],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, color: Colors.red, size: 40),
-          SizedBox(height: 10),
+          const Icon(Icons.error_outline, color: Colors.red, size: 40),
+          const SizedBox(height: 10),
           Text(
-            'Failed to load video',
-            style: TextStyle(color: Colors.white54),
+            'forum_video_error'.tr(),
+            style: const TextStyle(color: Colors.white54),
           ),
         ],
       ),
@@ -1210,15 +1201,15 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
         color: Colors.grey[800],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: Color(0xFF09FACA)),
-            SizedBox(height: 10),
+            const CircularProgressIndicator(color: Color(0xFF09FACA)),
+            const SizedBox(height: 10),
             Text(
-              'Loading video...',
-              style: TextStyle(color: Colors.white54),
+              'forum_video_loading'.tr(),
+              style: const TextStyle(color: Colors.white54),
             ),
           ],
         ),
@@ -1403,7 +1394,7 @@ class _PostImageGalleryState extends State<PostImageGallery> {
                           child: CircularProgressIndicator(
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
+                                      loadingProgress.expectedTotalBytes!
                                 : null,
                             color: const Color(0xFF09FACA),
                           ),
@@ -1522,7 +1513,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                         child: CircularProgressIndicator(
                           value: loadingProgress.expectedTotalBytes != null
                               ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                               : null,
                           color: const Color(0xFF09FACA),
                         ),

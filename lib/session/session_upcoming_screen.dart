@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'session_controller.dart';
 import 'session_planner.dart';
-import 'session_model.dart'; 
+import 'session_model.dart';
 
 class UpcomingSessionsScreen extends StatelessWidget {
   const UpcomingSessionsScreen({super.key});
@@ -19,7 +20,8 @@ class UpcomingSessionsScreen extends StatelessWidget {
     }();
 
     final venue = sessionData.venue ?? '-';
-    final trainees = '${sessionData.totalTrainees ?? 0} Trainees';
+    final trainees =
+        '${sessionData.totalTrainees ?? 0} ' + 'session_lbl_trainees'.tr();
     final trainer = sessionData.trainer ?? '-';
 
     return Padding(
@@ -110,7 +112,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Coach : $trainer',
+                  'coachbot_ctrl_fallback_name'.tr() + ' : $trainer',
                   style: GoogleFonts.roboto(
                     color: Colors.white,
                     fontSize: 12,
@@ -138,7 +140,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Edit Session',
+                    'session_btn_edit_session'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -179,7 +181,9 @@ class UpcomingSessionsScreen extends StatelessWidget {
           },
         ),
         title: Text(
-          'Session Dashboard',
+          'home_nav_session'.tr() +
+              ' ' +
+              'admin_manage_title_dashboard'.tr().split(' ').last,
           style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 16,
@@ -204,7 +208,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Upcoming Sessions',
+                    'session_title_upcoming_sessions'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -218,7 +222,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
               Center(
                 child: Container(
                   width: double.infinity,
-                  height: 486, 
+                  height: 486,
                   padding: const EdgeInsets.all(1),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -251,7 +255,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                             if (controller.upcomingList.isEmpty) {
                               return Center(
                                 child: Text(
-                                  "No Upcoming Sessions Available",
+                                  'session_empty_upcoming_sessions'.tr(),
                                   style: GoogleFonts.roboto(
                                     color: Colors.white54,
                                   ),
@@ -312,7 +316,7 @@ class UpcomingSessionsScreen extends StatelessWidget {
                         ),
                       ),
                       label: Text(
-                        'ASK COACHBOT',
+                        'session_btn_ask_coachbot'.tr(),
                         style: GoogleFonts.roboto(
                           color: const Color(0xFF062A20),
                           fontWeight: FontWeight.w500,

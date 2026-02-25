@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguageController extends GetxController {
-  var currentLanguage = 'en'.obs; 
+  var currentLanguage = 'en'.obs;
 
   final List<Map<String, String>> languages = [
     {'name': 'English', 'code': 'en', 'flag': '🇺🇸'},
@@ -30,15 +31,17 @@ class LanguageController extends GetxController {
     currentLanguage.value = languageCode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language_code', languageCode);
-    
+
     // Update app locale (if you are using GetX localization)
     // Get.updateLocale(Locale(languageCode));
-    
+
     Get.back();
-    
+
     Get.snackbar(
-      "Success", 
-      "Language changed to ${_getLanguageName(languageCode)}",
+      "lang_ctrl_snackbar_title".tr(),
+      "lang_ctrl_snackbar_msg".tr(
+        namedArgs: {'name': _getLanguageName(languageCode)},
+      ),
       backgroundColor: Colors.green.withOpacity(0.8),
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,

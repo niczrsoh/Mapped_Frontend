@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/controller/controller/login_controller.dart';
 
 class TouchIdScreen extends StatelessWidget {
@@ -25,13 +26,13 @@ class TouchIdScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "Touch ID",
+            Text(
+              "touch_id_title_main".tr(),
               style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            const Text(
-              "Tap the fingerprint icon to sign in",
+            Text(
+              "touch_id_msg_instruction".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white60, fontSize: 16),
             ),
@@ -87,7 +88,7 @@ class TouchIdScreen extends StatelessWidget {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: const Text("Use Email Password"),
+                child: Text("touch_id_btn_login_email".tr()),
               ),
             ),
           ],

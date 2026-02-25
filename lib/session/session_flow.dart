@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/session/session_controller.dart';
 import 'session_details.dart';
 import 'session_model.dart';
@@ -87,24 +88,30 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
 
   bool _validateAll() {
     setState(() {
-      _goalError = _goalsCtrl.text.isEmpty ? "Required" : null;
-      _warmupError = _warmupDescCtrl.text.trim().isEmpty ? "Required" : null;
+      _goalError = _goalsCtrl.text.isEmpty
+          ? "trainee_error_required".tr()
+          : null;
+      _warmupError = _warmupDescCtrl.text.trim().isEmpty
+          ? "trainee_error_required".tr()
+          : null;
       _activityError = _activityDescCtrl.text.trim().isEmpty
-          ? "Required"
+          ? "trainee_error_required".tr()
           : null;
       _cooldownError = _cooldownDescCtrl.text.trim().isEmpty
-          ? "Required"
+          ? "trainee_error_required".tr()
           : null;
       _contingenciesError = _contingenciesCtrl.text.trim().isEmpty
-          ? "Required"
+          ? "trainee_error_required".tr()
           : null;
-      _timeError = _warmupTimeCtrl.text.trim().isEmpty ? "Required" : null;
+      _timeError = _warmupTimeCtrl.text.trim().isEmpty
+          ? "trainee_error_required".tr()
+          : null;
 
       _activityTimeError = _activityTimeCtrl.text.trim().isEmpty
-          ? "Required"
+          ? "trainee_error_required".tr()
           : null;
       _cooldownTimeError = _cooldownTimeCtrl.text.trim().isEmpty
-          ? "Required"
+          ? "trainee_error_required".tr()
           : null;
     });
 
@@ -184,10 +191,10 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
 
     if (sessionController.success.value) {
       Get.snackbar(
-        "Success",
+        "success".tr(),
         (finalData.containsKey('_id') || finalData.containsKey('id'))
-            ? "Session Updated Successfully"
-            : "Session Created Successfully",
+            ? "session_snackbar_updated_msg".tr()
+            : "session_snackbar_created_msg".tr(),
         backgroundColor: primaryGreen,
         colorText: Colors.black,
         snackPosition: SnackPosition.BOTTOM,
@@ -197,7 +204,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
       Get.to(() => SessionDetailsScreen(sessionData: dataToPass));
     } else {
       Get.snackbar(
-        "Error",
+        "error".tr(),
         sessionController.error.value,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
@@ -213,9 +220,9 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
         widget.accumulatedData.containsKey('id');
     final String dialogMessage = isValid
         ? (isUpdate
-              ? 'Are you sure want to update this session?'
-              : 'Are you sure want to create a session?')
-        : 'Please complete all required fields.';
+              ? 'session_dialog_confirm_update'.tr()
+              : 'session_dialog_confirm_create'.tr())
+        : 'session_dialog_complete_fields'.tr();
 
     final IconData dialogIcon = isValid
         ? Icons.warning_amber_rounded
@@ -279,7 +286,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                           Navigator.of(dialogContext).pop();
                         },
                         child: Text(
-                          'CANCEL',
+                          'cancel_caps'.tr(),
                           style: GoogleFonts.poppins(
                             color: Colors.black,
                             fontWeight: FontWeight.w700,
@@ -310,7 +317,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                           }
                         },
                         child: Text(
-                          'OK',
+                          'ok'.tr(),
                           style: GoogleFonts.poppins(
                             color: Colors.black,
                             fontWeight: FontWeight.w700,
@@ -340,7 +347,9 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Session Dashboard',
+          'home_nav_session'.tr() +
+              ' ' +
+              'admin_manage_title_dashboard'.tr().split(' ').last,
           style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
         ),
       ),
@@ -349,10 +358,10 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Column(
             children: [
-              _buildBadge('Coaching Session Plan'),
+              _buildBadge('session_badge_coaching_plan'.tr()),
               const SizedBox(height: 12),
               Text(
-                'Fill in the details for your upcoming session.',
+                'session_msg_fill_details'.tr(),
                 style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 25),
@@ -383,15 +392,17 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildInputSection(
-                            'Session Goal',
-                            'Enter the main goal for this session...',
+                            'home_nav_session'.tr() +
+                                ' ' +
+                                'session_lbl_goal'.tr(),
+                            'session_hint_goal'.tr(),
                             _goalsCtrl,
                             error: _goalError,
                           ),
 
                           _buildSplitInputSection(
-                            'Warm-up / Preparation',
-                            'Activity details (e.g. Joint rotations...)',
+                            'session_lbl_warmup_prep'.tr(),
+                            'session_hint_activity_details'.tr(),
                             _warmupDescCtrl,
                             _warmupTimeCtrl,
                             descError: _warmupError,
@@ -399,8 +410,8 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                           ),
 
                           _buildSplitInputSection(
-                            'Activity',
-                            'Activity details (e.g. Paddle Drills...)',
+                            'session_lbl_activity'.tr(),
+                            'session_hint_activity_details'.tr(),
                             _activityDescCtrl,
                             _activityTimeCtrl,
                             descError: _activityError,
@@ -408,8 +419,8 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                           ),
 
                           _buildSplitInputSection(
-                            'Cool-down',
-                            'Activity details (e.g. slow walk)',
+                            'session_lbl_cooldown'.tr(),
+                            'session_hint_activity_details'.tr(),
                             _cooldownDescCtrl,
                             _cooldownTimeCtrl,
                             descError: _cooldownError,
@@ -417,8 +428,8 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                           ),
 
                           _buildInputSection(
-                            'Planned Contingencies',
-                            'Backup plans... (e.g. If we have an odd number...)',
+                            'session_lbl_planned_contingencies'.tr(),
+                            'session_hint_backup_plans'.tr(),
                             _contingenciesCtrl,
                             isLast: true,
                             error: _contingenciesError,
@@ -459,7 +470,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                       child: Stack(
                         children: [
                           Text(
-                            'Back',
+                            'session_btn_back'.tr(),
                             style: GoogleFonts.roboto(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -470,7 +481,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                             ),
                           ),
                           Text(
-                            'Back',
+                            'session_btn_back'.tr(),
                             style: GoogleFonts.roboto(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -507,7 +518,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                       child: Stack(
                         children: [
                           Text(
-                            'Save',
+                            'save'.tr(),
                             style: GoogleFonts.roboto(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
@@ -518,7 +529,7 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                             ),
                           ),
                           Text(
-                            'Save',
+                            'save'.tr(),
                             style: GoogleFonts.roboto(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -687,7 +698,11 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
                         ),
                         decoration: InputDecoration(
                           isDense: true,
-                          hintText: 'Min',
+                          hintText: 'duration'
+                              .tr()
+                              .split(' ')
+                              .first
+                              .substring(0, 3),
                           hintStyle: GoogleFonts.poppins(
                             color: const Color(0xFFB8A0B3),
                             fontSize: 12,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/account/account_controller.dart';
 import 'package:mapped_frontend/coachBot/coachBot_chat_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
@@ -10,67 +11,66 @@ class CoachBotController extends GetxController {
 
   @override
   void onInit() {
-    userName = userController.userData['name']?.toString().obs ?? 'Coach'.obs;
+    userName =
+        userController.userData['name']?.toString().obs ??
+        'coachbot_ctrl_fallback_name'.tr().obs;
     super.onInit();
   }
-  
+
   final messageController = TextEditingController();
-  
+
   // Navigate to chat with optional draft message
   void _navigateToChatWithDraft(String? draftText) {
-    Get.to(
-      () => CoachBotChatScreen(),
-      arguments: draftText,
-    );
+    Get.to(() => CoachBotChatScreen(), arguments: draftText);
   }
 
   // ==================== METHODS CALLED BY CoachBotScreen ====================
-  
+
   // Quick action buttons matching your screen
   void explainHistory() {
-    _navigateToChatWithDraft('Explain Taekwondo History & Philosophy');
+    _navigateToChatWithDraft('coachbot_draft_history'.tr());
   }
 
   void showTechniques() {
-    _navigateToChatWithDraft('Show me Taekwondo Techniques');
+    _navigateToChatWithDraft('coachbot_draft_techniques'.tr());
   }
 
   void findDojang() {
-    _navigateToChatWithDraft('Find a Training Hall Nearby');
+    _navigateToChatWithDraft('coachbot_draft_find_dojang'.tr());
   }
 
   void showOtherOptions() {
-    _navigateToChatWithDraft('Show me other options');
+    _navigateToChatWithDraft('coachbot_draft_other_options'.tr());
   }
 
   // ==================== ADDITIONAL USEFUL METHODS ====================
-  
+
   void explainBeltRequirements() {
-    _navigateToChatWithDraft('What are the belt requirements?');
+    _navigateToChatWithDraft('coachbot_draft_belt_reqs'.tr());
   }
 
   void planSession() {
-    _navigateToChatWithDraft('Help me plan a training session');
+    _navigateToChatWithDraft('coachbot_draft_plan_session'.tr());
   }
 
   void showWarmUp() {
-    _navigateToChatWithDraft('Show me a warm-up routine');
+    _navigateToChatWithDraft('coachbot_draft_warmup'.tr());
   }
 
   void teachTechnique() {
-    _navigateToChatWithDraft('How do I teach roundhouse kicks?');
+    _navigateToChatWithDraft('coachbot_draft_roundhouse'.tr());
   }
 
   void sparringDrills() {
-    _navigateToChatWithDraft('Suggest sparring drills for beginners');
+    _navigateToChatWithDraft('coachbot_draft_sparring'.tr());
   }
 
   void injuryPrevention() {
-    _navigateToChatWithDraft('What are common injuries and how to prevent them?');
+    _navigateToChatWithDraft('coachbot_draft_injury'.tr());
   }
 
   // ==================== INPUT HANDLING ====================
-  
+
   // Send typed message from main screen
   void sendMessage(String message) {
     final text = message.trim();
@@ -83,8 +83,8 @@ class CoachBotController extends GetxController {
   // Voice input placeholder
   void startVoiceInput() {
     Get.snackbar(
-      'Voice Input',
-      'Voice input coming soon!',
+      'coachbot_snackbar_voice_title'.tr(),
+      'coachbot_snackbar_voice_msg'.tr(),
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: const Color(0xFF09FACA),
       colorText: Colors.white,
@@ -99,7 +99,7 @@ class CoachBotController extends GetxController {
 
   @override
   void onClose() {
-   // messageController.dispose();
+    // messageController.dispose();
     super.onClose();
   }
 }

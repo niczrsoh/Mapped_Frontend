@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:mapped_frontend/controller/user_controller';
@@ -17,7 +18,7 @@ class LoginController extends GetxController {
   final RxString passwordError = ''.obs;
   final RxString formError = ''.obs;
   final RxBool isAdminMode = false.obs;
-  
+
   // 🔥 Reactive name to display on the Touch ID Screen
   final RxString storedName = ''.obs;
   var isAuthenticating = false.obs;
@@ -52,12 +53,14 @@ class LoginController extends GetxController {
   bool validateEmail() {
     emailError.value = '';
     if (email.value.isEmpty) {
-      emailError.value = 'Email is required';
+      emailError.value = 'login_error_email_required'.tr();
       return false;
     }
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
     if (!emailRegex.hasMatch(email.value)) {
-      emailError.value = 'Please enter a valid email address';
+      emailError.value = 'login_error_email_invalid'.tr();
       return false;
     }
     return true;
@@ -66,11 +69,11 @@ class LoginController extends GetxController {
   bool validatePassword() {
     passwordError.value = '';
     if (password.value.isEmpty) {
-      passwordError.value = 'Password is required';
+      passwordError.value = 'login_error_password_required'.tr();
       return false;
     }
     if (password.value.length < 6) {
-      passwordError.value = 'Password must be at least 6 characters';
+      passwordError.value = 'login_error_password_length'.tr();
       return false;
     }
     return true;
@@ -80,8 +83,14 @@ class LoginController extends GetxController {
     formError.value = '';
     final isEmailValid = validateEmail();
     final isPasswordValid = validatePassword();
-    if (!isEmailValid) { formError.value = emailError.value; return false; }
-    if (!isPasswordValid) { formError.value = passwordError.value; return false; }
+    if (!isEmailValid) {
+      formError.value = emailError.value;
+      return false;
+    }
+    if (!isPasswordValid) {
+      formError.value = passwordError.value;
+      return false;
+    }
     return true;
   }
 
@@ -93,13 +102,19 @@ class LoginController extends GetxController {
       final bool canCheck = await _auth.canCheckBiometrics;
       final bool isSupported = await _auth.isDeviceSupported();
       if (!isSupported || !canCheck) {
-        Get.snackbar('Security', 'Biometrics not supported or registered.');
+        Get.snackbar(
+          'login_snackbar_security_title'.tr(),
+          'login_error_biometrics_unsupported'.tr(),
+        );
         return;
       }
 
       bool authenticated = await _auth.authenticate(
-        localizedReason: 'Scan fingerprint to log in with Google',
-        options: const AuthenticationOptions(biometricOnly: true, stickyAuth: true),
+        localizedReason: 'login_prompt_biometric_reason'.tr(),
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
       );
 
       if (authenticated) {
@@ -127,7 +142,8 @@ class LoginController extends GetxController {
           await prefs.setString('user_name', googleUser.displayName ?? '');
           await prefs.setString('user_email', googleUser.email);
           await prefs.setString('user_role', actualRole);
-          if (result['token'] != null) await prefs.setString('auth_token', result['token']);
+          if (result['token'] != null)
+            await prefs.setString('auth_token', result['token']);
 
           // 5. Update UserController State
           final userController = Get.find<UserController>();
@@ -139,8 +155,14 @@ class LoginController extends GetxController {
             'role': actualRole,
           });
 
-          Get.snackbar('Success', 'Welcome, ${googleUser.displayName}',
-              backgroundColor: const Color(0xFF00C7A7), colorText: Colors.white);
+          Get.snackbar(
+            'success'.tr(),
+            'login_snackbar_welcome'.tr(
+              namedArgs: {'name': googleUser.displayName ?? ''},
+            ),
+            backgroundColor: const Color(0xFF00C7A7),
+            colorText: Colors.white,
+          );
 
           if (actualRole == 'admin') {
             Get.offAllNamed(AppRoutes.adminReport);
@@ -148,12 +170,15 @@ class LoginController extends GetxController {
             Get.offAllNamed(AppRoutes.main);
           }
         } else {
-          Get.snackbar('Error', result['error'] ?? 'Backend sync failed');
+          Get.snackbar(
+            'error'.tr(),
+            result['error'] ?? 'login_error_backend_sync'.tr(),
+          );
         }
       }
     } catch (e) {
       debugPrint("Biometric Login Error: $e");
-      Get.snackbar('Error', 'Authentication failed');
+      Get.snackbar('error'.tr(), 'login_error_auth_failed'.tr());
     } finally {
       isAuthenticating.value = false;
     }
@@ -177,7 +202,7 @@ class LoginController extends GetxController {
 
         if (isAdminMode.value && actualRole != 'admin') {
           loading.value = false;
-          formError.value = 'Access denied. You do not have Admin privileges.';
+          formError.value = 'login_error_admin_denied'.tr();
           return;
         }
 
@@ -211,22 +236,24 @@ class LoginController extends GetxController {
         }
       } else {
         loading.value = false;
-        formError.value = result['msg'] ?? 'Login failed';
+        formError.value = result['msg'] ?? 'login_error_login_failed'.tr();
       }
     } catch (e) {
       loading.value = false;
-      formError.value = 'Connection failed.';
+      formError.value = 'login_error_connection_failed'.tr();
     }
   }
 
   void onEmailChanged(String value) {
     email.value = value;
-    if (emailError.value.isNotEmpty || formError.value.isNotEmpty) validateEmail();
+    if (emailError.value.isNotEmpty || formError.value.isNotEmpty)
+      validateEmail();
   }
 
   void onPasswordChanged(String value) {
     password.value = value;
-    if (passwordError.value.isNotEmpty || formError.value.isNotEmpty) validatePassword();
+    if (passwordError.value.isNotEmpty || formError.value.isNotEmpty)
+      validatePassword();
   }
 
   void clearAll() {

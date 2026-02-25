@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/coachBot/coachBot_chat_screen.dart';
 import 'package:mapped_frontend/controller/controller/trainer_controller.dart';
 import 'recommendation_controller.dart';
@@ -11,15 +12,16 @@ class DailyCoachingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get both controllers
-    final TrainerController trainerController = Get.isRegistered<TrainerController>() 
-        ? Get.find<TrainerController>() 
+    final TrainerController trainerController =
+        Get.isRegistered<TrainerController>()
+        ? Get.find<TrainerController>()
         : Get.put(TrainerController());
-    
+
     // Initialize RecommendationController
-    final RecommendationController recommendationController = 
+    final RecommendationController recommendationController =
         Get.isRegistered<RecommendationController>()
-            ? Get.find<RecommendationController>()
-            : Get.put(RecommendationController());
+        ? Get.find<RecommendationController>()
+        : Get.put(RecommendationController());
 
     // Load recommendation on screen init
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -33,7 +35,7 @@ class DailyCoachingScreen extends StatelessWidget {
       body: SafeArea(
         child: Obx(() {
           // Show loading state
-          if (recommendationController.isLoading.value || 
+          if (recommendationController.isLoading.value ||
               recommendationController.isGenerating.value) {
             return _buildLoadingState();
           }
@@ -64,21 +66,15 @@ class DailyCoachingScreen extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'Generating your personalized\ncoaching strategy...',
+          'daily_coaching_loading_main'.tr(),
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 16,
-          ),
+          style: TextStyle(color: Colors.grey[400], fontSize: 16),
         ),
         const SizedBox(height: 8),
         Text(
-          '🤖 AI is analyzing your session history',
+          'daily_coaching_loading_sub'.tr(),
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
       ],
     );
@@ -91,14 +87,10 @@ class DailyCoachingScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.red,
-              size: 64,
-            ),
+            const Icon(Icons.error_outline, color: Colors.red, size: 64),
             const SizedBox(height: 16),
             Text(
-              'Failed to load recommendation',
+              'daily_coaching_error_title'.tr(),
               style: TextStyle(
                 color: Colors.grey[300],
                 fontSize: 18,
@@ -109,16 +101,13 @@ class DailyCoachingScreen extends StatelessWidget {
             Text(
               controller.errorMessage.value,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[500], fontSize: 14),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => controller.loadTodayRecommendation(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text('daily_coaching_error_btn_retry'.tr()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF5eead4),
                 foregroundColor: Colors.black,
@@ -159,8 +148,8 @@ class DailyCoachingScreen extends StatelessWidget {
                       Navigator.pop(context);
                     },
                   ),
-                  const Text(
-                    'Home',
+                  Text(
+                    'home'.tr(),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -171,8 +160,9 @@ class DailyCoachingScreen extends StatelessWidget {
                   // Refresh button
                   IconButton(
                     icon: const Icon(Icons.refresh, color: Color(0xFF5eead4)),
-                    onPressed: () => recommendationController.forceNewRecommendation(),
-                    tooltip: 'Generate New',
+                    onPressed: () =>
+                        recommendationController.forceNewRecommendation(),
+                    tooltip: 'daily_coaching_refresh_tooltip'.tr(),
                   ),
                 ],
               ),
@@ -182,8 +172,8 @@ class DailyCoachingScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    const Text(
-                      'Daily Coaching Strategy',
+                    Text(
+                      'daily_coaching_title'.tr(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -191,77 +181,87 @@ class DailyCoachingScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Obx(() => Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: Colors.grey[500],
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          recommendationController.lastGeneratedDate.value.isEmpty
-                              ? 'Today'
-                              : recommendationController.lastGeneratedDate.value,
-                          style: TextStyle(
+                    Obx(
+                      () => Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 14,
                             color: Colors.grey[500],
-                            fontSize: 14,
                           ),
-                        ),
-                        if (recommendationController.isCached.value) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                          const SizedBox(width: 6),
+                          Text(
+                            recommendationController
+                                    .lastGeneratedDate
+                                    .value
+                                    .isEmpty
+                                ? 'today'.tr()
+                                : recommendationController
+                                      .lastGeneratedDate
+                                      .value,
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 14,
                             ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF5eead4).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'Cached',
-                              style: TextStyle(
-                                color: Color(0xFF5eead4),
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          if (recommendationController.isCached.value) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF5eead4).withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'daily_coaching_cached'.tr(),
+                                style: TextStyle(
+                                  color: Color(0xFF5eead4),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
-                      ],
-                    )),
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
 
               // Session Info Cards
-              Obx(() => Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoCard(
-                      icon: Icons.trending_up,
-                      label: 'Level',
-                      value: recommendationController.suggestedLevel,
+              Obx(
+                () => Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoCard(
+                        icon: Icons.trending_up,
+                        label: 'level'.tr(),
+                        value: recommendationController.suggestedLevel,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildInfoCard(
-                      icon: Icons.timer,
-                      label: 'Duration',
-                      value: '${recommendationController.suggestedDuration} min',
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildInfoCard(
+                        icon: Icons.timer,
+                        label: 'duration'.tr(),
+                        value:
+                            '${recommendationController.suggestedDuration} min',
+                      ),
                     ),
-                  ),
-                ],
-              )),
+                  ],
+                ),
+              ),
               const SizedBox(height: 24),
 
               // Today's Focus Card
               Obx(() => _buildTodayFocusCard(recommendationController)),
-              
+
               const SizedBox(height: 24),
 
               // Motivational Message
@@ -304,7 +304,7 @@ class DailyCoachingScreen extends StatelessWidget {
                 }
                 return const SizedBox.shrink();
               }),
-              
+
               const SizedBox(height: 32),
 
               // Action Buttons
@@ -316,7 +316,7 @@ class DailyCoachingScreen extends StatelessWidget {
                         Get.to(() => const RecommendationDetailsScreen());
                       },
                       icon: const Icon(Icons.info_outline, size: 20),
-                      label: const Text('View Details'),
+                      label: Text('daily_coaching_btn_details'.tr()),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF5eead4),
                         side: const BorderSide(color: Color(0xFF5eead4)),
@@ -336,7 +336,7 @@ class DailyCoachingScreen extends StatelessWidget {
                         _showCoachBotDialog(context);
                       },
                       icon: const Icon(Icons.smart_toy, size: 20),
-                      label: const Text('Ask CoachBot'),
+                      label: Text('daily_coaching_btn_coachbot'.tr()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF5eead4),
                         foregroundColor: Colors.black,
@@ -350,7 +350,7 @@ class DailyCoachingScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
 
               // Use This Plan Button
@@ -364,8 +364,8 @@ class DailyCoachingScreen extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.check_circle, size: 24),
-                  label: const Text(
-                    'USE THIS PLAN',
+                  label: Text(
+                    'daily_coaching_btn_use_plan'.tr(),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -383,7 +383,7 @@ class DailyCoachingScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
             ],
           ),
@@ -411,13 +411,7 @@ class DailyCoachingScreen extends StatelessWidget {
         children: [
           Icon(icon, color: const Color(0xFF5eead4), size: 24),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 12,
-            ),
-          ),
+          Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
           const SizedBox(height: 4),
           Text(
             value,
@@ -434,7 +428,7 @@ class DailyCoachingScreen extends StatelessWidget {
 
   Widget _buildTodayFocusCard(RecommendationController controller) {
     final focusPoints = controller.getTodayFocusPoints();
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -450,9 +444,9 @@ class DailyCoachingScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
+            children: [
               Text(
-                'Today\'s Focus',
+                'daily_coaching_lbl_focus'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -460,10 +454,7 @@ class DailyCoachingScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8),
-              Text(
-                '🥋',
-                style: TextStyle(fontSize: 20),
-              ),
+              Text('🥋', style: TextStyle(fontSize: 20)),
             ],
           ),
           const SizedBox(height: 20),
@@ -486,10 +477,7 @@ class DailyCoachingScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '$emoji  ',
-          style: const TextStyle(fontSize: 18),
-        ),
+        Text('$emoji  ', style: const TextStyle(fontSize: 18)),
         Expanded(
           child: Text(
             text,
@@ -508,22 +496,16 @@ class DailyCoachingScreen extends StatelessWidget {
     Get.dialog(
       Dialog(
         backgroundColor: const Color(0xFF252836),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.smart_toy,
-                color: Color(0xFF5eead4),
-                size: 48,
-              ),
+              const Icon(Icons.smart_toy, color: Color(0xFF5eead4), size: 48),
               const SizedBox(height: 16),
-              const Text(
-                'Ask CoachBot',
+              Text(
+                'daily_coaching_dialog_bot_title'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -532,12 +514,9 @@ class DailyCoachingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Need help with today\'s session plan? Ask CoachBot for personalized guidance!',
+                'daily_coaching_dialog_bot_msg'.tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey[400], fontSize: 14),
               ),
               const SizedBox(height: 24),
               Row(
@@ -545,7 +524,7 @@ class DailyCoachingScreen extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Get.back(),
-                      child: const Text('Cancel'),
+                      child: Text('cancel'.tr()),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.grey,
                         side: const BorderSide(color: Colors.grey),
@@ -559,7 +538,7 @@ class DailyCoachingScreen extends StatelessWidget {
                         Get.back();
                         Get.to(() => CoachBotChatScreen());
                       },
-                      child: const Text('Open CoachBot'),
+                      child: Text('daily_coaching_dialog_bot_btn_open'.tr()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF5eead4),
                         foregroundColor: Colors.black,
@@ -581,8 +560,8 @@ class DailyCoachingScreen extends StatelessWidget {
   ) {
     if (controller.currentRecommendation.value == null) {
       Get.snackbar(
-        'No Recommendation',
-        'Please generate a recommendation first',
+        'daily_coaching_snackbar_no_rec_title'.tr(),
+        'daily_coaching_snackbar_no_rec_msg'.tr(),
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.orange,
         colorText: Colors.white,
@@ -610,26 +589,20 @@ class DailyCoachingScreen extends StatelessWidget {
     String recommendationId,
   ) {
     int rating = 5;
-    
+
     Get.dialog(
       Dialog(
         backgroundColor: const Color(0xFF252836),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.star,
-                color: Color(0xFF5eead4),
-                size: 48,
-              ),
+              const Icon(Icons.star, color: Color(0xFF5eead4), size: 48),
               const SizedBox(height: 16),
-              const Text(
-                'How useful was this recommendation?',
+              Text(
+                'daily_coaching_dialog_feedback_title'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -659,7 +632,7 @@ class DailyCoachingScreen extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Get.back(),
-                      child: const Text('Skip'),
+                      child: Text('daily_coaching_btn_skip'.tr()),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.grey,
                       ),
@@ -677,7 +650,7 @@ class DailyCoachingScreen extends StatelessWidget {
                         );
                         Get.back();
                       },
-                      child: const Text('Submit'),
+                      child: Text('submit'.tr()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF5eead4),
                         foregroundColor: Colors.black,

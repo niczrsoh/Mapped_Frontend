@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'dart:async';
@@ -44,15 +45,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void _showVideoLinkDialog() {
     TextEditingController linkController = TextEditingController();
     bool isDialogOpen = true;
-    
+
     Get.dialog(
       AlertDialog(
         backgroundColor: const Color(0xFF252836),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          "Add Video Link",
+          'dialog_video_title'.tr(),
           style: GoogleFonts.inter(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -65,7 +64,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               controller: linkController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: "Paste YouTube URL here",
+                hintText: 'dialog_video_hint'.tr(),
                 hintStyle: const TextStyle(color: Colors.white54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -77,17 +76,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF09FACA), width: 2),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF09FACA),
+                    width: 2,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              "Example: https://youtube.com/watch?v=VIDEO_ID",
-              style: GoogleFonts.roboto(
-                fontSize: 12,
-                color: Colors.white54,
-              ),
+              'dialog_video_example'.tr(),
+              style: GoogleFonts.roboto(fontSize: 12, color: Colors.white54),
             ),
           ],
         ),
@@ -98,7 +97,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               Navigator.of(Get.context!).pop();
             },
             child: Text(
-              "Cancel",
+              'cancel'.tr(),
               style: GoogleFonts.roboto(color: Colors.white54),
             ),
           ),
@@ -121,7 +120,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ),
             child: Text(
-              "Add",
+              'add'.tr(),
               style: GoogleFonts.roboto(color: Colors.white),
             ),
           ),
@@ -154,7 +153,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Forum Dashboard',
+          'create_post_title_dashboard'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -219,7 +218,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 maxLength: 2000,
                 style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
                 decoration: InputDecoration(
-                  hintText: 'What\'s on your mind?',
+                  hintText: 'create_post_hint_input'.tr(),
                   hintStyle: GoogleFonts.roboto(color: Colors.white54),
                   border: InputBorder.none,
                   counterStyle: GoogleFonts.roboto(
@@ -234,14 +233,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             // Combined Row: Media Icons (Left) + Next Button (Right)
             Obx(
               () => _buildActionRow(
-                buttonLabel: 'Next',
+                buttonLabel: 'next'.tr(),
                 onButtonTap: controller.previewPost,
                 isLoading: false,
                 disableNext: !controller.hasContent.value,
               ),
             ),
 
-                  const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Image Counter and Preview
             Obx(() {
@@ -251,7 +250,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   children: [
                     // Image Counter
                     Text(
-                      'Images: ${controller.selectedImages.length}/${CreatePostController.maxImages}',
+                      'lbl_images_count'.tr(
+                        namedArgs: {
+                          'current': controller.selectedImages.length
+                              .toString(),
+                          'max': CreatePostController.maxImages.toString(),
+                        },
+                      ),
                       style: GoogleFonts.roboto(
                         color:
                             controller.selectedImages.length >=
@@ -351,7 +356,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           onPressed: controller.backToEdit,
         ),
         title: Text(
-          'Forum Dashboard',
+          'create_post_title_dashboard'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -438,7 +443,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       (controller.selectedImages.isNotEmpty ||
                           controller.videoUrl.value.isNotEmpty))
                     Text(
-                      '📷 Shared media',
+                      'create_post_lbl_shared_media'.tr(),
                       style: GoogleFonts.roboto(
                         fontSize: 14,
                         color: Colors.white70,
@@ -467,7 +472,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             const SizedBox(height: 24),
             Obx(
               () => _buildActionRow(
-                buttonLabel: 'Post',
+                buttonLabel: 'create_post_btn_post'.tr(),
                 onButtonTap: controller.submitPost,
                 isLoading: controller.isPosting.value,
                 disableMedia: controller.isPosting.value,
@@ -549,19 +554,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           children: [
             _buildSmallIcon(
               icon: Icons.camera_alt,
-              label: 'Camera',
+              label: 'camera'.tr(),
               onTap: disableMedia ? null : controller.pickImageFromCamera,
             ),
             const SizedBox(width: 30),
             _buildSmallIcon(
               icon: Icons.image,
-              label: 'Gallery',
+              label: 'gallery'.tr(),
               onTap: disableMedia ? null : controller.pickImageFromGallery,
             ),
             const SizedBox(width: 30),
             _buildSmallIcon(
               icon: Icons.link,
-              label: 'URL Link',
+              label: 'lbl_url'.tr(),
               onTap: disableMedia
                   ? null
                   : () {
@@ -569,7 +574,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       TextEditingController linkController =
                           TextEditingController();
                       Get.defaultDialog(
-                        title: "Add Video Link",
+                        title: 'dialog_video_title'.tr(),
                         titleStyle: GoogleFonts.inter(
                           fontWeight: FontWeight.bold,
                         ),
@@ -577,13 +582,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: TextField(
                             controller: linkController,
-                            decoration: const InputDecoration(
-                              hintText: "Paste YouTube URL here",
+                            decoration: InputDecoration(
+                              hintText: 'dialog_video_hint'.tr(),
                             ),
                           ),
                         ),
-                        textConfirm: "Add",
-                        textCancel: "Cancel",
+                        textConfirm: 'add'.tr(),
+                        textCancel: 'cancel'.tr(),
                         confirmTextColor: Colors.white,
                         buttonColor: const Color(0xFF09FACA),
                         onConfirm: () {
@@ -749,7 +754,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${currentPage + 1}/${controller.selectedImages.length}',
+                          'forum_image_counter'.tr(
+                            namedArgs: {
+                              'current': (currentPage + 1).toString(),
+                              'total': controller.selectedImages.length
+                                  .toString(),
+                            },
+                          ),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 12,

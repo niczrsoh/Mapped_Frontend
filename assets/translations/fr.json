@@ -266,6 +266,7 @@
   "coachbot_empty_title": "Bienvenue sur CoachBot !",
   "coachbot_empty_subtitle": "Votre assistant IA de Taekwondo",
   "coachbot_lbl_try_asking": "Essayez de demander :",
+  "coachbot_lbl_queries": "requêtes",
   "coachbot_time_days_ago": "il y a {days} jours",
   "coachbot_badge_quick_answer": "📚 Réponse rapide",
   "coachbot_badge_instant": "⚡ Instantané",
@@ -552,6 +553,18 @@
   "verify_code_btn_skip": "Passer",
   "verify_code_snackbar_invalid_title": "Code invalide",
   "verify_code_snackbar_invalid_msg": "Veuillez entrer les 4 chiffres",
+  "verify_code_error_incomplete": "Veuillez entrer le code à 4 chiffres complet.",
+  "verify_code_error_invalid": "Code invalide ou expiré.",
+  "verify_code_error_verification_failed": "Échec de la vérification.",
+  "verify_code_success_verified": "Code vérifié !",
+
+  "reset_pwd_ctrl_error_email_invalid": "Entrez une adresse e-mail valide.",
+  "reset_pwd_ctrl_error_send_failed": "Échec de l'envoi du code.",
+  "reset_pwd_ctrl_error_connection": "Échec de la connexion au serveur.",
+  "reset_pwd_ctrl_error_password_length": "Le mot de passe doit contenir au moins 8 caractères.",
+  "reset_pwd_ctrl_error_reset_failed": "Échec de la réinitialisation.",
+  "reset_pwd_ctrl_error_update_failed": "Impossible de mettre à jour le mot de passe.",
+  "reset_pwd_ctrl_success_reset": "Mot de passe réinitialisé avec succès. Veuillez vous connecter.",
 
   "profile_edit_error_load": "Échec du chargement du profil",
   "profile_edit_error_name_req": "Le nom est requis",
@@ -618,6 +631,10 @@
   "rec_ctrl_focus_tech": "Technique : {focus}",
   "rec_ctrl_focus_safety": "Sécurité : {strategy}",
   "rec_ctrl_focus_finish": "Fin : {exercises} ({time} min)",
+  "rec_ctrl_default_focus_warmup": "Échauffement : mobilité cheville + hanche (5 min)",
+  "rec_ctrl_default_focus_tech": "Technique : coup de pied circulaire -\narmé → frappe → ramené",
+  "rec_ctrl_default_focus_safety": "Sécurité : pas de contact avec partenaire pour les ceintures blanches",
+  "rec_ctrl_default_focus_finish": "Fin : étirement mollet/hanche 3x20s",
 
   "rec_details_title": "Détails de la Session",
   "rec_details_empty": "Aucune recommandation",
@@ -938,5 +955,16 @@
   "language_screen_subtitle": "Choisissez votre langue",
 
   "lang_ctrl_snackbar_title": "Succès",
-  "lang_ctrl_snackbar_msg": "Langue changée : {name}"
+  "lang_ctrl_snackbar_msg": "Langue changée : {name}",
+
+  "about_title": "À propos de nous",
+  "about_para_1": "MAPPED fait partie du projet Traditional Martial Arts for All (TMA4ALL) — une initiative européenne novatrice dédiée à rendre tous les arts martiaux traditionnels accessibles et inclusifs pour tous (Projet 101133802 — TMA4ALL).",
+  "about_para_2": "Nous croyons que tous les arts martiaux traditionnels peuvent transformer des vies grâce au développement physique, psychologique et social, quel que soit le style. En effet, les recherches montrent constamment que l’entraîneur d’arts martiaux est le facteur le plus important pour améliorer la santé, le bien-être et la qualité de vie des pratiquants, indépendamment de l’art martial pratiqué. Notre mission est de soutenir tous les entraîneurs d’arts martiaux traditionnels dans la création de séances sûres et valorisantes, ouvertes aux personnes de toutes capacités, origines, âges et situations de handicap.",
+  "about_para_3": "Développée grâce à la collaboration entre des organisations leaders dans les arts martiaux inclusifs et des universités à travers l’Europe, MAPPED est la première application entièrement accessible et inclusive conçue spécifiquement pour les entraîneurs d’arts martiaux au niveau local. Que vous soyez un entraîneur débutant ou un instructeur expérimenté, MAPPED vous offre les outils, le soutien et la communauté nécessaires pour proposer des séances d’arts martiaux inclusives de haute qualité.",
+  "about_para_4": "Rejoignez notre réseau international grandissant d’entraîneurs qui utilisent les arts martiaux traditionnels pour améliorer des vies et construire des communautés plus fortes et plus inclusives.",
+  "about_partners_title": "Nos partenaires",
+  "about_eu_funded_by": "Cofinancé par",
+  "about_eu_name": "l’Union européenne",
+  "about_disclaimer_title": "Clause de non-responsabilité",
+  "about_disclaimer_body": "Financé par l’Union européenne. Les points de vue et opinions exprimés n’engagent toutefois que leur(s) auteur(s) et ne reflètent pas nécessairement ceux de l’Union européenne ou de l’Agence exécutive européenne pour l’éducation et la culture (EACEA). Ni l’Union européenne ni l’EACEA ne peuvent en être tenues responsables."
 }

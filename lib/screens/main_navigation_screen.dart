@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import '../screens/home_screen.dart';
@@ -115,11 +117,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.sports_gymnastics_outlined, "Home", 0),
-            _buildNavItem(Icons.fitness_center_outlined, "Session", 1),
-            _buildNavItem(Icons.forum_outlined, "Forum", 2),
-            _buildNavItem(Icons.smart_toy_outlined, "Coach Bot", 3),
-            _buildNavItem(Icons.account_circle_outlined, "Account", 4),
+            _buildNavItem(Icons.sports_gymnastics_outlined, 'home'.tr(), 0),
+            _buildNavItem(
+              Icons.fitness_center_outlined,
+              'home_nav_session'.tr(),
+              1,
+            ),
+            _buildNavItem(Icons.forum_outlined, 'forum'.tr(), 2),
+            _buildNavItem(
+              Icons.smart_toy_outlined,
+              'home_nav_coach_bot'.tr(),
+              3,
+            ),
+            _buildNavItem(
+              Icons.account_circle_outlined,
+              'home_nav_account'.tr(),
+              4,
+            ),
           ],
         ),
       ),

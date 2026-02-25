@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
@@ -134,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 Obx(() {
                   final userName = userController.userName;
                   return Text(
-                    'Welcome back, Coach $userName',
+                    'home_msg_welcome'.tr(namedArgs: {'userName': userName}),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 18,
@@ -158,8 +159,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     const SizedBox(width: 8),
                     Obx(() {
                       final count = sessionController.currentList.length;
-                      final label =
-                          "$count ${count == 1 ? 'session' : 'sessions'} today";
+                      final label = count == 1
+                          ? 'home_msg_session_count.one'.tr(
+                              namedArgs: {'count': count.toString()},
+                            )
+                          : 'home_msg_session_count.other'.tr(
+                              namedArgs: {'count': count.toString()},
+                            );
                       return Text(
                         label,
                         style: GoogleFonts.poppins(
@@ -206,8 +212,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                               decoration: InputDecoration(
                                 isCollapsed: true,
-                                hintText:
-                                    'Search Students, Sessions, Forums ...',
+                                hintText: 'home_hint_search'.tr(),
                                 hintStyle: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.95),
                                   fontSize: 14,
@@ -220,8 +225,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               readOnly: true,
                               onTap: () {
                                 Get.snackbar(
-                                  'Coming Soon',
-                                  'Search feature will be available soon',
+                                  'home_snackbar_coming_soon_title'.tr(),
+                                  'home_snackbar_coming_soon_msg'.tr(),
                                   snackPosition: SnackPosition.BOTTOM,
                                 );
                               },
@@ -263,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                         final data = beltController.detailedBeltData
                             .firstWhereOrNull((b) => b.beltColor == code);
-                            
+
                         bool isPassed = data?.isCompleted ?? false;
 
                         if (!isPassed) {
@@ -300,13 +305,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       final String nextBeltName =
                           (currentBeltIndex < belts.length - 1)
                           ? belts[currentBeltIndex + 1].name
-                          : "Mastery";
+                          : 'home_lbl_mastery'.tr();
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'My Certification Progress',
+                            'home_title_certification_progress'.tr(),
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 16,
@@ -323,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Current Belt: ',
+                                'home_lbl_current_belt'.tr(),
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 14,
@@ -355,8 +360,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 onTap: () {
                                   if (isLocked) {
                                     Get.snackbar(
-                                      "Locked",
-                                      "Complete the Brown Belt to unlock Mastery.",
+                                      'home_snackbar_locked_title'.tr(),
+                                      'home_snackbar_locked_msg'.tr(),
                                       snackPosition: SnackPosition.BOTTOM,
                                       backgroundColor: Colors.white12,
                                       colorText: Colors.white,
@@ -397,7 +402,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Progress to $nextBeltName Belt',
+                                'home_msg_progress_to_belt'.tr(
+                                  namedArgs: {'nextBeltName': nextBeltName},
+                                ),
                                 style: GoogleFonts.poppins(
                                   color: const Color.fromARGB(
                                     255,
@@ -437,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               runSpacing: 4,
                               children: [
                                 Text(
-                                  'Remaining Requirements',
+                                  'home_lbl_remaining_requirements'.tr(),
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 13,
@@ -513,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "Mastery Achieved",
+                                  'home_msg_mastery_achieved'.tr(),
                                   style: GoogleFonts.poppins(
                                     color: const Color(0xFF00FF66),
                                     fontSize: 14,
@@ -547,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Participants',
+                              'participants'.tr(),
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
@@ -555,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Participant information',
+                              'home_subtitle_participant_info'.tr(),
                               style: GoogleFonts.poppins(color: Colors.white),
                             ),
                           ],
@@ -592,7 +599,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Today's Recommendation",
+                          'home_title_recommendation'.tr(),
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -600,7 +607,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Adapting warm-up for all abilities',
+                          'home_subtitle_recommendation_topic'.tr(),
                           style: GoogleFonts.poppins(color: Colors.white),
                         ),
                       ],
@@ -614,7 +621,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Quick Actions',
+                        'home_title_quick_actions'.tr(),
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -646,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Resource',
+                                      'home_btn_resource'.tr(),
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                       ),
@@ -682,7 +689,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Forum',
+                                      'forum'.tr(),
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                       ),
@@ -736,7 +743,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ).then((_) => _refreshData());
                       },
                       child: Text(
-                        'Plan a Session',
+                        'home_btn_plan_session'.tr(),
                         style: GoogleFonts.poppins(color: Colors.white),
                       ),
                     ),
@@ -784,7 +791,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       String text = "${task.homeLabel}: $currentValue / ${task.target}";
 
       if (task.type == RequirementType.activeDay) {
-        text += " days";
+        text += 'home_lbl_days'.tr();
       }
 
       reqs.add(_reqLine(text));
@@ -953,11 +960,19 @@ class _BottomNavState extends State<BottomNav> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem(Icons.sports_gymnastics_outlined, "Home", 0),
-          _buildNavItem(Icons.fitness_center_outlined, "Session", 1),
-          _buildNavItem(Icons.forum_outlined, "Forum", 2),
-          _buildNavItem(Icons.smart_toy_outlined, "Coach Bot", 3),
-          _buildNavItem(Icons.account_circle_outlined, "Account", 4),
+          _buildNavItem(Icons.sports_gymnastics_outlined, 'home'.tr(), 0),
+          _buildNavItem(
+            Icons.fitness_center_outlined,
+            'home_nav_session'.tr(),
+            1,
+          ),
+          _buildNavItem(Icons.forum_outlined, 'forum'.tr(), 2),
+          _buildNavItem(Icons.smart_toy_outlined, 'home_nav_coach_bot'.tr(), 3),
+          _buildNavItem(
+            Icons.account_circle_outlined,
+            'home_nav_account'.tr(),
+            4,
+          ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../global/routes.dart';
 
@@ -47,7 +48,7 @@ class TouchIdScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   Text(
-                    'Touch ID',
+                    'touch_id_title_main'.tr(),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 24,
@@ -60,7 +61,7 @@ class TouchIdScreen extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 36),
                     child: Text(
-                      'Place and hold your finger on the Finger reader',
+                      'touch_id_msg_instruction'.tr(),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         color: Colors.white70,
@@ -187,7 +188,7 @@ class TouchIdScreen extends StatelessWidget {
                           Get.toNamed(AppRoutes.login);
                         },
                         child: Text(
-                          'Login with Email',
+                          'touch_id_btn_login_email'.tr(),
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,

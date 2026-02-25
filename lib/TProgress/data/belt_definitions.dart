@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class BeltDefinition {
   final String id;
   final String name;
-  final Color color; 
-  final int order; 
-  final String? nextBeltId; 
-  final String assetName; 
+  final Color color;
+  final int order;
+  final String? nextBeltId;
+  final String assetName;
 
   const BeltDefinition({
     required this.id,
@@ -25,13 +26,13 @@ class BeltDefinitions {
   static const String yellow = 'Y';
   static const String green = 'G';
   static const String blue = 'B';
-  static const String brown = 'R'; 
-  static const String black = 'L'; 
+  static const String brown = 'R';
+  static const String black = 'L';
 
   static const List<BeltDefinition> belts = [
     BeltDefinition(
       id: white,
-      name: 'White',
+      name: 'belt_white',
       color: Colors.white,
       order: 1,
       nextBeltId: yellow,
@@ -39,7 +40,7 @@ class BeltDefinitions {
     ),
     BeltDefinition(
       id: yellow,
-      name: 'Yellow',
+      name: 'belt_yellow',
       color: Color(0xFFFFD700),
       order: 2,
       nextBeltId: green,
@@ -47,7 +48,7 @@ class BeltDefinitions {
     ),
     BeltDefinition(
       id: green,
-      name: 'Green',
+      name: 'belt_green',
       color: Color(0xFF4CAF50),
       order: 3,
       nextBeltId: blue,
@@ -55,7 +56,7 @@ class BeltDefinitions {
     ),
     BeltDefinition(
       id: blue,
-      name: 'Blue', // Blue 500
+      name: 'belt_blue', // Blue 500
       color: Color(0xFF2196F3),
       order: 4,
       nextBeltId: brown,
@@ -63,7 +64,7 @@ class BeltDefinitions {
     ),
     BeltDefinition(
       id: brown,
-      name: 'Brown',
+      name: 'belt_brown',
       color: Color(0xFFA52A2A),
       order: 5,
       nextBeltId: black,
@@ -71,7 +72,7 @@ class BeltDefinitions {
     ),
     BeltDefinition(
       id: black,
-      name: 'Black',
+      name: 'belt_black',
       color: Color(0xFF000000),
       order: 6,
       nextBeltId: null, // Last belt

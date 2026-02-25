@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/password/reset_password_controller.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
@@ -11,7 +12,10 @@ class VerificationCodeScreen extends StatefulWidget {
 }
 
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
-  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
 
   @override
@@ -24,8 +28,12 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
 
   @override
   void dispose() {
-    for (var c in _controllers) { c.dispose(); }
-    for (var f in _focusNodes) { f.dispose(); }
+    for (var c in _controllers) {
+      c.dispose();
+    }
+    for (var f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -37,14 +45,14 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
 
   void _handleSubmit(ResetPasswordController controller) {
     _syncOtpToController(controller);
-    
+
     if (controller.otpController.text.length == 4) {
       // Trigger the API call in your controller
       controller.verifyOtp();
     } else {
       Get.snackbar(
-        "Invalid Code",
-        "Please enter all 4 digits",
+        "verify_code_snackbar_invalid_title".tr(),
+        "verify_code_snackbar_invalid_msg".tr(),
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
@@ -69,7 +77,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Verification Code",
+                    "verify_code_title".tr(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w800,
                       fontSize: 20,
@@ -83,11 +91,15 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                   width: 200,
                   height: 200,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.mark_email_read, size: 100, color: Colors.white),
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.mark_email_read,
+                    size: 100,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  "Enter the 4 digits code that you\nreceived on your email.",
+                  "verify_code_instruction".tr(),
                   textAlign: TextAlign.left,
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w300,
@@ -97,61 +109,78 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                
+
                 // OTP Boxes
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(4, (i) => _buildOTPBox(i, controller)),
+                  children: List.generate(
+                    4,
+                    (i) => _buildOTPBox(i, controller),
+                  ),
                 ),
 
                 // Error Message from GetX
-                Obx(() => controller.errorMessage.value.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          controller.errorMessage.value,
-                          style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-                        ),
-                      )
-                    : const SizedBox.shrink()),
+                Obx(
+                  () => controller.errorMessage.value.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Text(
+                            controller.errorMessage.value,
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
 
                 const SizedBox(height: 40),
 
                 // Submit Button
                 SizedBox(
                   width: double.infinity,
-                  child: Obx(() => ElevatedButton(
-                    // Disable button if loading
-                    onPressed: controller.isLoading.value ? null : () => _handleSubmit(controller),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.white.withOpacity(0.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    child: controller.isLoading.value
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0B0F1C)),
-                          )
-                        : Text(
-                            "SUBMIT",
-                            style: GoogleFonts.roboto(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                              color: const Color(0xFF0B0F1C),
-                              letterSpacing: 1,
+                  child: Obx(
+                    () => ElevatedButton(
+                      // Disable button if loading
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : () => _handleSubmit(controller),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: controller.isLoading.value
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF0B0F1C),
+                              ),
+                            )
+                          : Text(
+                              "submit_caps".tr(),
+                              style: GoogleFonts.roboto(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                                color: const Color(0xFF0B0F1C),
+                                letterSpacing: 1,
+                              ),
                             ),
-                          ),
-                  )),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 30),
                 TextButton(
                   onPressed: () => Get.back(),
                   child: Text(
-                    "Skip, I'll confirm later",
+                    "verify_code_btn_skip".tr(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
                       fontSize: 18,

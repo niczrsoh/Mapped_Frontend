@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
@@ -261,7 +262,10 @@ class ForumSearchtagsController extends GetxController {
     Get.dialog(
       AlertDialog(
         backgroundColor: const Color(0xFF252836),
-        title: Text('All Tags', style: GoogleFonts.inter(color: Colors.white)),
+        title: Text(
+          'dialog_all_tags_title'.tr(),
+          style: GoogleFonts.inter(color: Colors.white),
+        ),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -304,7 +308,7 @@ class ForumSearchtagsController extends GetxController {
           TextButton(
             onPressed: () => Get.back(),
             child: Text(
-              'Close',
+              'dialog_btn_close'.tr(),
               style: GoogleFonts.roboto(color: const Color(0xFF09FACA)),
             ),
           ),

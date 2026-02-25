@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/gestures.dart';
 import '../global/routes.dart';
@@ -34,7 +35,7 @@ class CheckMailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   Text(
-                    'Check your mail',
+                    'check_mail_title_main'.tr(),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 22,
@@ -67,7 +68,7 @@ class CheckMailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   Text(
-                    'We have sent a passcode recover instruction to your email.',
+                    'check_mail_msg_instruction'.tr(),
                     style: GoogleFonts.poppins(
                       color: Colors.white70,
                       fontSize: 14,
@@ -113,7 +114,7 @@ class CheckMailScreen extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                'Buka Email',
+                                'check_mail_btn_open_email'.tr(),
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -132,7 +133,7 @@ class CheckMailScreen extends StatelessWidget {
                     child: TextButton(
                       onPressed: () => Get.back(),
                       child: Text(
-                        "Skip, I'll confirm later",
+                        'check_mail_btn_skip'.tr(),
                         style: GoogleFonts.poppins(
                           color: Colors.white70,
                           fontSize: 14,
@@ -149,12 +150,9 @@ class CheckMailScreen extends StatelessWidget {
                         fontSize: 13,
                       ),
                       children: [
-                        const TextSpan(
-                          text:
-                              'Did not receive the email? Check your spam filter, or ',
-                        ),
+                        TextSpan(text: 'check_mail_msg_not_received'.tr()),
                         TextSpan(
-                          text: 'try another email address',
+                          text: 'check_mail_link_try_another'.tr(),
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF00FAFE),
                             fontSize: 13,

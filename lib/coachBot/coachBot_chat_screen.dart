@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/coachBot/coachBot_chat_controller.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
@@ -80,37 +81,39 @@ class CoachBotChatScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'CoachBot',
+                  'coachbot_title_main'.tr(),
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
-                Obx(() => Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: controller.isLoading.value
-                                ? Colors.orange
-                                : const Color(0xFF09FACA),
-                            shape: BoxShape.circle,
-                          ),
+                Obx(
+                  () => Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: controller.isLoading.value
+                              ? Colors.orange
+                              : const Color(0xFF09FACA),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          controller.isLoading.value
-                              ? 'Thinking...'
-                              : 'Ready to help',
-                          style: GoogleFonts.roboto(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        controller.isLoading.value
+                            ? 'coachbot_status_thinking'.tr()
+                            : 'coachbot_status_ready'.tr(),
+                        style: GoogleFonts.roboto(
+                          fontSize: 12,
+                          color: Colors.white54,
                         ),
-                      ],
-                    )),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -119,19 +122,21 @@ class CoachBotChatScreen extends StatelessWidget {
             final insights = controller.insights.value;
             if (insights != null && insights.totalQueries > 0) {
               return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF09FACA).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.analytics,
-                        color: Color(0xFF09FACA), size: 14),
+                    const Icon(
+                      Icons.analytics,
+                      color: Color(0xFF09FACA),
+                      size: 14,
+                    ),
                     const SizedBox(width: 4),
                     Text(
-                      '${insights.totalQueries}',
+                      '${insights.totalQueries} ${'coachbot_lbl_queries'.tr()}',
                       style: GoogleFonts.roboto(
                         fontSize: 12,
                         color: const Color(0xFF09FACA),
@@ -166,8 +171,9 @@ class CoachBotChatScreen extends StatelessWidget {
         bool showTimestamp = index == 0;
         if (index > 0) {
           final prevMessage = controller.messages[index - 1];
-          final timeDiff =
-              message.timestamp.difference(prevMessage.timestamp).inMinutes;
+          final timeDiff = message.timestamp
+              .difference(prevMessage.timestamp)
+              .inMinutes;
           showTimestamp = timeDiff >= 5;
         }
 
@@ -203,7 +209,7 @@ class CoachBotChatScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Welcome to CoachBot!',
+            'coachbot_empty_title'.tr(),
             style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.w600,
@@ -214,12 +220,9 @@ class CoachBotChatScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Your AI-powered Taekwondo coaching assistant',
+              'coachbot_empty_subtitle'.tr(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.roboto(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
+              style: GoogleFonts.roboto(fontSize: 14, color: Colors.white70),
             ),
           ),
         ],
@@ -233,15 +236,13 @@ class CoachBotChatScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF252836),
-        border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.1)),
-        ),
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Try asking:',
+            'coachbot_lbl_try_asking'.tr(),
             style: GoogleFonts.roboto(
               fontSize: 12,
               color: Colors.white54,
@@ -269,9 +270,7 @@ class CoachBotChatScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF09FACA).withOpacity(0.15),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFF09FACA).withOpacity(0.3),
-          ),
+          border: Border.all(color: const Color(0xFF09FACA).withOpacity(0.3)),
         ),
         child: Text(
           suggestion,
@@ -295,12 +294,13 @@ class CoachBotChatScreen extends StatelessWidget {
       displayText =
           "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
     } else if (difference.inDays == 1) {
-      displayText = 'Yesterday';
+      displayText = 'yesterday'.tr();
     } else if (difference.inDays < 7) {
-      displayText = '${difference.inDays} days ago';
+      displayText = 'coachbot_time_days_ago'.tr(
+        namedArgs: {'days': difference.inDays.toString()},
+      );
     } else {
-      displayText =
-          "${time.day}/${time.month}/${time.year}";
+      displayText = "${time.day}/${time.month}/${time.year}";
     }
 
     return Center(
@@ -389,11 +389,9 @@ class CoachBotChatScreen extends StatelessWidget {
                   children: [
                     if (message.preset)
                       _buildBadge('📚 Quick Answer', Colors.blue),
-                    if (message.cached)
-                      _buildBadge('⚡ Instant', Colors.green),
+                    if (message.cached) _buildBadge('⚡ Instant', Colors.green),
                     if (message.tokens > 0)
-                      _buildBadge(
-                          '${message.tokens} tokens', Colors.orange),
+                      _buildBadge('${message.tokens} tokens', Colors.orange),
                     if (message.model != null)
                       _buildBadge(
                         message.model!.contains('8b') ? 'Fast' : 'Smart',
@@ -495,26 +493,29 @@ class CoachBotChatScreen extends StatelessWidget {
                 style: GoogleFonts.roboto(color: Colors.white),
                 maxLines: null,
                 maxLength: 500,
-                buildCounter: (context,
-                    {required currentLength,
-                    required isFocused,
-                    maxLength}) {
-                  // Show character count when > 400 chars
-                  if (currentLength > 400) {
-                    return Text(
-                      '$currentLength/$maxLength',
-                      style: GoogleFonts.roboto(
-                        fontSize: 10,
-                        color: currentLength >= 500
-                            ? Colors.red
-                            : Colors.white38,
-                      ),
-                    );
-                  }
-                  return null;
-                },
+                buildCounter:
+                    (
+                      context, {
+                      required currentLength,
+                      required isFocused,
+                      maxLength,
+                    }) {
+                      // Show character count when > 400 chars
+                      if (currentLength > 400) {
+                        return Text(
+                          '$currentLength / $maxLength',
+                          style: GoogleFonts.roboto(
+                            fontSize: 11,
+                            color: currentLength >= 500
+                                ? Colors.red
+                                : Colors.white54,
+                          ),
+                        );
+                      }
+                      return null;
+                    },
                 decoration: InputDecoration(
-                  hintText: 'Ask me anything about Taekwondo coaching...',
+                  hintText: 'coachbot_hint_input'.tr(),
                   hintStyle: GoogleFonts.roboto(
                     color: Colors.white38,
                     fontSize: 14,
@@ -534,35 +535,36 @@ class CoachBotChatScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Obx(() => Container(
-                decoration: BoxDecoration(
-                  gradient: controller.isLoading.value
-                      ? null
-                      : const LinearGradient(
-                          colors: [Color(0xFF09FACA), Color(0xFF0A8FD9)],
-                        ),
-                  color: controller.isLoading.value
-                      ? Colors.grey
-                      : null,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
-                  icon: controller.isLoading.value
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+          Obx(
+            () => Container(
+              decoration: BoxDecoration(
+                gradient: controller.isLoading.value
+                    ? null
+                    : const LinearGradient(
+                        colors: [Color(0xFF09FACA), Color(0xFF0A8FD9)],
+                      ),
+                color: controller.isLoading.value ? Colors.grey : null,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: controller.isLoading.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
                           ),
-                        )
-                      : const Icon(Icons.send, color: Colors.white),
-                  onPressed: controller.isLoading.value
-                      ? null
-                      : controller.sendMessage,
-                ),
-              )),
+                        ),
+                      )
+                    : const Icon(Icons.send, color: Colors.white),
+                onPressed: controller.isLoading.value
+                    ? null
+                    : controller.sendMessage,
+              ),
+            ),
+          ),
         ],
       ),
     );

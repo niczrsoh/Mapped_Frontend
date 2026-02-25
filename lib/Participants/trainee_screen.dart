@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'trainee_controller.dart';
@@ -16,7 +17,7 @@ class TraineesScreen extends StatefulWidget {
 }
 
 class _TraineesScreenState extends State<TraineesScreen> {
-  String selectedFilter = 'All';
+  String selectedFilter = 'all'.tr();
   String searchQuery = '';
 
   final TraineeController traineeController = Get.put(TraineeController());
@@ -53,8 +54,8 @@ class _TraineesScreenState extends State<TraineesScreen> {
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  const Text(
-                    'Home',
+                  Text(
+                    'home'.tr(),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -91,8 +92,8 @@ class _TraineesScreenState extends State<TraineesScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Participants',
+                          Text(
+                            'participants'.tr(),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 22,
@@ -103,7 +104,12 @@ class _TraineesScreenState extends State<TraineesScreen> {
                           // Reactive count
                           Obx(
                             () => Text(
-                              '${traineeController.traineeList.length} active',
+                              'trainees_lbl_active_count'.tr(
+                                namedArgs: {
+                                  'count': traineeController.traineeList.length
+                                      .toString(),
+                                },
+                              ),
                               style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 14,
@@ -154,7 +160,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
                               ),
                               const SizedBox(width: 6),
                               _outlinedText(
-                                'Add',
+                                'add'.tr(),
                                 GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -201,7 +207,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
                     style: const TextStyle(color: Colors.white, fontSize: 16),
                     textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
-                      hintText: 'Search by name ...',
+                      hintText: 'trainees_hint_search'.tr(),
                       hintStyle: TextStyle(
                         color: Colors.grey[500],
                         fontSize: 16,
@@ -224,7 +230,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildFilterChip('All'),
+                    _buildFilterChip('all'.tr()),
                     const SizedBox(width: 12),
                     ...BeltDefinitions.belts.map(
                       (b) => Padding(
@@ -246,7 +252,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
                   }
 
                   var displayList = traineeController.traineeList.toList();
-                  if (selectedFilter != 'All') {
+                  if (selectedFilter != 'all'.tr()) {
                     displayList = displayList
                         .where(
                           (t) =>
@@ -264,9 +270,9 @@ class _TraineesScreenState extends State<TraineesScreen> {
                   }
 
                   if (displayList.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
-                        'No trainees found',
+                        'trainees_empty_state'.tr(),
                         style: TextStyle(color: Colors.white54),
                       ),
                     );
@@ -418,7 +424,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            trainee['name'] ?? 'Unknown',
+                            trainee['name'] ?? 'unknown'.tr(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -455,8 +461,8 @@ class _TraineesScreenState extends State<TraineesScreen> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Note : ',
+                          Text(
+                            'note'.tr(),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 13,
@@ -468,17 +474,17 @@ class _TraineesScreenState extends State<TraineesScreen> {
                             child: Text(
                               () {
                                 var conditions = trainee['conditions'];
-                                if (conditions == null) return 'None';
+                                if (conditions == null) return 'none'.tr();
 
                                 if (conditions is List) {
-                                  if (conditions.isEmpty) return 'None';
+                                  if (conditions.isEmpty) return 'none'.tr();
                                   return conditions.join(", ");
                                 }
 
                                 // Handle String data with required formatting
                                 String text = conditions.toString().trim();
                                 if (text.isEmpty || text == 'null')
-                                  return 'None';
+                                  return 'none'.tr();
 
                                 // Detect and format bullet points ( -item )
                                 if (text.contains('-')) {

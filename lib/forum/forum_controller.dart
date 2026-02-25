@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:http/http.dart' as http;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'forum_model.dart';
 import '../create_post/create_post_controller.dart';
@@ -28,37 +29,30 @@ class ForumController extends GetxController {
   final int pageSize = 5;
   var totalPages = 1.obs;
 
-  final List<String> reportReasons = [
-    "Harassment",
-    "Fraud / Scam",
-    "Spam",
-    "Misinformation",
-    "Self-Harm",
-    "Graphic Content",
-    "Sexual Content",
-    "Fake Account",
-    "Hacked Account",
-    "Hateful Speech",
+  List<String> get reportReasons => [
+    "forum_report_reason_harassment".tr(),
+    "forum_report_reason_fraud".tr(),
+    "forum_report_reason_spam".tr(),
+    "forum_report_reason_misinfo".tr(),
+    "forum_report_reason_self_harm".tr(),
+    "forum_report_reason_graphic".tr(),
+    "forum_report_reason_sexual".tr(),
+    "forum_report_reason_fake".tr(),
+    "forum_report_reason_hacked".tr(),
+    "forum_report_reason_hateful".tr(),
   ];
 
-  final Map<String, String> reasonDefinitions = {
-    "Harassment":
-        "Attacks or intimidation toward others with abusive language or deliberately and repeatedly disrupting conversations, including revealing others' personal or sensitive information. This includes unwanted romantic advances, sexual remarks and or requests for sexual favors.",
-    "Fraud / Scam":
-        "Illegal activities, malware, or promotion of illegal products or services.",
-    "Spam":
-        "Irrelevant, repetitive content intended to artificially increase engagement, or other inappropriate promotional content.",
-    "Misinformation":
-        "False content or information about the post, that present untrue facts or events as though they are true or likely to be true.",
-    "Self-Harm":
-        "Promotion, encouragement or any portrayal of self-harm or suicide.",
-    "Graphic Content": "Excessively gruesome or graphic material.",
-    "Sexual Content": "Nudity or other content that's sexual in nature.",
-    "Fake Account":
-        "Inaccurate or misleading representation of a person or organization.",
-    "Hacked Account": "Unauthorized account takeover.",
-    "Hateful Speech":
-        "Attacks or incitement of violence against individuals or groups based on their actual or perceived traits, or any other speech that promotes hatred.",
+  Map<String, String> get reasonDefinitions => {
+    "forum_report_reason_harassment".tr(): "forum_report_def_harassment".tr(),
+    "forum_report_reason_fraud".tr(): "forum_report_def_fraud".tr(),
+    "forum_report_reason_spam".tr(): "forum_report_def_spam".tr(),
+    "forum_report_reason_misinfo".tr(): "forum_report_def_misinfo".tr(),
+    "forum_report_reason_self_harm".tr(): "forum_report_def_self_harm".tr(),
+    "forum_report_reason_graphic".tr(): "forum_report_def_graphic".tr(),
+    "forum_report_reason_sexual".tr(): "forum_report_def_sexual".tr(),
+    "forum_report_reason_fake".tr(): "forum_report_def_fake".tr(),
+    "forum_report_reason_hacked".tr(): "forum_report_def_hacked".tr(),
+    "forum_report_reason_hateful".tr(): "forum_report_def_hateful".tr(),
   };
 
   @override
@@ -111,11 +105,11 @@ class ForumController extends GetxController {
         currentPage.value = 1;
         _updateDisplayedPosts();
       } else {
-        Get.snackbar("Error", "Failed to load posts");
+        Get.snackbar("error".tr(), "forum_error_load_posts".tr());
       }
     } catch (e) {
       print("Error loading posts: $e");
-      Get.snackbar("Error", "Could not connect to server");
+      Get.snackbar("error".tr(), "forum_error_connection".tr());
     } finally {
       isLoading.value = false;
     }
@@ -200,13 +194,13 @@ class ForumController extends GetxController {
         post.isPinned.value = !post.isPinned.value;
         _sortAllPostsByPinned();
         _updateDisplayedPosts();
-        Get.snackbar("Error", "Failed to update pin status");
+        Get.snackbar("error".tr(), "forum_error_pin_status".tr());
       }
     } catch (e) {
       post.isPinned.value = !post.isPinned.value;
       _sortAllPostsByPinned();
       _updateDisplayedPosts();
-      Get.snackbar("Error", "Connection error");
+      Get.snackbar("error".tr(), "forum_error_network".tr());
     }
   }
 
@@ -245,19 +239,19 @@ class ForumController extends GetxController {
 
         Get.closeAllSnackbars();
         Get.snackbar(
-          "Success",
-          "Post deleted successfully",
+          "success".tr(),
+          "forum_success_post_deleted".tr(),
           duration: const Duration(seconds: 2),
         );
         return true;
       } else {
         Get.closeAllSnackbars();
-        Get.snackbar("Error", "Could not delete post");
+        Get.snackbar("error".tr(), "forum_error_delete_post".tr());
         return false;
       }
     } catch (e) {
       Get.closeAllSnackbars();
-      Get.snackbar("Error", "Could not connect to server");
+      Get.snackbar("error".tr(), "forum_error_connection".tr());
       return false;
     }
   }
@@ -279,12 +273,12 @@ class ForumController extends GetxController {
 
   String getReasonDefinition(String reason) {
     return reasonDefinitions[reason] ??
-        "This content violates our community guidelines regarding $reason.";
+        "forum_report_def_default".tr(namedArgs: {'reason': reason});
   }
 
   Future<bool> submitReport(ForumPost post) async {
     if (currentUserId.isEmpty) {
-      Get.snackbar("Error", "You must be logged in to report.");
+      Get.snackbar("error".tr(), "forum_error_login_report".tr());
       return false;
     }
 
@@ -303,11 +297,11 @@ class ForumController extends GetxController {
         _updateDisplayedPosts(); // Refresh current page
         return true;
       } else {
-        Get.snackbar("Error", "Failed to submit report");
+        Get.snackbar("error".tr(), "forum_error_submit_report".tr());
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Connection error");
+      Get.snackbar("error".tr(), "forum_error_network".tr());
       return false;
     }
   }
@@ -322,7 +316,7 @@ class ForumController extends GetxController {
   // ----------------------------------------------
   Future<void> toggleLike(ForumPost post) async {
     if (currentUserId.isEmpty) {
-      Get.snackbar("Error", "You must be logged in to like posts.");
+      Get.snackbar("error".tr(), "forum_error_login_like".tr());
       return;
     }
 
@@ -347,7 +341,7 @@ class ForumController extends GetxController {
       if (response.statusCode != 200) {
         post.likes.value = originalLikes;
         post.isLiked.value = originalStatus;
-        Get.snackbar("Error", "Could not like post");
+        Get.snackbar("error".tr(), "forum_error_like_post".tr());
       }
     } catch (e) {
       post.likes.value = originalLikes;

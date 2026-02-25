@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'progress_controller.dart';
 
 const double _borderThickness = 1.5;
@@ -30,7 +31,7 @@ class TraineeProgressScreen extends StatefulWidget {
 
 class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
   final ProgressController _controller = Get.find<ProgressController>();
-  late String _activeBelt; 
+  late String _activeBelt;
   late Map<String, Map<String, dynamic>> _pendingChanges;
 
   String _selectedFormText = 'Form: Pattern 1 ';
@@ -100,7 +101,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
       _activeBelt = 'White';
     }
 
-    _fetchData(); 
+    _fetchData();
   }
 
   void _fetchData() async {
@@ -211,7 +212,6 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
     }
   }
 
-
   Widget _formFormItem(String label) {
     final bool isHighlighted = label == _highlightedForm;
     const Color whiteBackground = Colors.white;
@@ -306,7 +306,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
             onPressed: () => Navigator.pop(context, _pendingChanges),
           ),
           title: Text(
-            'Trainee Progress',
+            'trainee_progress_title'.tr(),
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w400,
@@ -353,14 +353,14 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Next Belt: ',
+                            'trainee_progress_next_belt'.tr(),
                             style: GoogleFonts.roboto(
                               color: Colors.white,
                               fontSize: 12,
                             ),
                           ),
                           Text(
-                            '${_getNextBelt(_activeBelt)} Belt',
+                            '${_getNextBelt(_activeBelt)}${'trainee_progress_belt_suffix'.tr()}',
                             style: GoogleFonts.roboto(
                               color: accent,
                               fontSize: 12,
@@ -391,7 +391,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Form',
+                          'trainee_progress_section_form'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -438,7 +438,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
 
                         // Score Bar
                         Text(
-                          'Score',
+                          'trainee_progress_score'.tr(),
                           style: TextStyle(
                             fontFamily: 'JejuGothic',
                             color: accent,
@@ -510,7 +510,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Rate Techniques',
+                          'trainee_progress_rate_techniques'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -526,9 +526,9 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                children: const [
+                                children: [
                                   Text(
-                                    'Poor',
+                                    'trainee_progress_rating_poor'.tr(),
                                     style: TextStyle(
                                       fontFamily: 'JejuGothic',
                                       color: Colors.white,
@@ -536,7 +536,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'Medium',
+                                    'trainee_progress_rating_medium'.tr(),
                                     style: TextStyle(
                                       fontFamily: 'JejuGothic',
                                       color: Colors.white,
@@ -544,7 +544,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'Good',
+                                    'trainee_progress_rating_good'.tr(),
                                     style: TextStyle(
                                       fontFamily: 'JejuGothic',
                                       color: Colors.white,
@@ -558,7 +558,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Blocks & Strikes',
+                          'trainee_progress_blocks_strikes'.tr(),
                           style: TextStyle(
                             fontFamily: 'JejuGothic',
                             color: accent,
@@ -577,7 +577,7 @@ class _TraineeProgressScreenState extends State<TraineeProgressScreen> {
                             .toList(),
                         const SizedBox(height: 12),
                         Text(
-                          'Kicks',
+                          'trainee_progress_kicks'.tr(),
                           style: TextStyle(
                             fontFamily: 'JejuGothic',
                             color: accent,
