@@ -9,8 +9,7 @@ import 'global/app_binding.dart';
 import 'global/routes.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-void main() async 
-{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
@@ -27,13 +26,9 @@ void main() async
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [
-        Locale('en', 'US'), 
-        Locale('fr', 'FR'), 
-        Locale('de', 'DE')
-      ],
+      supportedLocales: const [Locale('en'), Locale('fr'), Locale('de')],
       path: 'assets/translations',
-      fallbackLocale: const Locale('en', 'US'),
+      fallbackLocale: const Locale('en'),
       child: const MyApp(),
     ),
   );
@@ -46,11 +41,35 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Get.put(UserController());
     Get.put(AccountController());
-    
+
+    return _AppRoot();
+  }
+}
+
+class _AppRoot extends StatefulWidget {
+  @override
+  State<_AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<_AppRoot> {
+  Locale? _lastLocale;
+
+  @override
+  Widget build(BuildContext context) {
+    final newLocale = context.locale;
+
+    // Only push to GetMaterialApp when the locale actually changed
+    if (_lastLocale != newLocale) {
+      _lastLocale = newLocale;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.updateLocale(newLocale);
+      });
+    }
+
     return GetMaterialApp(
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
-      locale: context.locale,
+      locale: newLocale,
       title: 'MAPPED',
       debugShowCheckedModeBanner: false,
       initialBinding: AppBinding(),
@@ -72,18 +91,21 @@ class MyApp extends StatelessWidget {
 
 class ScaledMediaQuery extends StatelessWidget {
   final Widget child;
-  
+
   const ScaledMediaQuery({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    final TextSizeController textSizeController = Get.find<TextSizeController>();
-    
-    return Obx(() => MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        textScaler: TextScaler.linear(textSizeController.textScale.value),
+    final TextSizeController textSizeController =
+        Get.find<TextSizeController>();
+
+    return Obx(
+      () => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(textSizeController.textScale.value),
+        ),
+        child: child,
       ),
-      child: child,
-    ));
+    );
   }
 }

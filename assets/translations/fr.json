@@ -655,6 +655,7 @@
   "rec_service_error_server": "Erreur serveur",
   "rec_service_error_gen_fail": "Échec génération : {status}",
 
+  "resource_ctrl_error_permission_denied": "Seuls les administrateurs peuvent ajouter des ressources.",
   "resource_ctrl_error_login_create": "Connectez-vous pour créer des ressources.",
   "resource_ctrl_error_load_fail": "Échec chargement ressources ({status})",
   "resource_ctrl_error_parse_fail": "Erreur analyse données : {error}",

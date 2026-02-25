@@ -17,7 +17,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 class AccountController extends GetxController {
   var notificationsEnabled = true.obs;
-  var securityMethod = 'security_ctrl_method_fingerprint'.tr().obs;
+  var securityMethod = 'security_ctrl_method_fingerprint'.obs;
   var isLoading = false.obs;
 
   UserController get userController => Get.find<UserController>();
@@ -87,13 +87,15 @@ class AccountController extends GetxController {
           AccountMenuItem(
             iconPath: 'assets/images/notification.png',
             text: 'account_menu_notifications'.tr(),
-            badge: notificationsEnabled.value ? 'account_menu_on'.tr() : 'account_menu_off'.tr(),
+            badge: notificationsEnabled.value
+                ? 'account_badge_on'.tr()
+                : 'account_badge_off'.tr(),
             badgeColor: Color(0xFF09FACA),
             onTap: () => navigateToNotifications(context),
           ),
           AccountMenuItem(
             iconPath: 'assets/images/logout.png',
-            text: 'account_menu_logout'.tr(),
+            text: 'logout'.tr(),
             onTap: logout,
           ),
         ],
@@ -106,7 +108,7 @@ class AccountController extends GetxController {
           AccountMenuItem(
             iconPath: 'assets/images/security.png',
             text: 'account_menu_security'.tr(),
-            badge: securityMethod.value,
+            badge: securityMethod.value.tr(),
             badgeColor: Color(0xFF09FACA),
             onTap: navigateToSecurity,
           ),
@@ -128,17 +130,17 @@ class AccountController extends GetxController {
         items: [
           AccountMenuItem(
             iconPath: 'assets/images/help.png',
-            text: 'account_menu_help_support'.tr(),
+            text: 'account_menu_help'.tr(),
             onTap: navigateToHelp,
           ),
           AccountMenuItem(
             iconPath: 'assets/images/privacy.png',
-            text: 'account_menu_privacy_policy'.tr(),
+            text: 'account_menu_privacy'.tr(),
             onTap: navigateToPrivacy,
           ),
           AccountMenuItem(
             iconPath: 'assets/images/about.png',
-            text: 'account_menu_about_us'.tr(),
+            text: 'account_menu_about'.tr(),
             onTap: navigateToAbout,
           ),
         ],

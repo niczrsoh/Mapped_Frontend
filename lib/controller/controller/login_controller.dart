@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
-import 'package:easy_localization/easy_localization.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
@@ -19,6 +21,14 @@ class LoginController extends GetxController {
   final RxString formError = ''.obs;
   final RxBool isAdminMode = false.obs;
 
+  final newPasswordController = TextEditingController();
+
+  final isLoading = false.obs;
+  final errorMessage = "".obs;
+
+  final String baseUrl =
+      "https://mapped-backend-node-js.onrender.com/api/users";
+
   // 🔥 Reactive name to display on the Touch ID Screen
   final RxString storedName = ''.obs;
   var isAuthenticating = false.obs;
@@ -34,7 +44,6 @@ class LoginController extends GetxController {
     _loadStoredName();
   }
 
-  /// Loads the name from local storage to display "Welcome back, [Name]"
   Future<void> _loadStoredName() async {
     final prefs = await SharedPreferences.getInstance();
     storedName.value = prefs.getString('user_name') ?? '';
@@ -134,7 +143,7 @@ class LoginController extends GetxController {
         if (result['success'] == true) {
           final responseData = result['data'];
           final String actualRole = responseData['role'] ?? 'trainee';
-          final String id = responseData['id'] ?? responseData['_id'] ?? '';
+          final String id = responseData['user']['id'];
 
           // 4. Persistence (Sync with SharedPreferences)
           final prefs = await SharedPreferences.getInstance();
@@ -158,7 +167,7 @@ class LoginController extends GetxController {
           Get.snackbar(
             'success'.tr(),
             'login_snackbar_welcome'.tr(
-              namedArgs: {'name': googleUser.displayName ?? ''},
+              namedArgs: {'name': googleUser.displayName ?? 'User'},
             ),
             backgroundColor: const Color(0xFF00C7A7),
             colorText: Colors.white,
@@ -184,64 +193,188 @@ class LoginController extends GetxController {
     }
   }
 
-  // --- MANUAL LOGIN LOGIC ---
+  Future<void> resetPassword() async {
+    final email = Get.arguments;
+    final newPass = newPasswordController.text.trim();
+
+    if (newPass.length < 8) {
+      errorMessage.value = 'reset_pwd_ctrl_error_password_length'.tr();
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      errorMessage.value = "";
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'newPassword': newPass}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        Get.offAllNamed(AppRoutes.login);
+        Get.snackbar('success'.tr(), 'reset_pwd_ctrl_success_reset'.tr());
+      } else {
+        errorMessage.value =
+            data['msg'] ?? 'reset_pwd_ctrl_error_reset_failed'.tr();
+      }
+    } catch (e) {
+      errorMessage.value = 'reset_pwd_ctrl_error_update_failed'.tr();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> login() async {
     if (!validateForm()) return;
+
     loading.value = true;
     formError.value = '';
 
+    final String userEmail = email.value.trim();
+    final String userPassword = password.value;
+
     try {
-      final result = await _apiService.loginUser(
-        email: email.value.trim(),
-        password: password.value,
-      );
+      // --- 1. ADMIN LOGIN ---
+      if (isAdminMode.value) {
+        final result = await _apiService.loginUser(
+          email: userEmail,
+          password: userPassword,
+        );
 
-      if (result['success'] == true) {
-        final responseData = result['data'];
-        final String actualRole = responseData['user']?['role'] ?? 'trainee';
-
-        if (isAdminMode.value && actualRole != 'admin') {
-          loading.value = false;
-          formError.value = 'login_error_admin_denied'.tr();
-          return;
-        }
-
-        final prefs = await SharedPreferences.getInstance();
-        String id = responseData['user']?['id'] ?? '';
-        String name = responseData['user']?['name'] ?? '';
-        String emailAddr = responseData['user']?['email'] ?? '';
-
-        // ✅ Save these values so biometric login works next time
-        await prefs.setString('user_id', id);
-        await prefs.setString('user_name', name);
-        await prefs.setString('user_email', emailAddr);
-        await prefs.setString('user_role', actualRole);
-        storedName.value = name; // Update UI immediately
-
-        if (result['token'] != null) {
-          await prefs.setString('auth_token', result['token']);
-        }
-
-        final userController = Get.find<UserController>();
-        userController.userId.value = id;
-        await userController.fetchUserProfile();
-
-        loading.value = false;
-        clearAll();
-
-        if (actualRole == 'admin') {
-          Get.offAllNamed(AppRoutes.adminReport);
+        if (result['success'] == true) {
+          final responseData = result['data'];
+          if (responseData['user']?['role'] == 'admin') {
+            await _processSuccessfulLogin(result, isFirebase: false);
+            Get.offAllNamed(AppRoutes.adminReport);
+          } else {
+            loading.value = false;
+            _showError(
+              'login_error_admin_denied'.tr(),
+              'login_error_admin_denied'.tr(),
+            );
+          }
         } else {
-          Get.offAllNamed(AppRoutes.main);
+          loading.value = false;
+          _showError(
+            'login_error_login_failed'.tr(),
+            result['msg'] ?? 'login_error_login_failed'.tr(),
+          );
         }
-      } else {
+        return;
+      }
+
+      // --- 2. REGULAR USER LOGIN: Firebase + MongoDB Sync ---
+      try {
+        // Step A: Authenticate with Firebase
+        UserCredential userCredential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(
+              email: userEmail,
+              password: userPassword,
+            );
+
+        final User? fbUser = userCredential.user;
+
+        if (fbUser != null) {
+          // Step B: Immediately sync this password to MongoDB using your reset-password logic
+          // We use the 'userPassword' entered in the login form
+          await _syncPasswordToMongo(userEmail, userPassword);
+
+          // Step C: Now login to MongoDB to get the full User Object/Role
+          final result = await _apiService.loginUser(
+            email: userEmail,
+            password: userPassword,
+          );
+
+          if (result['success'] == true) {
+            await _processSuccessfulLogin(result, isFirebase: false);
+            Get.offAllNamed(AppRoutes.main);
+          } else {
+            loading.value = false;
+            _showError('error'.tr(), 'login_error_backend_sync'.tr());
+          }
+        }
+      } on FirebaseAuthException catch (e) {
         loading.value = false;
-        formError.value = result['msg'] ?? 'login_error_login_failed'.tr();
+        _showError(
+          'login_error_login_failed'.tr(),
+          e.message ?? 'login_error_auth_failed'.tr(),
+        );
       }
     } catch (e) {
       loading.value = false;
-      formError.value = 'login_error_connection_failed'.tr();
+      debugPrint("Login Error: $e");
+      _showError('login_error_connection_failed'.tr(), 'error_network'.tr());
     }
+  }
+
+  /// New Helper to call your reset-password endpoint during login
+  Future<void> _syncPasswordToMongo(String email, String newPass) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'newPassword': newPass}),
+      );
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode != 200 || data['success'] != true) {
+        debugPrint("Sync Warning: ${data['msg']}");
+      }
+    } catch (e) {
+      debugPrint("Password sync failed: $e");
+    }
+  }
+
+  // Helper function updated to handle local Firebase data or Backend data
+  Future<void> _processSuccessfulLogin(
+    dynamic result, {
+    required bool isFirebase,
+  }) async {
+    final responseData = result['data'];
+    final prefs = await SharedPreferences.getInstance();
+
+    String id = responseData['user']?['id'] ?? '';
+    String name = responseData['user']?['name'] ?? '';
+    String emailAddr = responseData['user']?['email'] ?? '';
+    String role = responseData['user']?['role'] ?? 'trainee';
+
+    await prefs.setString('user_id', id);
+    await prefs.setString('user_name', name);
+    await prefs.setString('user_email', emailAddr);
+    await prefs.setString('user_role', role);
+    storedName.value = name;
+
+    if (result['token'] != null) {
+      await prefs.setString('auth_token', result['token']);
+    }
+
+    // Update your UserController
+    final userController = Get.find<UserController>();
+    userController.userId.value = id;
+
+    // Only fetch profile from MongoDB if it's an Admin or if you still store extra data there
+    if (!isFirebase) {
+      await userController.fetchUserProfile();
+    }
+
+    loading.value = false;
+    clearAll();
+  }
+
+  void _showError(String title, String msg) {
+    Get.snackbar(
+      title,
+      msg,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(10),
+      borderRadius: 8,
+    );
   }
 
   void onEmailChanged(String value) {

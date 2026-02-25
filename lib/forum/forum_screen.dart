@@ -106,7 +106,7 @@ class _ForumScreenState extends State<ForumScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'Search by name or tags...',
+                    'hint_search'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white54,
                       fontSize: 14,
@@ -202,7 +202,7 @@ class _ForumScreenState extends State<ForumScreen> {
                   ),
                 ),
                 child: Text(
-                  'What\'s on your mind?',
+                  'create_post_hint_input'.tr(),
                   style: GoogleFonts.roboto(
                     color: Colors.white54,
                     fontSize: 14,
@@ -663,8 +663,8 @@ class _ForumScreenState extends State<ForumScreen> {
                 const SizedBox(height: 16),
                 Text(
                   currentlyPinned
-                      ? "Do you want to unpin this post?"
-                      : "Do you want to pin this post?",
+                      ? "forum_dialog_pin_title_pin".tr()
+                      : "forum_dialog_pin_title_unpin".tr(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,

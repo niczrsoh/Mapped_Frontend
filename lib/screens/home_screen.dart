@@ -299,12 +299,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       final currentBeltDef = BeltDefinitions.getByCode(
                         currentBeltCode,
                       );
-                      final String beltName = currentBeltDef.name;
+                      final String beltName = currentBeltDef.name.tr();
                       final Color beltColor = currentBeltDef.color;
 
                       final String nextBeltName =
                           (currentBeltIndex < belts.length - 1)
-                          ? belts[currentBeltIndex + 1].name
+                          ? belts[currentBeltIndex + 1].name.tr()
                           : 'home_lbl_mastery'.tr();
 
                       return Column(
@@ -788,7 +788,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     for (var task in requirement.tasks) {
       int currentValue = _getProgressValue(task, data, requirement);
 
-      String text = "${task.homeLabel}: $currentValue / ${task.target}";
+      String text = "${task.homeLabel.tr()}: $currentValue / ${task.target}";
 
       if (task.type == RequirementType.activeDay) {
         text += 'home_lbl_days'.tr();
@@ -915,7 +915,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   String _getBeltName(String code) {
-    return BeltDefinitions.getByCode(code).name;
+    return BeltDefinitions.getByCode(code).name.tr();
   }
 
   Color _getBeltColor(String code) {

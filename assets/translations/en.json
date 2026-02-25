@@ -655,6 +655,7 @@
   "rec_service_error_server": "Server error occurred",
   "rec_service_error_gen_fail": "Failed to generate recommendation: {status}",
 
+  "resource_ctrl_error_permission_denied": "Only admins can upload resources.",
   "resource_ctrl_error_login_create": "You must be logged in to create resources.",
   "resource_ctrl_error_load_fail": "Failed to load resources ({status})",
   "resource_ctrl_error_parse_fail": "Failed to parse resources data: {error}",

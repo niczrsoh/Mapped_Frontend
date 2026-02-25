@@ -54,7 +54,8 @@ class LanguageScreen extends StatelessWidget {
                         controller.currentLanguage.value == lang['code'];
 
                     return GestureDetector(
-                      onTap: () => controller.changeLanguage(lang['code']!),
+                      onTap: () =>
+                          controller.changeLanguage(context, lang['code']!),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,

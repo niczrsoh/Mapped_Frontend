@@ -16,8 +16,8 @@ class SecurityController extends GetxController {
       if (Get.isRegistered<AccountController>()) {
         final accountController = Get.find<AccountController>();
         accountController.securityMethod.value = value
-            ? 'security_ctrl_method_fingerprint'.tr()
-            : 'security_ctrl_method_none'.tr();
+            ? 'security_ctrl_method_fingerprint'
+            : 'security_ctrl_method_none';
       }
     });
   }

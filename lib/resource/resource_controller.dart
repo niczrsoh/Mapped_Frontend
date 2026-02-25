@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:get/get.dart' hide Trans;
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'resource_model.dart';
 import '../controller/controller/trainer_controller.dart';
@@ -38,6 +39,7 @@ class ResourceController extends GetxController {
   // --- REPORTING STATE ---
   var selectedReason = ''.obs;
   var isReportConfirmed = false.obs;
+  var isAdmin = false.obs;
 
   List<String> get reportReasons => [
     "forum_report_reason_harassment".tr(),
@@ -73,7 +75,7 @@ class ResourceController extends GetxController {
   }
 
   Future<void> _initializeController() async {
-    await _loadCurrentUser();
+    await loadCurrentUser();
     loadResources();
   }
 
@@ -162,10 +164,14 @@ class ResourceController extends GetxController {
     }
   }
 
-  Future<void> _loadCurrentUser() async {
+  Future<void> loadCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       currentUserId = prefs.getString('user_id') ?? '';
+
+      String role =
+          prefs.getString('user_role') ?? prefs.getString('role') ?? 'user';
+      isAdmin.value = (role.trim().toLowerCase() == 'admin');
 
       if (currentUserId.isEmpty) {
         print("Warning: No User ID found. User might be a guest.");
@@ -179,23 +185,13 @@ class ResourceController extends GetxController {
 
   // 1. FETCH RESOURCES
   Future<void> loadResources() async {
+    await loadCurrentUser();
     isLoading.value = true;
     try {
       // Build query parameters for filtering
       // Note: Resources are stored in posts database with category='resource'
       String endpoint = '$baseUrl/api/resources';
-
-      // Add filter parameters
-      List<String> queryParams = [];
-      if (selectedFilter.value != 'All') {
-        queryParams.add('type=${selectedFilter.value}');
-      }
-      // Ensure we only fetch resources (if backend supports this)
-      queryParams.add('category=resource');
-
-      if (queryParams.isNotEmpty) {
-        endpoint += '?${queryParams.join('&')}';
-      }
+      endpoint = '$baseUrl/api/resources?category=resource';
 
       print('📡 Fetching resources from: $endpoint');
       final response = await http
@@ -264,7 +260,9 @@ class ResourceController extends GetxController {
           print('❌ Error parsing response: $e');
           Get.snackbar(
             "error".tr(),
-            "resource_ctrl_error_parse_fail".tr(args: [e.toString()]),
+            "resource_ctrl_error_parse_fail".tr(
+              namedArgs: {'error': e.toString()},
+            ),
           );
         }
       } else if (response.statusCode == 404) {
@@ -277,7 +275,7 @@ class ResourceController extends GetxController {
         Get.snackbar(
           "error".tr(),
           "resource_ctrl_error_load_fail".tr(
-            args: [response.statusCode.toString()],
+            namedArgs: {'status': response.statusCode.toString()},
           ),
         );
       }
@@ -285,7 +283,7 @@ class ResourceController extends GetxController {
       print("❌ Error loading resources: $e");
       Get.snackbar(
         "error".tr(),
-        "resource_ctrl_error_connection".tr(args: [e.toString()]),
+        "resource_ctrl_error_connection".tr(namedArgs: {'error': e.toString()}),
       );
     } finally {
       isLoading.value = false;
@@ -325,6 +323,11 @@ class ResourceController extends GetxController {
     String? videoUrl,
     List<String>? imagePaths,
   }) async {
+    if (!isAdmin.value) {
+      Get.snackbar("error".tr(), "resource_ctrl_error_permission_denied".tr());
+      return false;
+    }
+
     if (currentUserId.isEmpty) {
       Get.snackbar("error".tr(), "resource_ctrl_error_login_create".tr());
       return false;
@@ -389,7 +392,7 @@ class ResourceController extends GetxController {
       print('Create resource error: $e');
       Get.snackbar(
         "error".tr(),
-        "resource_ctrl_error_connection".tr(args: [e.toString()]),
+        "error_connection".tr(namedArgs: {'error': e.toString()}),
       );
       return false;
     }
@@ -430,7 +433,7 @@ class ResourceController extends GetxController {
     } catch (e) {
       Get.snackbar(
         "error".tr(),
-        "resource_ctrl_error_connection".tr(args: [e.toString()]),
+        "error_connection".tr(namedArgs: {'error': e.toString()}),
       );
       return false;
     }
@@ -461,7 +464,7 @@ class ResourceController extends GetxController {
     } catch (e) {
       Get.snackbar(
         "error".tr(),
-        "resource_ctrl_error_connection".tr(args: [e.toString()]),
+        "error_connection".tr(namedArgs: {'error': e.toString()}),
       );
       return false;
     }
@@ -478,7 +481,8 @@ class ResourceController extends GetxController {
         case 'Images':
           return resource.resourceType == 'image';
         case 'Videos':
-          return resource.resourceType == 'video';
+          // Videos tab should show link resources (same as Links tab)
+          return resource.resourceType == 'link';
         case 'Links':
           return resource.resourceType == 'link';
         default:
