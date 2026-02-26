@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:mapped_frontend/password/reset_password_controller.dart';
-import '../global/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/password/reset_password_controller.dart';
 
-class ResetPasswordScreen extends StatefulWidget {
+class ResetPasswordScreen extends StatelessWidget {
   const ResetPasswordScreen({super.key});
 
-  @override
-  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
-}
-
-class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  // Fetching the existing controller instance
-  final ResetPasswordController controller = Get.put(ResetPasswordController());
-
+  // Use Get.put or Get.find depending on how you navigate here
+  // If navigating via Get.to(), Get.put initializes it.
   InputDecoration _inputDecoration(String hint) => InputDecoration(
     hintText: hint,
     hintStyle: const TextStyle(color: Colors.white70),
@@ -33,39 +25,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     ),
   );
 
-  Future<void> _sendReset() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) return;
-
-    // Syncing UI controller with GetX logic controller
-    controller.emailController.text = email;
-
-    // Executes the backend call
-    await controller.sendResetEmail();
-
-    // Only navigate if there is no error message
-    if (controller.errorMessage.isEmpty) {
-      // Pass the email to the Verification screen so it can be used for the OTP call
-      Get.toNamed(AppRoutes.verificationCode, arguments: email);
-    }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Injecting the controller
+    final ResetPasswordController controller = Get.put(ResetPasswordController());
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background
           Positioned.fill(child: Container(color: const Color(0xFF141823))),
 
-          // Navigation Bar (Back arrow + Login)
+          // Back Button & Label
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             left: 12,
@@ -91,7 +62,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
           ),
 
-          // Header Text
+          // Header
           Positioned(
             top: 147.0,
             left: 44.0,
@@ -105,7 +76,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
           ),
 
-          // Description Text
+          // Subtitle
           Positioned(
             top: 204.0,
             left: 44.0,
@@ -122,14 +93,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
           ),
 
-          // Input Field
+          // Email Input Field
           Positioned(
             top: 328.0,
             left: 39.0,
             child: SizedBox(
               width: 304.0,
               child: TextField(
-                controller: _emailController,
+                // FIXED: Using controller's emailController
+                controller: controller.emailController,
                 style: const TextStyle(color: Colors.white),
                 cursorColor: const Color(0xFF00C7A7),
                 decoration: _inputDecoration('email'.tr()),
@@ -138,45 +110,45 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
           ),
 
-          // Reset Password Action Button
+          // Reset Button
           Positioned(
             top: 405.0,
             left: 38.0,
             child: SizedBox(
               width: 303.0,
               height: 48.0,
-              child: Obx(
-                () => ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
+              child: Obx(() => ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
                     ),
-                  ),
-                  onPressed: controller.isLoading.value ? null : _sendReset,
-                  child: controller.isLoading.value
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
-                            strokeWidth: 2,
+                    onPressed: controller.isLoading.value 
+                        ? null 
+                        : () => controller.sendResetEmail(),
+                    child: controller.isLoading.value
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Reset Email',
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        )
-                      : Text(
-                          'reset_password_btn_action'.tr(),
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                ),
-              ),
+                  )),
             ),
           ),
 
-          // Reactive Error Message
+          // Error Message Display
           Positioned(
             top: 470.0,
             left: 44.0,

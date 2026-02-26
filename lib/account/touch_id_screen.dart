@@ -3,14 +3,31 @@ import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/controller/controller/login_controller.dart';
 
-class TouchIdScreen extends StatelessWidget {
+class TouchIdScreen extends StatefulWidget {
   const TouchIdScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Initialize/Find the controller
-    final LoginController controller = Get.put(LoginController());
+  State<TouchIdScreen> createState() => _TouchIdScreenState();
+}
 
+class _TouchIdScreenState extends State<TouchIdScreen> {
+  final LoginController controller = Get.find<LoginController>();
+  bool _isLoading = false;
+
+  Future<void> _handleBiometricLogin() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+    try {
+      await controller.loginWithBiometrics();
+    } catch (e) {
+      Get.snackbar('Error', 'Biometric authentication failed');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F1219),
       appBar: AppBar(
@@ -47,18 +64,19 @@ class TouchIdScreen extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               child: Center(
                 child: Container(
-                  width: 140,
-                  height: 140,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.05),
                     border: Border.all(
-                      color: controller.isAuthenticating.value ? Colors.teal : Colors.white10, 
-                      width: 2
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.teal.withOpacity(controller.isAuthenticating.value ? 0.3 : 0.0),
-                        blurRadius: 40,
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 20,
                         spreadRadius: 5,
                       ),
                     ],

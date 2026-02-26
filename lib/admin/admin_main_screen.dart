@@ -3,6 +3,7 @@ import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/admin/admin_account_screen.dart';
 import 'package:mapped_frontend/admin/admin_screen.dart';
+import 'package:mapped_frontend/admin/admin_resource.dart';
 
 class AdminMainScreen extends StatelessWidget {
   AdminMainScreen({super.key});
@@ -11,6 +12,7 @@ class AdminMainScreen extends StatelessWidget {
 
   final List<Widget> _screens = [
     AdminManageUsersScreen(), // The content screen below
+     AdminResource(),
     const AdminAccountScreen(),
   ];
 
@@ -32,7 +34,8 @@ class AdminMainScreen extends StatelessWidget {
               icon: const Icon(Icons.security),
               label: 'admin_main_nav_report'.tr(),
             ),
-            BottomNavigationBarItem(
+            BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Resource'),
+          BottomNavigationBarItem(
               icon: const Icon(Icons.account_circle),
               label: 'admin_main_nav_account'.tr(),
             ),

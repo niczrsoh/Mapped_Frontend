@@ -237,6 +237,7 @@ class _ResourceDetailScreenState extends State<ResourceDetailScreen> {
               // 3. Content
               Text(
                 _getContentWithoutTags(widget.resource.content),
+                textAlign: TextAlign.justify,
                 style: GoogleFonts.inter(
                   fontSize: 15,
                   height: 1.5,

@@ -105,19 +105,6 @@ class AccountScreen extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-
-          SizedBox(height: 4),
-
-          // Member since
-          if (headerData.formattedCreatedDate.isNotEmpty)
-            Text(
-              headerData.formattedCreatedDate,
-              style: GoogleFonts.roboto(
-                fontWeight: FontWeight.w300,
-                fontSize: 12,
-                color: Colors.white.withOpacity(0.8),
-              ),
-            ),
         ],
       ),
     );
@@ -363,10 +350,12 @@ class _TextSizeBottomSheetState extends State<TextSizeBottomSheet> {
               // Cancel Button
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {
+                  onPressed: () async{
                     // Revert to original scale if cancelled
                     textSizeController.textScale.value = _originalScale;
                     Get.back();
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    Get.offAllNamed(AppRoutes.main);
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF09FACA)),

@@ -1,137 +1,98 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapped_frontend/global/routes.dart';
 
 class ResetPasswordController extends GetxController {
-  // Text Editing Controllers for UI fields
   final emailController = TextEditingController();
-  final otpController = TextEditingController();
-  final newPasswordController = TextEditingController();
-
+  
   // Observable states
   final isLoading = false.obs;
   final errorMessage = "".obs;
-
-  final String baseUrl =
-      "https://mapped-backend-node-js.onrender.com/api/users";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
 
   Future<void> sendResetEmail() async {
-    final email = emailController.text.trim();
-    if (!_validateEmail(email)) return;
+    String email = emailController.text.trim();
 
-    try {
-      isLoading.value = true;
-      errorMessage.value = "";
+    if (email.isNotEmpty && !GetUtils.isEmail(email)) {
+      try {
+        isLoading.value = true;
+        errorMessage.value = "";
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/forgot-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        // Move to the OTP input screen (CheckMail)
-        Get.toNamed(AppRoutes.checkMail, arguments: email);
-      } else {
-        errorMessage.value =
-            data['msg'] ?? "reset_pwd_ctrl_error_send_failed".tr();
-      }
-    } catch (e) {
-      errorMessage.value = "reset_pwd_ctrl_error_connection".tr();
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> verifyOtp() async {
-    final email = Get.arguments;
-    final otp = otpController.text.trim();
-
-    // Changed from 6 to 4 to match your new backend logic
-    if (otp.length < 4) {
-      errorMessage.value = "verify_code_error_incomplete".tr();
-      return;
-    }
-
-    try {
-      isLoading.value = true;
-      errorMessage.value = "";
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/verify-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'otp': otp}),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        // SUCCESS: Move to next screen (Replace with your route)
-        // Get.toNamed(AppRoutes.newPassword, arguments: {'email': email, 'otp': otp});
-        Get.toNamed(
-          AppRoutes.createNewPassword,
-          arguments: {'email': email, 'otp': otp},
+        final response = await http.post(
+          Uri.parse('$baseUrl/forgot-password'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'identifier': email}), 
         );
-        Get.snackbar("success".tr(), "verify_code_success_verified".tr());
-      } else {
-        errorMessage.value = data['msg'] ?? "verify_code_error_invalid".tr();
+
+        final data = jsonDecode(response.body);
+
+        if (response.statusCode == 200 && data['success'] == true) {
+          email = data['email']; 
+          emailController.text = email; 
+        } else {
+          errorMessage.value = data['msg'] ?? "User not found.";
+          isLoading.value = false;
+          return; 
+        }
+      } catch (e) {
+        errorMessage.value = "Backend connection failed.";
+        isLoading.value = false;
+        return;
       }
-    } catch (e) {
-      errorMessage.value = "verify_code_error_verification_failed".tr();
-    } finally {
-      isLoading.value = false;
     }
-  }
 
-  Future<void> resetPassword() async {
-    final email = Get.arguments;
-    final otp = otpController.text.trim();
-    final newPass = newPasswordController.text.trim();
-
-    if (newPass.length < 8) {
-      errorMessage.value = "reset_pwd_ctrl_error_password_length".tr();
+    if (!_validateEmail(email)) {
+      // Stop loading if validation fails
+      isLoading.value = false; 
       return;
     }
 
-    try {
-      isLoading.value = true;
-      errorMessage.value = "";
+    isLoading.value = true;
+    errorMessage.value = "";
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/reset-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'otp': otp, 'newPassword': newPass}),
+    try {
+      // 1. Firebase handles the email delivery
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      // 3. Show Success Feedback
+      Get.snackbar(
+        "Success",
+        "A reset link has been sent to your email.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF00C7A7),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(15),
       );
 
-      final data = jsonDecode(response.body);
+      Future.delayed(const Duration(seconds: 2), () => Get.back());
 
-      if (response.statusCode == 200 && data['success'] == true) {
-        // Password changed! Go back to login
-        Get.offAllNamed(AppRoutes.login);
-        Get.snackbar("success".tr(), "reset_pwd_ctrl_success_reset".tr());
-      } else {
-        errorMessage.value =
-            data['msg'] ?? "reset_pwd_ctrl_error_reset_failed".tr();
-      }
+    } on FirebaseAuthException catch (e) {
+      errorMessage.value = e.message ?? "An error occurred";
     } catch (e) {
-      errorMessage.value = "reset_pwd_ctrl_error_update_failed".tr();
+      errorMessage.value = "An unexpected error occurred.";
     } finally {
       isLoading.value = false;
     }
   }
-
-  // Helper validation
+  // --- HELPER VALIDATION ---
   bool _validateEmail(String email) {
-    if (email.isEmpty) return false;
+    if (email.isEmpty) {
+      errorMessage.value = "Please enter your email address.";
+      return false;
+    }
     if (!GetUtils.isEmail(email)) {
-      errorMessage.value = "reset_pwd_ctrl_error_email_invalid".tr();
+      errorMessage.value = "Enter a valid email address.";
       return false;
     }
     return true;
+  }
+
+  @override
+  void onClose() {
+    emailController.dispose();
+    super.onClose();
   }
 }

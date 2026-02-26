@@ -190,6 +190,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
     return BeltDefinitions.getByName(beltName).assetPath;
   }
 
+
   @override
   Widget build(BuildContext context) {
     final themeBg = ColorConstant.themeBg;
@@ -538,10 +539,11 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                     // Call to Action
                     Center(
                       child: Text(
-                        'belt_prog_cta_ready'.tr(),
+                        "Need help? Visit our online course to learn more about inclusive practice in martial arts.",
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
-                          color: Colors.white54,
-                          fontSize: 12,
+                        color: Colors.white54,
+                        fontSize: 12,
                         ),
                       ),
                     ),

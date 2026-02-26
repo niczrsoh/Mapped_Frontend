@@ -885,34 +885,34 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
                                           focusNode: _beltFocus,
                                           fieldKey: 'belt',
                                           readOnly: true,
-                                          onTap: () async {
-                                            final result = await Get.to(
-                                              () => TraineeProgressScreen(
-                                                traineeId: widget.trainee['id']
-                                                    .toString(),
-                                                traineeName: _nameCtrl.text,
-                                                currentBelt: _beltCtrl.text,
-                                                initialPendingUpdates:
-                                                    _pendingProgressUpdates,
-                                              ),
-                                            );
+                                          // onTap: () async {
+                                          //   final result = await Get.to(
+                                          //     () => TraineeProgressScreen(
+                                          //       traineeId: widget.trainee['id']
+                                          //           .toString(),
+                                          //       traineeName: _nameCtrl.text,
+                                          //       currentBelt: _beltCtrl.text,
+                                          //       initialPendingUpdates:
+                                          //           _pendingProgressUpdates,
+                                          //     ),
+                                          //   );
 
-                                            if (result != null &&
-                                                result is Map) {
-                                              setState(() {
-                                                result.forEach((key, value) {
-                                                  if (key is String &&
-                                                      value is Map) {
-                                                    _pendingProgressUpdates[key] =
-                                                        Map<
-                                                          String,
-                                                          dynamic
-                                                        >.from(value);
-                                                  }
-                                                });
-                                              });
-                                            }
-                                          },
+                                          //   if (result != null &&
+                                          //       result is Map) {
+                                          //     setState(() {
+                                          //       result.forEach((key, value) {
+                                          //         if (key is String &&
+                                          //             value is Map) {
+                                          //           _pendingProgressUpdates[key] =
+                                          //               Map<
+                                          //                 String,
+                                          //                 dynamic
+                                          //               >.from(value);
+                                          //         }
+                                          //       });
+                                          //     });
+                                          //   }
+                                          // },
                                         ),
                                       ),
                                     ],

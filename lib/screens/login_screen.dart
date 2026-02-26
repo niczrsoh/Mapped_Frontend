@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/account/touch_id_screen.dart';
 import 'package:mapped_frontend/controller/controller/login_controller.dart';
-import 'package:mapped_frontend/screens/touch_id_screen.dart';
 import '../global/routes.dart';
 
 class LoginScreen extends GetView<LoginController> {
@@ -110,7 +110,7 @@ class LoginScreen extends GetView<LoginController> {
                       label: "login".tr(),
                       onPressed: () => controller.login(),
                       isLoading: controller.loading.value,
-                    ),
+                    )),
 
                     const SizedBox(height: 15),
 

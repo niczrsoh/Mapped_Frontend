@@ -7,9 +7,9 @@ import 'package:mapped_frontend/password/reset_password_controller.dart';
 class VerificationCodeScreen extends StatefulWidget {
   const VerificationCodeScreen({super.key});
 
-  @override
-  State<VerificationCodeScreen> createState() => _VerificationCodeScreenState();
-}
+//   @override
+//   State<VerificationCodeScreen> createState() => _VerificationCodeScreenState();
+// }
 
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   final List<TextEditingController> _controllers = List.generate(
@@ -18,13 +18,13 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   );
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNodes[0].requestFocus();
-    });
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     WidgetsBinding.instance.addPostFrameCallback((_) {
+//       _focusNodes[0].requestFocus();
+//     });
+//   }
 
   @override
   void dispose() {
@@ -37,11 +37,11 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     super.dispose();
   }
 
-  // Combines individual box values and updates the GetX controller
-  void _syncOtpToController(ResetPasswordController controller) {
-    String code = _controllers.map((c) => c.text).join();
-    controller.otpController.text = code;
-  }
+//   // Combines individual box values and updates the GetX controller
+//   void _syncOtpToController(ResetPasswordController controller) {
+//     String code = _controllers.map((c) => c.text).join();
+//     controller.otpController.text = code;
+//   }
 
   void _handleSubmit(ResetPasswordController controller) {
     _syncOtpToController(controller);
@@ -60,10 +60,10 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // 1. Link the controller
-    final controller = Get.find<ResetPasswordController>();
+//   @override
+//   Widget build(BuildContext context) {
+//     // 1. Link the controller
+//     final controller = Get.find<ResetPasswordController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1C),
@@ -135,7 +135,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                       : const SizedBox.shrink(),
                 ),
 
-                const SizedBox(height: 40),
+//                 const SizedBox(height: 40),
 
                 // Submit Button
                 SizedBox(

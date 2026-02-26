@@ -4,8 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/password/reset_password_controller.dart';
 
-class CreateNewPasswordScreen extends StatefulWidget {
-  const CreateNewPasswordScreen({super.key});
+// class CreateNewPasswordScreen extends StatefulWidget {
+//   const CreateNewPasswordScreen({super.key});
 
   @override
   State<CreateNewPasswordScreen> createState() =>
@@ -19,11 +19,11 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  @override
-  void dispose() {
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     _confirmPasswordController.dispose();
+//     super.dispose();
+//   }
 
   // Helper for consistent styling
   InputDecoration _inputStyle(
@@ -52,9 +52,9 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
     ),
   );
 
-  void _handleSubmit() {
-    final newPass = controller.newPasswordController.text.trim();
-    final confirmPass = _confirmPasswordController.text.trim();
+//   void _handleSubmit() {
+//     final newPass = controller.newPasswordController.text.trim();
+//     final confirmPass = _confirmPasswordController.text.trim();
 
     if (newPass.isEmpty || confirmPass.isEmpty) {
       controller.errorMessage.value = "create_new_pwd_error_empty".tr();
@@ -71,9 +71,9 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
       return;
     }
 
-    // Call the controller function
-    controller.resetPassword();
-  }
+//     // Call the controller function
+//     controller.resetPassword();
+//   }
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +149,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                 style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12),
               ),
 
-              const SizedBox(height: 25),
+//               const SizedBox(height: 25),
 
               // Confirm Password Field
               Text(
@@ -178,7 +178,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                 style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12),
               ),
 
-              const SizedBox(height: 40),
+//               const SizedBox(height: 40),
 
               // Error Message
               Obx(

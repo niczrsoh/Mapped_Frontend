@@ -21,7 +21,6 @@ class ApiService {
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode({
           'name': fullName,
-          'name': fullName,
           'email': email,
           'password': password,
         }),

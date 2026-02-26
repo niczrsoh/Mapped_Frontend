@@ -153,123 +153,104 @@ class RegisterController extends GetxController {
 
     loading.value = true;
     error.value = '';
-
-    final String userFullName = fullName.value.trim();
-    final String userEmail = email.value.trim();
-    final String userPassword = password.value;
-
-    // Call API Service
-    final result = await _apiService.registerUser(
-      fullName: userFullName,
-      email: userEmail,
-      password: userPassword,
-    );
-
-    loading.value = false;
-
-    if (result['success']) {
+      // Clear all errors first
+      fullNameError.value = '';
+      emailError.value = '';
+      passwordError.value = '';
+      passwordConfirmationError.value = '';
+      error.value = '';
+    
+      loading.value = true;
       error.value = '';
 
-      // Show success dialog
-      Get.dialog(
-        AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          backgroundColor: Color(0xFF1a1f2e),
-          content: Container(
-            padding: EdgeInsets.all(0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xFF00C7A7).withOpacity(0.2),
-                  ),
-                  child: Icon(
-                    Icons.check_circle,
-                    color: Color(0xFF00C7A7),
-                    size: 40,
-                  ),
-                ),
-                SizedBox(height: 20),
+      final String userFullName = fullName.value.trim();
+      final String userEmail = email.value.trim();
+      final String userPassword = password.value;
 
-                Text(
-                  'register_dialog_success_title'.tr(),
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 8),
+      try {
+        // 1. STEP ONE: Create the user in your Backend (MongoDB)
+        final result = await _apiService.registerUser(
+          fullName: userFullName,
+          email: userEmail,
+          password: userPassword,
+        );
 
-                Text(
-                  'register_dialog_success_msg1'.tr(),
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 4),
+        if (result['success']) {
+          
+          // 2. STEP TWO: Store the user in Firebase so Reset Email works later
+          try {
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+              email: userEmail,
+              password: userPassword,
+            );
+            // Optional: Update Firebase display name to match MongoDB
+            await FirebaseAuth.instance.currentUser?.updateDisplayName(userFullName);
+          } on FirebaseAuthException catch (e) {
+            // If the user already exists in Firebase but not MongoDB, we handle it
+            if (e.code != 'email-already-in-use') {
+              print("Firebase Sync Error: ${e.message}");
+            }
+          }
 
-                Text(
-                  'register_dialog_success_msg2'.tr(),
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16),
-
-                Text(
-                  'register_dialog_success_msg3'.tr(),
-                  style: TextStyle(fontSize: 14, color: Colors.white54),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 4),
-
-                Text(
-                  'register_dialog_success_msg4'.tr(),
-                  style: TextStyle(fontSize: 14, color: Colors.white54),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 30),
-
-                // OK Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF00C7A7),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          loading.value = false;
+          error.value = '';
+          
+          // 3. STEP THREE: Show success dialog
+          Get.dialog(
+            AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              backgroundColor: const Color(0xFF1a1f2e),
+              content: Container(
+                padding: const EdgeInsets.all(0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 60, height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF00C7A7).withOpacity(0.2),
+                      ),
+                      child: const Icon(Icons.check_circle, color: Color(0xFF00C7A7), size: 40),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Congrats!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const SizedBox(height: 8),
+                    const Text('Your account has been\nsuccessfully created.', style: TextStyle(fontSize: 16, color: Colors.white70), textAlign: TextAlign.center),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00C7A7),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          Get.back();
+                          Get.offAllNamed(AppRoutes.login);
+                        },
+                        child: const Text('OK', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                       ),
                     ),
-                    onPressed: () {
-                      Get.back();
-                      Get.offAllNamed(AppRoutes.login);
-                    },
-                    child: Text(
-                      'ok'.tr(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-        barrierDismissible: false,
-      );
-    } else {
-      // Display the error message from the backend
-      error.value = result['error'] ?? 'register_error_unknown'.tr();
-    }
+            barrierDismissible: false,
+          );
+          
+        } else {
+          loading.value = false;
+          error.value = result['error'] ?? 'An unknown error occurred.';
+        }
+      } catch (e) {
+        loading.value = false;
+        error.value = "An unexpected error occurred during registration.";
+        print("Registration Error: $e");
+      }
   }
 
   Future<void> registerWithGoogle() async {

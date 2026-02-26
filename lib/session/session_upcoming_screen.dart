@@ -5,11 +5,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'session_controller.dart';
 import 'session_planner.dart';
 import 'session_model.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
 class UpcomingSessionsScreen extends StatelessWidget {
   const UpcomingSessionsScreen({super.key});
 
   Widget _upcomingRow({required SessionModel sessionData}) {
+    final userController = Get.find<UserController>();
+    
     final date = sessionData.uiDate ?? sessionData.date ?? '-';
     final timeStr = () {
       final d = sessionData.duration;
@@ -20,9 +23,8 @@ class UpcomingSessionsScreen extends StatelessWidget {
     }();
 
     final venue = sessionData.venue ?? '-';
-    final trainees =
-        '${sessionData.totalTrainees ?? 0} ' + 'session_lbl_trainees'.tr();
-    final trainer = sessionData.trainer ?? '-';
+    final trainees = '${sessionData.totalTrainees ?? 0} Trainees';
+    final trainer = userController.userName;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),

@@ -7,6 +7,7 @@ import 'session_details.dart';
 import 'session_reflect.dart';
 import 'session_model.dart';
 import 'session_reflect_preview.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
 class SessionHistoryScreen extends StatelessWidget {
   const SessionHistoryScreen({super.key});
@@ -234,6 +235,7 @@ class SessionHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SessionController controller = Get.put(SessionController());
+    final UserController userController = Get.find<UserController>();
     final themeBg = const Color(0xFF141823);
 
     return Scaffold(
@@ -362,11 +364,8 @@ class SessionHistoryScreen extends StatelessWidget {
                                           controller.historyList[i].venue ??
                                           '-',
                                       trainees:
-                                          '${controller.historyList[i].totalTrainees} ' +
-                                          'session_lbl_trainees'.tr(),
-                                      trainer:
-                                          controller.historyList[i].trainer ??
-                                          '-',
+                                          '${controller.historyList[i].totalTrainees} Trainees',
+                                      trainer: userController.userName,
                                       sessionData: controller.historyList[i],
                                     ),
                                     if (i < controller.historyList.length - 1)

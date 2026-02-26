@@ -7,6 +7,7 @@ import 'session_current_screen.dart';
 import 'session_history_screen.dart';
 import 'session_controller.dart';
 import 'session_model.dart';
+import 'package:mapped_frontend/controller/user_controller';
 
 class SessionDashboardScreen extends StatelessWidget {
   const SessionDashboardScreen({super.key});
@@ -133,6 +134,8 @@ class SessionDashboardScreen extends StatelessWidget {
     required Widget Function() navigationTarget,
     double maxHeight = 105,
   }) {
+
+    final userController = Get.find<UserController>();
     bool isEmpty = sessions.isEmpty;
 
     return Container(
@@ -219,7 +222,7 @@ class SessionDashboardScreen extends StatelessWidget {
                               trainees:
                                   '${session.totalTrainees} ${'participants'.tr()}',
                               trainer:
-                                  '${'coachbot_ctrl_fallback_name'.tr()}: Sir ${session.trainer ?? '-'}',
+                                  '${'coachbot_ctrl_fallback_name'.tr()}: Sir ${userController.userName}',
                             ),
                           ),
                         );

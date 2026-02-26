@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:get/get.dart';
-import '../global/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+// Route names – adjust if you have a global routes file
+class AppRoutes {
+  static const String welcome = '/welcome';
+  static const String onboarding = '/onboarding';
+  static const String register = '/register';
+  static const String login = '/login';
+}
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,22 +33,22 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
 
     _glowController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
 
     _fadeController = AnimationController(
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
     _circleController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
     _textController = AnimationController(
-      duration: Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
@@ -49,36 +56,36 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _startSplashSequence() async {
-    // Stage 0: Glowing map pin logo (Splash 1)
+    // Stage 0: Glowing map pin logo
     setState(() => _currentStage = 0);
     _fadeController.forward();
-    await Future.delayed(Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 2000));
     await _fadeController.reverse();
 
-    // Stage 1: Martial artist silhouette (Splash 2)
+    // Stage 1: Martial artist silhouette
     setState(() => _currentStage = 1);
     _fadeController.forward();
-    await Future.delayed(Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 2000));
     await _fadeController.reverse();
 
-    // Stage 2: "Explore with MAPPED" circle (Splash 3)
+    // Stage 2: "Explore with MAPPED" animated circle
     setState(() => _currentStage = 2);
     _fadeController.forward();
     _circleController.forward();
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
     _textController.forward();
-    await Future.delayed(Duration(milliseconds: 2000));
+    await Future.delayed(const Duration(milliseconds: 2000));
     await _fadeController.reverse();
     _circleController.reset();
     _textController.reset();
 
-    // Stage 3: Welcome text fade in (Splash 4)
+    // Stage 3: Welcome text fade in
     setState(() => _currentStage = 3);
     _fadeController.forward();
-    await Future.delayed(Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1500));
     await _fadeController.reverse();
 
-    // Navigate to Splash 5 (Start/Login page)
+    // Navigate to the WelcomeScreen
     if (mounted) {
       Get.offNamed(AppRoutes.welcome);
     }
@@ -101,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0a4d3c), Color(0xFF1a1f2e), Color(0xFF0f1419)],
+            colors: const [Color(0xFF0a4d3c), Color(0xFF1a1f2e), Color(0xFF0f1419)],
           ),
         ),
         child: Center(
@@ -127,7 +134,7 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  // Splash 1: Glowing background with your image
+  // Splash 1: Glowing map pin
   Widget _buildGlowingMapPin() {
     return AnimatedBuilder(
       animation: _glowController,
@@ -135,38 +142,34 @@ class _SplashScreenState extends State<SplashScreen>
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Animated glow effect
+            // Animated glow
             Container(
-              width: 280,
-              height: 280,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Color(
-                      0xFF00D9B5,
-                    ).withValues(alpha: 0.5 + _glowController.value * 0.3),
-                    Color(
-                      0xFF00D9B5,
-                    ).withValues(alpha: 0.2 + _glowController.value * 0.2),
-                    Color(0xFF00D9B5).withValues(alpha: 0.05),
+                    const Color(0xFF00D9B5).withValues(alpha: 0.5 + _glowController.value * 0.3),
+                    const Color(0xFF00D9B5).withValues(alpha: 0.2 + _glowController.value * 0.2),
+                    const Color(0xFF00D9B5).withValues(alpha: 0.05),
                     Colors.transparent,
                   ],
-                  stops: [0.0, 0.3, 0.6, 1.0],
+                  stops: const [0.0, 0.3, 0.6, 1.0],
                 ),
               ),
             ),
-            // Your image
+            // Image asset
             Image.asset(
               'assets/images/splash1.png',
-              width: 220,
-              height: 220,
+              width: 50,
+              height: 50,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return Icon(
                   Icons.location_on,
                   size: 100,
-                  color: Color(0xFF00D9B5),
+                  color: const Color(0xFF00D9B5),
                 );
               },
             ),
@@ -176,7 +179,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  // Splash 2: Your image with fade effect
+  // Splash 2: Martial artist silhouette
   Widget _buildMartialArtistSilhouette() {
     return Image.asset(
       'assets/images/splash2.png',
@@ -187,7 +190,7 @@ class _SplashScreenState extends State<SplashScreen>
         return Icon(
           Icons.sports_martial_arts,
           size: 150,
-          color: Color(0xFF2d4a5c).withValues(alpha: 0.6),
+          color: const Color(0xFF2d4a5c).withValues(alpha: 0.6),
         );
       },
     );
@@ -202,10 +205,10 @@ class _SplashScreenState extends State<SplashScreen>
           animation: _circleController,
           builder: (context, child) {
             return CustomPaint(
-              size: Size(240, 240),
+              size: const Size(240, 240),
               painter: AnimatedCirclePainter(
                 progress: _circleController.value,
-                color: Color(0xFF00D9B5),
+                color: const Color(0xFF00D9B5),
               ),
             );
           },
@@ -223,7 +226,7 @@ class _SplashScreenState extends State<SplashScreen>
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 'MAPPED',
                 style: GoogleFonts.deliusSwashCaps(
@@ -242,7 +245,10 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// Map Pin Painter
+// ------------------------------------------------------------
+// Custom painters used in the splash screen
+// ------------------------------------------------------------
+
 class MapPinPainter extends CustomPainter {
   final double glowIntensity;
 
@@ -251,13 +257,13 @@ class MapPinPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Color(0xFF00D9B5).withValues(alpha: glowIntensity)
+      ..color = const Color(0xFF00D9B5).withValues(alpha: glowIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
 
     final fillPaint = Paint()
-      ..color = Color(0xFF00D9B5).withValues(alpha: glowIntensity * 0.2)
+      ..color = const Color(0xFF00D9B5).withValues(alpha: glowIntensity * 0.2)
       ..style = PaintingStyle.fill;
 
     final centerX = size.width / 2;
@@ -287,9 +293,9 @@ class MapPinPainter extends CustomPainter {
     canvas.drawPath(path, fillPaint);
     canvas.drawPath(path, paint);
 
-    // Martial artist icon inside
+    // Simple martial artist figure inside the pin
     final iconPaint = Paint()
-      ..color = Color(0xFF00D9B5).withValues(alpha: glowIntensity)
+      ..color = const Color(0xFF00D9B5).withValues(alpha: glowIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
@@ -315,12 +321,11 @@ class MapPinPainter extends CustomPainter {
       oldDelegate.glowIntensity != glowIntensity;
 }
 
-// Kick Silhouette Painter
 class KickSilhouettePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Color(0xFF2d4a5c).withValues(alpha: 0.6)
+      ..color = const Color(0xFF2d4a5c).withValues(alpha: 0.6)
       ..style = PaintingStyle.fill;
 
     final cx = size.width / 2;
@@ -329,7 +334,7 @@ class KickSilhouettePainter extends CustomPainter {
     // Head
     canvas.drawCircle(Offset(cx - 30, cy - 70), 28, paint);
 
-    // Body and limbs
+    // Body and limbs (simplified)
     final bodyPath = Path();
     bodyPath.moveTo(cx - 30, cy - 42);
     bodyPath.lineTo(cx - 60, cy);
@@ -362,7 +367,6 @@ class KickSilhouettePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// Animated Circle Painter
 class AnimatedCirclePainter extends CustomPainter {
   final double progress;
   final Color color;
@@ -394,7 +398,9 @@ class AnimatedCirclePainter extends CustomPainter {
       oldDelegate.progress != progress;
 }
 
-// SPLASH 5: Welcome Screen with Image Background
+// ------------------------------------------------------------
+// Welcome Screen (Splash 5)
+// ------------------------------------------------------------
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -403,19 +409,18 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image - Full screen
+          // Full‑screen background image
           Positioned.fill(
             child: Image.asset(
-              'assets/images/welcome.jpg', // Your image
+              'assets/images/welcome.jpg',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                // Fallback gradient if image not found
                 return Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
+                      colors: const [
                         Color(0xFF0a4d3c),
                         Color(0xFF1a1f2e),
                         Color(0xFF0f1419),
@@ -427,7 +432,7 @@ class WelcomeScreen extends StatelessWidget {
             ),
           ),
 
-          // Optional: Dark overlay for better text visibility
+          // Semi‑transparent overlay for better text contrast
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -444,25 +449,24 @@ class WelcomeScreen extends StatelessWidget {
           // Content
           SafeArea(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.end, // Push content to bottom
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   // Title with gradient
                   ShaderMask(
                     shaderCallback: (bounds) => LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFF0A5848), // #0A5848 at 0%
-                        Color(0xFF09FACA), // #09FACA at 100%
+                      colors: const [
+                        Color(0xFF0A5848),
+                        Color(0xFF09FACA),
                       ],
-                      stops: [0.0, 1.0],
+                      stops: const [0.0, 1.0],
                     ).createShader(bounds),
-                    child: Text(
+                    child: const Text(
                       'MAPPED',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'NicoMoji',
                         fontSize: 48,
                         fontWeight: FontWeight.w800,
@@ -473,7 +477,7 @@ class WelcomeScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
                   // Subtitle
                   Text(
@@ -481,36 +485,33 @@ class WelcomeScreen extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFF00FAFE),
+                      color: const Color(0xFF00FAFE),
                       height: 1.0,
                       letterSpacing: 0,
                     ),
                     textAlign: TextAlign.center,
                   ),
 
-                  SizedBox(height: 60),
+                  const SizedBox(height: 60),
 
-                  // Buttons Row
+                  // Buttons row
                   Row(
                     children: [
-                      // Start Button
                       Expanded(
                         child: SizedBox(
                           height: 55,
                           child: ElevatedButton(
                             onPressed: () {
-                              Get.toNamed('/onboarding');
+                              Get.toNamed(AppRoutes.onboarding);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF00D9B5),
+                              backgroundColor: const Color(0xFF00D9B5),
                               foregroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               elevation: 8,
-                              shadowColor: Color(
-                                0xFF00D9B5,
-                              ).withValues(alpha: 0.5),
+                              shadowColor: const Color(0xFF00D9B5).withValues(alpha: 0.5),
                             ),
                             child: Text(
                               'Start',
@@ -522,19 +523,16 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-
-                      SizedBox(width: 15),
-
-                      // Login Button
+                      const SizedBox(width: 15),
                       Expanded(
                         child: SizedBox(
                           height: 55,
                           child: OutlinedButton(
                             onPressed: () {
-                              Get.toNamed('/login');
+                              Get.toNamed(AppRoutes.login);
                             },
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(
+                              side: const BorderSide(
                                 color: Color(0xFF00D9B5),
                                 width: 2,
                               ),
@@ -556,7 +554,7 @@ class WelcomeScreen extends StatelessWidget {
                     ],
                   ),
 
-                  SizedBox(height: 60), // Bottom padding
+                  const SizedBox(height: 60),
                 ],
               ),
             ),
@@ -567,7 +565,9 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-// SPLASH 6-8: Onboarding Screens (Register button on last page)
+// ------------------------------------------------------------
+// Onboarding Screens (Splash 6‑8) – FIXED VERSION
+// ------------------------------------------------------------
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -581,21 +581,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingData> _pages = [
     OnboardingData(
-      title: 'Explore with Us',
-      subtitle: 'Your Martial Arts Journey Starts Here',
+      title: 'Martial Arts For All',
+      subtitle: 'Learn How To Make Martial Arts Inclusive For Everyone',
       imagePath: 'assets/images/onboarding1.png',
     ),
     OnboardingData(
-      title: 'Explore with Us',
+      title: 'Explore with Us', // not used for index 1 (image removed)
       subtitle: 'Level Up Your Martial Skills',
       imagePath: 'assets/images/onboarding2.png',
     ),
     OnboardingData(
-      title: 'Register Now',
-      subtitle: 'Start your coaching journey',
+      title: '', // Empty title for screen three (no title displayed)
+      subtitle: 'Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Education and Culture Executive Agency (EACEA). Neither the European Union nor EACEA can be held responsible for them.',
       imagePath: 'assets/images/onboarding3.png',
     ),
   ];
+
+  // The long description for the second screen (exactly as provided in the image)
+  final String secondScreenDescription =
+      'MAPPED is part of the Traditional Martial Arts for All (TMA4ALL) project - a groundbreaking European initiative dedicated to making all traditional martial arts accessible and inclusive for everyone (Project 101133802 — TMA4ALL).\n\n'
+      'We believe that all traditional martial arts can transform lives through physical, psychological and social development, regardless of the style. In fact, research consistently shows that the martial arts coach is the most important factor in improving health, well-being and quality of life among practitioners, regardless of the martial art itself. Our mission is to support all traditional martial arts coaches in creating safe, empowering sessions that welcome people of all abilities, backgrounds, ages and disabilities.\n\n'
+      'Developed through collaboration between leading inclusive martial arts organisations and universities across Europe, MAPPED is the first fully accessible and inclusive app designed specifically for grassroots martial arts coaches. Whether you\'re an aspiring coach or an experienced instructor, MAPPED provides the tools, support and community you need to deliver high-quality inclusive martial arts sessions.\n\n'
+      'Join our growing international network of coaches who are using traditional martial arts to improve lives and build stronger, more inclusive communities.';
 
   @override
   Widget build(BuildContext context) {
@@ -605,7 +612,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0a4d3c), Color(0xFF1a1f2e), Color(0xFF0f1419)],
+            colors: const [Color(0xFF0a4d3c), Color(0xFF1a1f2e), Color(0xFF0f1419)],
           ),
         ),
         child: SafeArea(
@@ -619,47 +626,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                   itemCount: _pages.length,
                   itemBuilder: (context, index) {
-                    return _buildPage(_pages[index]);
+                    return _buildPage(_pages[index], index);
                   },
                 ),
               ),
-
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    _buildIndicators(),
-                    SizedBox(height: 20),
-                    if (_currentPage < _pages.length - 1)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            _pageController.animateToPage(
-                              _pages.length - 1,
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: Text(
-                            'Skip',
-                            style: TextStyle(
-                              color: Color(0xFF00D9B5),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    SizedBox(height: 10),
-                    if (_currentPage == _pages.length - 1)
-                      _buildRegisterButton()
-                    else
-                      _buildNextButton(),
-                    SizedBox(height: 40),
-                  ],
-                ),
-              ),
+              _buildBottomSection(),
             ],
           ),
         ),
@@ -667,64 +638,141 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPage(OnboardingData data) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 30),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Ellipse with gradient border - UPDATED
-          SizedBox(
-            width: 328,
-            height: 328,
-            child: CustomPaint(
-              size: Size(328, 328),
-              painter: GradientBorderCirclePainter(),
-              child: Padding(
-                padding: EdgeInsets.all(24), // Space between border and content
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.transparent, // Background color from Figma
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      data.imagePath,
-                      width: 280,
-                      height: 280,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        // Fallback if image doesn't exist
-                        return Icon(
-                          Icons.sports_martial_arts,
-                          size: 120,
-                          color: Colors.white.withValues(alpha: 0.5),
-                        );
-                      },
+  Widget _buildPage(OnboardingData data, int index) {
+    // Second screen: no image, scrollable text centered vertically and horizontally
+    if (index == 1) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: Center(
+                    child: Text(
+                      secondScreenDescription,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center, // Centered horizontally
                     ),
                   ),
                 ),
               ),
+            );
+          },
+        ),
+      );
+    }
+
+    // Default layout for screens 0 and 2: image with gradient border + title/subtitle
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Image with gradient border – FIXED: border now appears as a ring
+              SizedBox(
+                width: 328,
+                height: 328,
+                child: Stack(
+                  clipBehavior: Clip.none, // Allow border to extend beyond image
+                  children: [
+                    ClipOval(
+                      child: Image.asset(
+                        data.imagePath,
+                        width: 328,
+                        height: 328,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.sports_martial_arts,
+                            size: 120,
+                            color: Colors.white.withValues(alpha: 0.5),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 60),
+              // Conditionally show title if it's not empty
+              if (data.title.isNotEmpty) ...[
+                Text(
+                  data.title,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              // Scrollable subtitle (especially important for the long EU text on screen 2)
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Text(
+                    data.subtitle,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Unified bottom section: indicators + Skip (except last page) + main button
+  Widget _buildBottomSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _buildIndicators(),
+          const SizedBox(height: 20),
+          // Skip button (only if not on the last page)
+          if (_currentPage < _pages.length - 1)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  _pageController.animateToPage(
+                    _pages.length - 1,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: const Text(
+                  'Skip',
+                  style: TextStyle(
+                    color: Color(0xFF00D9B5),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
-          ),
-          SizedBox(height: 60),
-          Text(
-            data.title,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: 12),
-          Text(
-            data.subtitle,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
+          const SizedBox(height: 10),
+          // Main action button: Continue or Register
+          if (_currentPage == _pages.length - 1)
+            _buildRegisterButton()
+          else
+            _buildNextButton(),
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -735,12 +783,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_pages.length, (index) {
         return Container(
-          margin: EdgeInsets.symmetric(horizontal: 4),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
           width: _currentPage == index ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
             color: _currentPage == index
-                ? Color(0xFF00D9B5)
+                ? const Color(0xFF00D9B5)
                 : Colors.white.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -779,18 +827,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: ElevatedButton(
         onPressed: () {
           _pageController.nextPage(
-            duration: Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF00D9B5),
+          backgroundColor: const Color(0xFF00D9B5),
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
         ),
-        child: Text(
+        child: const Text(
           'Continue',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
@@ -815,43 +863,33 @@ class GradientBorderCirclePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
+    final double strokeWidth = 2.0;
+    final double radius = size.width / 2; // Inner edge = radius - 1
 
-    // Draw background circle
-    final backgroundPaint = Paint()
-      ..color = Colors.transparent
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(center, radius, backgroundPaint);
-
-    // Draw gradient border
-    final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // Calculate gradient angle (136.44 degrees to radians)
-    // 136.44° = 2.38 radians
-    // Convert to Alignment coordinates
-    final double angle = 136.44 * math.pi / 180;
+    // Gradient angle: 136.44° in radians
+    const double angle = 136.44 * math.pi / 180;
     final dx = math.cos(angle);
     final dy = math.sin(angle);
 
-    final gradientPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment(-dx, -dy),
-        end: Alignment(dx, dy),
-        colors: [
-          Color(0xFF00FFA6), // Green at 14.85%
-          Color(
-            0xFFA77CBE,
-          ).withValues(alpha: 0), // Transparent purple at 34.62%
-          Color(0xFF6FA8C3).withValues(alpha: 0), // Transparent blue at 57.43%
-          Color(0xFF09FACA), // Cyan at 85.31%
-        ],
-        stops: [0.1485, 0.3462, 0.5743, 0.8531],
-      ).createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final gradient = LinearGradient(
+      begin: Alignment(-dx, -dy),
+      end: Alignment(dx, dy),
+      colors: const [
+        Color(0xFF00FFA6),
+        Color(0xFFA77CBE),
+        Color(0xFF6FA8C3),
+        Color(0xFF09FACA),
+      ],
+      stops: const [0.1485, 0.3462, 0.5743, 0.8531],
+    ).createShader(rect);
 
-    canvas.drawCircle(center, radius - 0.5, gradientPaint);
+    final paint = Paint()
+      ..shader = gradient
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    canvas.drawCircle(center, radius, paint);
   }
 
   @override
