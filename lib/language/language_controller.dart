@@ -10,6 +10,8 @@ class LanguageController extends GetxController {
     {'name': 'English', 'code': 'en', 'flag': '🇺🇸'},
     {'name': 'French', 'code': 'fr', 'flag': '🇫🇷'},
     {'name': 'German', 'code': 'de', 'flag': '🇩🇪'},
+    {'name': 'Spanish', 'code': 'es', 'flag': '🇪🇸'},
+    {'name': 'Croatian', 'code': 'hr', 'flag': '🇭🇷'}
   ];
 
   @override

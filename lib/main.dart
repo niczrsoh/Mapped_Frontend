@@ -28,7 +28,7 @@ void main() async {
   Get.put(BottomNavController(), permanent: true);
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('fr'), Locale('de')],
+      supportedLocales: const [Locale('en'), Locale('fr'), Locale('de'), Locale('es'), Locale('hr')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       child: const MyApp(),
