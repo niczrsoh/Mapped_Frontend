@@ -30,14 +30,6 @@ class LoginController extends GetxController {
 
   final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
 
-  final newPasswordController = TextEditingController();
-
-  final isLoading = false.obs;
-  final errorMessage = "".obs;
-
-  final String baseUrl =
-      "https://mapped-backend-node-js.onrender.com/api/users";
-
   // 🔥 Reactive name to display on the Touch ID Screen
   final RxString storedName = ''.obs;
   var isAuthenticating = false.obs;
@@ -243,9 +235,6 @@ class LoginController extends GetxController {
 
     loading.value = true;
     formError.value = ''; 
-
-    final String userEmail = email.value.trim();
-    final String userPassword = password.value;
 
     final String userEmail = email.value.trim();
     final String userPassword = password.value;
