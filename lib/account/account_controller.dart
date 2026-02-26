@@ -1,6 +1,6 @@
 // controllers/account_controller.dart
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/profile_editor/profile_editor_screen.dart';
 import 'package:mapped_frontend/help_support/help_support_screen.dart';
@@ -13,10 +13,11 @@ import 'package:mapped_frontend/text_size/text_size_controller.dart';
 import 'package:mapped_frontend/account/account_screen.dart';
 import 'package:mapped_frontend/screens/about_us_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AccountController extends GetxController {
   var notificationsEnabled = true.obs;
-  var securityMethod = 'Fingerprint'.obs;
+  var securityMethod = 'security_ctrl_method_fingerprint'.obs;
   var isLoading = false.obs;
 
   UserController get userController => Get.find<UserController>();
@@ -53,7 +54,7 @@ class AccountController extends GetxController {
       isLoading.value = true;
       await userController.fetchUserProfile();
     } catch (e) {
-      _showErrorDialog('Failed to load profile data');
+      _showErrorDialog('account_error_load_profile'.tr());
     } finally {
       isLoading.value = false;
     }
@@ -66,7 +67,7 @@ class AccountController extends GetxController {
     print('🖼️ Full user data: $user');
     return AccountHeaderData(
       name: userController.userName,
-      email: user['email']?.toString() ?? 'No email',
+      email: user['email']?.toString() ?? 'account_lbl_no_email'.tr(),
       avatar: avatarValue,
       createdAt: user['createdAt']?.toString(),
     );
@@ -80,19 +81,21 @@ class AccountController extends GetxController {
         items: [
           AccountMenuItem(
             iconPath: 'assets/images/profile.png',
-            text: 'Edit profile information',
+            text: 'account_menu_edit_profile'.tr(),
             onTap: () => navigateToProfileEditor(context),
           ),
-          // AccountMenuItem(
-          //   iconPath: 'assets/images/notification.png',
-          //   text: 'Notifications',
-          //   badge: notificationsEnabled.value ? 'ON' : 'OFF',
-          //   badgeColor: Color(0xFF09FACA),
-          //   onTap: () => navigateToNotifications(context),
-          // ),
+          AccountMenuItem(
+            iconPath: 'assets/images/notification.png',
+            text: 'account_menu_notifications'.tr(),
+            badge: notificationsEnabled.value
+                ? 'account_badge_on'.tr()
+                : 'account_badge_off'.tr(),
+            badgeColor: Color(0xFF09FACA),
+            onTap: () => navigateToNotifications(context),
+          ),
           AccountMenuItem(
             iconPath: 'assets/images/logout.png',
-            text: 'Log Out',
+            text: 'logout'.tr(),
             onTap: logout,
           ),
         ],
@@ -104,14 +107,14 @@ class AccountController extends GetxController {
         items: [
           AccountMenuItem(
             iconPath: 'assets/images/security.png',
-            text: 'Security',
-            badge: securityMethod.value,
+            text: 'account_menu_security'.tr(),
+            badge: securityMethod.value.tr(),
             badgeColor: Color(0xFF09FACA),
             onTap: navigateToSecurity,
           ),
           AccountMenuItem(
             iconPath: 'assets/images/language.png',
-            text: 'Language',
+            text: 'account_menu_language'.tr(),
             badge: languageController.languages.firstWhere(
               (l) => l['code'] == languageController.currentLanguage.value,
             )['name'],
@@ -127,17 +130,17 @@ class AccountController extends GetxController {
         items: [
           AccountMenuItem(
             iconPath: 'assets/images/help.png',
-            text: 'Help & Support',
+            text: 'account_menu_help'.tr(),
             onTap: navigateToHelp,
           ),
           AccountMenuItem(
             iconPath: 'assets/images/privacy.png',
-            text: 'Privacy policy',
+            text: 'account_menu_privacy'.tr(),
             onTap: navigateToPrivacy,
           ),
           AccountMenuItem(
             iconPath: 'assets/images/about.png',
-            text: 'About Us',
+            text: 'account_menu_about'.tr(),
             onTap: navigateToAbout,
           ),
         ],
@@ -148,8 +151,8 @@ class AccountController extends GetxController {
         items: [
           AccountMenuItem(
             iconPath: 'assets/images/text_size.png', // Ensure this asset exists
-            text: 'Text Size',
-            subtitle: 'Adjust text size in the app',
+            text: 'account_menu_text_size'.tr(),
+            subtitle: 'account_menu_text_size_subtitle'.tr(),
             onTap: () => _handleTextSizeAdjustment(),
           ),
         ],
@@ -203,10 +206,10 @@ class AccountController extends GetxController {
   // Logout Method
   Future<void> logout() async {
     Get.defaultDialog(
-      title: 'Log Out',
-      middleText: 'Are you sure you want to log out?',
-      textConfirm: 'Yes',
-      textCancel: 'No',
+      title: 'logout'.tr(),
+      middleText: 'account_dialog_logout_msg'.tr(),
+      textConfirm: 'account_dialog_btn_yes'.tr(),
+      textCancel: 'account_dialog_btn_no'.tr(),
       confirmTextColor: Colors.white,
       cancelTextColor: Color(0xFF09FACA),
       buttonColor: Color(0xFF09FACA),
@@ -217,7 +220,7 @@ class AccountController extends GetxController {
           Get.offAllNamed('/login');
         } catch (e) {
           Get.back();
-          _showErrorDialog('Failed to logout. Please try again.');
+          _showErrorDialog('account_error_logout_failed'.tr());
         }
       },
     );
@@ -239,9 +242,9 @@ class AccountController extends GetxController {
   /// Show error dialog
   void _showErrorDialog(String message) {
     Get.defaultDialog(
-      title: 'Error',
+      title: 'error'.tr(),
       middleText: message,
-      textConfirm: 'OK',
+      textConfirm: 'ok'.tr(),
       confirmTextColor: Colors.white,
       buttonColor: Color(0xFF09FACA),
       onConfirm: () => Get.back(),

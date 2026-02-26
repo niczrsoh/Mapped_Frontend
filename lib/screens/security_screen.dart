@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controller/controller/security_controller.dart';
 
@@ -15,11 +16,7 @@ class SecurityScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A1D29),
-              Color(0xFF0D4D4D),
-              Color(0xFF1A1D29),
-            ],
+            colors: [Color(0xFF1A1D29), Color(0xFF0D4D4D), Color(0xFF1A1D29)],
             stops: [0.0, 0.5, 1.0],
           ),
         ),
@@ -37,7 +34,7 @@ class SecurityScreen extends StatelessWidget {
                     ),
                     Expanded(
                       child: Text(
-                        'Security',
+                        'security_title_main'.tr(),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 20,
@@ -60,39 +57,40 @@ class SecurityScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 8),
-                        
+
                         // Common Section
-                        _buildSectionHeader('Common'),
+                        _buildSectionHeader('security_header_common'.tr()),
                         const SizedBox(height: 16),
-                        
+
                         _buildSwitchItem(
-                          title: 'Biometric',
+                          title: 'security_toggle_biometric'.tr(),
                           value: controller.biometricEnabled,
-                          onChanged: (val) => controller.biometricEnabled.value = val,
+                          onChanged: (val) =>
+                              controller.biometricEnabled.value = val,
                         ),
-                        
+
                         const SizedBox(height: 8),
-                        
+
                         _buildActionItem(
-                          title: 'Change Password',
+                          title: 'security_action_change_password'.tr(),
                           onTap: controller.changePassword,
                         ),
-                        
+
                         const SizedBox(height: 8),
-                        
+
                         _buildActionItem(
-                          title: 'Change Passcode',
+                          title: 'security_action_change_passcode'.tr(),
                           onTap: controller.changePasscode,
                         ),
 
                         const SizedBox(height: 32),
 
                         // Security Section
-                        _buildSectionHeader('Security'),
+                        _buildSectionHeader('security_header_security'.tr()),
                         const SizedBox(height: 12),
-                        
+
                         Text(
-                          'Turn on two-factor authentication and check your list of connected devices to keep your account, Pins and boards safe',
+                          'security_msg_two_factor_desc'.tr(),
                           style: GoogleFonts.roboto(
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
@@ -105,37 +103,42 @@ class SecurityScreen extends StatelessWidget {
 
                         // Two-Factor Authentication
                         Text(
-                          'Two-factor authentication',
+                          'security_toggle_two_factor'.tr(),
                           style: GoogleFonts.roboto(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
-                        
+
                         const SizedBox(height: 8),
-                        
-                        Obx(() => Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Transform.scale(
-                              scale: 0.85,
-                              child: Switch(
-                                value: controller.twoFactorEnabled.value,
-                                onChanged: (val) => controller.twoFactorEnabled.value = val,
-                                activeColor: const Color(0xFF09FACA),
-                                activeTrackColor: const Color(0xFF09FACA).withValues(alpha: 0.5),
-                                inactiveThumbColor: Colors.grey[400],
-                                inactiveTrackColor: Colors.grey[700],
+
+                        Obx(
+                          () => Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Transform.scale(
+                                scale: 0.85,
+                                child: Switch(
+                                  value: controller.twoFactorEnabled.value,
+                                  onChanged: (val) =>
+                                      controller.twoFactorEnabled.value = val,
+                                  activeColor: const Color(0xFF09FACA),
+                                  activeTrackColor: const Color(
+                                    0xFF09FACA,
+                                  ).withValues(alpha: 0.5),
+                                  inactiveThumbColor: Colors.grey[400],
+                                  inactiveTrackColor: Colors.grey[700],
+                                ),
                               ),
-                            ),
-                          ],
-                        )),
-                        
+                            ],
+                          ),
+                        ),
+
                         const SizedBox(height: 8),
-                        
+
                         Text(
-                          'This is makes your account extra secure. Along with your password, you\'ll need to enter the secret code that we text to your phone each time you log in.',
+                          'security_msg_two_factor_info'.tr(),
                           style: GoogleFonts.roboto(
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
@@ -147,11 +150,11 @@ class SecurityScreen extends StatelessWidget {
                         const SizedBox(height: 32),
 
                         // Security Help Section
-                        _buildSectionHeader('Security Help'),
+                        _buildSectionHeader('security_header_help'.tr()),
                         const SizedBox(height: 16),
-                        
+
                         _buildActionItem(
-                          title: 'Support',
+                          title: 'security_action_support'.tr(),
                           onTap: controller.openSupport,
                         ),
 
@@ -184,30 +187,32 @@ class SecurityScreen extends StatelessWidget {
     required RxBool value,
     required Function(bool) onChanged,
   }) {
-    return Obx(() => Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.roboto(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: Colors.white,
+    return Obx(
+      () => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.roboto(
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
-        ),
-        Transform.scale(
-          scale: 0.85,
-          child: Switch(
-            value: value.value,
-            onChanged: onChanged,
-            activeColor: const Color(0xFF09FACA),
-            activeTrackColor: const Color(0xFF09FACA).withValues(alpha: 0.5),
-            inactiveThumbColor: Colors.grey[400],
-            inactiveTrackColor: Colors.grey[700],
+          Transform.scale(
+            scale: 0.85,
+            child: Switch(
+              value: value.value,
+              onChanged: onChanged,
+              activeColor: const Color(0xFF09FACA),
+              activeTrackColor: const Color(0xFF09FACA).withValues(alpha: 0.5),
+              inactiveThumbColor: Colors.grey[400],
+              inactiveTrackColor: Colors.grey[700],
+            ),
           ),
-        ),
-      ],
-    ));
+        ],
+      ),
+    );
   }
 
   Widget _buildActionItem({

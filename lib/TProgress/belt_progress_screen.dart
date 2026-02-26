@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/helper/colorConstant.dart';
 import 'package:mapped_frontend/controller/user_controller';
@@ -89,12 +90,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
       }
 
       if (brownData != null && brownData.isCompleted) {
-        return {
-          'sessions': 0,
-          'days': 0,
-          'progress': 1.0,
-          'resources': 0,
-        };
+        return {'sessions': 0, 'days': 0, 'progress': 1.0, 'resources': 0};
       } else {
         return {'sessions': 0, 'days': 0, 'progress': 0.0, 'resources': 0};
       }
@@ -105,7 +101,6 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
     }
 
     if (beltData.isCompleted) {
-
       int targetSess =
           req.tasks
               .firstWhereOrNull((t) => t.type == RequirementType.session)
@@ -129,7 +124,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
         'days': beltData.progress.activeDayCount > 0
             ? beltData.progress.activeDayCount
             : targetDays,
-        'progress': 1.0, 
+        'progress': 1.0,
         'resources': beltData.progress.openResourceCount > 0
             ? beltData.progress.openResourceCount
             : targetRes,
@@ -173,8 +168,8 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
           val = currentTips.clamp(0, task.target);
           break;
         case RequirementType.mastery:
-            val = 1;
-            break;
+          val = 1;
+          break;
       }
       currentProgressSum += val;
     }
@@ -204,7 +199,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
     final currentBeltDef = BeltDefinitions.getByName(widget.beltName);
     final String nextBeltName = (currentBeltDef.nextBeltId != null)
         ? BeltDefinitions.getByCode(currentBeltDef.nextBeltId!).name
-        : 'Mastery';
+        : 'home_lbl_mastery'.tr();
     final Color nextBeltColor = (currentBeltDef.nextBeltId != null)
         ? BeltDefinitions.getByCode(currentBeltDef.nextBeltId!).color
         : const Color(0xFF1A1A1A);
@@ -220,7 +215,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Dashboard',
+          'belt_dash_title'.tr(),
           style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 16,
@@ -389,7 +384,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                                   ),
                                   const SizedBox(height: 32),
                                   Text(
-                                    "Congratulations",
+                                    'belt_prog_congrats_title'.tr(),
                                     style: GoogleFonts.inter(
                                       color: Colors.white,
                                       fontSize: 24,
@@ -398,7 +393,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    "You already finished all\nthe certification.",
+                                    'belt_prog_congrats_msg'.tr(),
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.inter(
                                       color: Colors.white.withOpacity(0.9),
@@ -442,7 +437,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Requirement",
+                                  'belt_prog_col_requirement'.tr(),
                                   style: GoogleFonts.inter(
                                     color: Colors.white70,
                                     fontSize: 14,
@@ -450,7 +445,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                                   ),
                                 ),
                                 Text(
-                                  "Progress",
+                                  'belt_prog_col_progress'.tr(),
                                   style: GoogleFonts.inter(
                                     color: Colors.white70,
                                     fontSize: 14,
@@ -506,9 +501,9 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                                             .reflectionCount;
                                         break;
 
-                                        case RequirementType.mastery:
-                                          currentValue = 1; 
-                                          break;
+                                      case RequirementType.mastery:
+                                        currentValue = 1;
+                                        break;
                                     }
                                   }
 
@@ -518,14 +513,14 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
 
                                   if (widget.beltName.contains('Black') &&
                                       task.target == 0) {
-                                    progressText = "Mastery";
+                                    progressText = 'home_lbl_mastery'.tr();
                                   }
 
                                   return Column(
                                     children: [
                                       _buildRequirementRow(
                                         task.icon,
-                                        task.progressLabel,
+                                        task.progressLabel.tr(),
                                         progressText,
                                         highlightColor: displayColor,
                                       ),
@@ -559,8 +554,8 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                       child: ElevatedButton(
                         onPressed: () {
                           Get.snackbar(
-                            "Info",
-                            "This feature is currently in development.",
+                            'belt_prog_snackbar_info'.tr(),
+                            'belt_prog_snackbar_dev_msg'.tr(),
                             snackPosition: SnackPosition.BOTTOM,
                             backgroundColor: Colors.white24,
                             colorText: Colors.white,
@@ -576,7 +571,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                           elevation: 0,
                         ),
                         child: Text(
-                          "Start Course",
+                          'belt_prog_btn_start'.tr(),
                           style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 16,

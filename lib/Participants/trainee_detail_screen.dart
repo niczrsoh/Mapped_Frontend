@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'trainee_controller.dart';
@@ -40,8 +41,10 @@ class TraineeDetailScreen extends StatelessWidget {
   }
 
   String _formatDob(String? dateString) {
-    if (dateString == null || dateString.isEmpty || dateString == 'N/A') {
-      return 'N/A';
+    if (dateString == null ||
+        dateString.isEmpty ||
+        dateString == 'lbl_na'.tr()) {
+      return 'lbl_na'.tr();
     }
     try {
       final DateTime date = DateTime.parse(dateString).toLocal();
@@ -88,12 +91,12 @@ class TraineeDetailScreen extends StatelessWidget {
 
   Widget _formatConditions(dynamic conditions) {
     if (conditions == null) {
-      return _DetailRow(text: 'No known medical concerns.');
+      return _DetailRow(text: 'trainee_detail_no_medical_concerns'.tr());
     }
 
     if (conditions is List) {
       if (conditions.isEmpty) {
-        return _DetailRow(text: 'No known medical concerns.');
+        return _DetailRow(text: 'trainee_detail_no_medical_concerns'.tr());
       }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,7 +112,7 @@ class TraineeDetailScreen extends StatelessWidget {
     // Handle String data
     String text = conditions.toString().trim();
     if (text.isEmpty || text == 'null') {
-      return _DetailRow(text: 'No known medical concerns.');
+      return _DetailRow(text: 'trainee_detail_no_medical_concerns'.tr());
     }
 
     // Detect and format bullet points with hyphens
@@ -121,7 +124,7 @@ class TraineeDetailScreen extends StatelessWidget {
           .toList();
 
       if (items.isEmpty) {
-        return _DetailRow(text: 'No known medical concerns.');
+        return _DetailRow(text: 'trainee_detail_no_medical_concerns'.tr());
       }
 
       return Column(
@@ -165,7 +168,7 @@ class TraineeDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Belt Progress',
+          'trainee_detail_belt_progress'.tr(),
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -182,12 +185,13 @@ class TraineeDetailScreen extends StatelessWidget {
             orElse: () => trainee,
           );
 
-          final String name = currentTrainee['name'] ?? 'Unknown';
+          final String name = currentTrainee['name'] ?? 'unknown'.tr();
           final String belt = currentTrainee['belt'] ?? 'White';
-          final String address = currentTrainee['address'] ?? 'No Address';
+          final String address =
+              currentTrainee['address'] ?? 'trainee_detail_no_address'.tr();
           final String dob = _formatDob(currentTrainee['dateOfBirth']);
-          final String phone = currentTrainee['phone'] ?? 'N/A';
-          final String email = currentTrainee['email'] ?? 'N/A';
+          final String phone = currentTrainee['phone'] ?? 'lbl_na'.tr();
+          final String email = currentTrainee['email'] ?? 'lbl_na'.tr();
 
           String? imgData = currentTrainee['image'];
           if (imgData == null || imgData.isEmpty) {
@@ -201,7 +205,7 @@ class TraineeDetailScreen extends StatelessWidget {
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: null, 
+                  onTap: null,
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -350,7 +354,7 @@ class TraineeDetailScreen extends StatelessWidget {
                                             ],
                                           ),
                                           child: Text(
-                                            '$belt Belt',
+                                            '$belt${'trainee_progress_belt_suffix'.tr()}',
                                             style: GoogleFonts.roboto(
                                               color: Colors.white,
                                               fontSize: 12,
@@ -465,7 +469,7 @@ class TraineeDetailScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Certification Progress',
+                                  'trainee_detail_certification_progress'.tr(),
                                   style: GoogleFonts.roboto(
                                     color: const Color(0xFF00FFB9),
                                     fontSize: 14,
@@ -486,7 +490,8 @@ class TraineeDetailScreen extends StatelessWidget {
                                         text: TextSpan(
                                           children: [
                                             TextSpan(
-                                              text: 'Next Belt: ',
+                                              text: 'trainee_progress_next_belt'
+                                                  .tr(),
                                               style: GoogleFonts.roboto(
                                                 color: Colors.grey.shade300,
                                                 fontSize: 12,
@@ -495,7 +500,7 @@ class TraineeDetailScreen extends StatelessWidget {
                                             ),
                                             TextSpan(
                                               text:
-                                                  '${_getNextBelt(belt)} Belt',
+                                                  '${_getNextBelt(belt)}${'trainee_progress_belt_suffix'.tr()}',
                                               style: GoogleFonts.roboto(
                                                 color: const Color(0xFF00FFA6),
                                                 fontSize: 12,
@@ -571,7 +576,7 @@ class TraineeDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Participant Details',
+                          'trainee_detail_participant_details'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -611,7 +616,7 @@ class TraineeDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Guardian & Emergency',
+                          'trainee_title_guardian'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -622,19 +627,19 @@ class TraineeDetailScreen extends StatelessWidget {
                         _DetailRow(
                           text:
                               currentTrainee['guardianName'] ??
-                              'No Guardian Name',
+                              'trainee_detail_no_guardian_name'.tr(),
                         ),
                         const SizedBox(height: 8),
                         _DetailRow(
                           text:
                               currentTrainee['guardianAddress'] ??
-                              'No Guardian Address',
+                              'trainee_detail_no_guardian_address'.tr(),
                         ),
                         const SizedBox(height: 8),
                         _DetailRow(
                           text:
                               currentTrainee['guardianContact'] ??
-                              'No Guardian Contact',
+                              'trainee_detail_no_guardian_contact'.tr(),
                         ),
                       ],
                     ),
@@ -659,7 +664,7 @@ class TraineeDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Aim / Goals',
+                          'trainee_title_goals_long'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -669,7 +674,7 @@ class TraineeDetailScreen extends StatelessWidget {
                         const SizedBox(height: 12),
                         Text(
                           currentTrainee['goals']?.toString() ??
-                              'No specific goals set.',
+                              'trainee_detail_no_goals'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.grey.shade300,
                             fontSize: 12,
@@ -699,7 +704,7 @@ class TraineeDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Disability & Medical Concern',
+                          'trainee_title_medical'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -731,7 +736,7 @@ class TraineeDetailScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Competency',
+                          'trainee_title_competency'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 16,
@@ -741,7 +746,7 @@ class TraineeDetailScreen extends StatelessWidget {
                         const SizedBox(height: 12),
                         Text(
                           currentTrainee['competency']?.toString() ??
-                              'No competency details provided.',
+                              'trainee_detail_no_competency'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.grey.shade300,
                             fontSize: 12,

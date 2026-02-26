@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'session_controller.dart';
 import 'session_details.dart';
 import 'session_reflect.dart';
@@ -108,7 +109,7 @@ class SessionHistoryScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Coach : $trainer',
+                  'coachbot_ctrl_fallback_name'.tr() + ' : $trainer',
                   style: GoogleFonts.roboto(
                     color: Colors.white,
                     fontSize: 12,
@@ -146,7 +147,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'View Session',
+                          'session_btn_view_session'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 12,
@@ -162,10 +163,9 @@ class SessionHistoryScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-  
+
                   TextButton(
                     onPressed: () async {
-
                       await controller.fetchDashboardData();
 
                       final upToDateSession = controller.historyList.firstWhere(
@@ -189,9 +189,8 @@ class SessionHistoryScreen extends StatelessWidget {
                         );
                       } else {
                         Get.to(
-                          () => SessionReflectionsScreen(
-                            sessionData: sessionMap,
-                          ),
+                          () =>
+                              SessionReflectionsScreen(sessionData: sessionMap),
                         );
                       }
                     },
@@ -208,7 +207,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Reflect Session',
+                          'session_btn_reflect_session'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 12,
@@ -253,7 +252,9 @@ class SessionHistoryScreen extends StatelessWidget {
           },
         ),
         title: Text(
-          'Session Dashboard',
+          'home_nav_session'.tr() +
+              ' ' +
+              'admin_manage_title_dashboard'.tr().split(' ').last,
           style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 16,
@@ -278,7 +279,9 @@ class SessionHistoryScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Session History',
+                    'home_nav_session'.tr() +
+                        ' ' +
+                        'session_title_history'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -312,7 +315,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'History',
+                          'session_title_history'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -325,7 +328,7 @@ class SessionHistoryScreen extends StatelessWidget {
                             if (controller.historyList.isEmpty) {
                               return Center(
                                 child: Text(
-                                  "No History Sessions Available",
+                                  "session_empty_history_sessions".tr(),
                                   style: GoogleFonts.roboto(
                                     color: Colors.white54,
                                   ),
@@ -409,7 +412,7 @@ class SessionHistoryScreen extends StatelessWidget {
                         ),
                       ),
                       label: Text(
-                        'ASK COACHBOT',
+                        'session_btn_ask_coachbot'.tr(),
                         style: GoogleFonts.roboto(
                           color: const Color(0xFF062A20),
                           fontWeight: FontWeight.w500,

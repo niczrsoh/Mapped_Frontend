@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
 import 'package:mapped_frontend/controller/user_controller';
@@ -26,7 +29,7 @@ class LoginController extends GetxController {
   final errorMessage = "".obs;
 
   final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
-  
+
   // 🔥 Reactive name to display on the Touch ID Screen
   final RxString storedName = ''.obs;
   var isAuthenticating = false.obs;
@@ -60,12 +63,14 @@ class LoginController extends GetxController {
   bool validateEmail() {
     emailError.value = '';
     if (email.value.isEmpty) {
-      emailError.value = 'Email is required';
+      emailError.value = 'login_error_email_required'.tr();
       return false;
     }
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
     if (!emailRegex.hasMatch(email.value)) {
-      emailError.value = 'Please enter a valid email address';
+      emailError.value = 'login_error_email_invalid'.tr();
       return false;
     }
     return true;
@@ -74,11 +79,11 @@ class LoginController extends GetxController {
   bool validatePassword() {
     passwordError.value = '';
     if (password.value.isEmpty) {
-      passwordError.value = 'Password is required';
+      passwordError.value = 'login_error_password_required'.tr();
       return false;
     }
     if (password.value.length < 6) {
-      passwordError.value = 'Password must be at least 6 characters';
+      passwordError.value = 'login_error_password_length'.tr();
       return false;
     }
     return true;
@@ -88,8 +93,14 @@ class LoginController extends GetxController {
     formError.value = '';
     final isEmailValid = validateEmail();
     final isPasswordValid = validatePassword();
-    if (!isEmailValid) { formError.value = emailError.value; return false; }
-    if (!isPasswordValid) { formError.value = passwordError.value; return false; }
+    if (!isEmailValid) {
+      formError.value = emailError.value;
+      return false;
+    }
+    if (!isPasswordValid) {
+      formError.value = passwordError.value;
+      return false;
+    }
     return true;
   }
 
@@ -101,13 +112,19 @@ class LoginController extends GetxController {
       final bool canCheck = await _auth.canCheckBiometrics;
       final bool isSupported = await _auth.isDeviceSupported();
       if (!isSupported || !canCheck) {
-        Get.snackbar('Security', 'Biometrics not supported or registered.');
+        Get.snackbar(
+          'login_snackbar_security_title'.tr(),
+          'login_error_biometrics_unsupported'.tr(),
+        );
         return;
       }
 
       bool authenticated = await _auth.authenticate(
-        localizedReason: 'Scan fingerprint to log in with Google',
-        options: const AuthenticationOptions(biometricOnly: true, stickyAuth: true),
+        localizedReason: 'login_prompt_biometric_reason'.tr(),
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
       );
 
       if (authenticated) {
@@ -135,7 +152,8 @@ class LoginController extends GetxController {
           await prefs.setString('user_name', googleUser.displayName ?? '');
           await prefs.setString('user_email', googleUser.email);
           await prefs.setString('user_role', actualRole);
-          if (result['token'] != null) await prefs.setString('auth_token', result['token']);
+          if (result['token'] != null)
+            await prefs.setString('auth_token', result['token']);
 
           // 5. Update UserController State
           final userController = Get.find<UserController>();
@@ -147,8 +165,14 @@ class LoginController extends GetxController {
             'role': actualRole,
           });
 
-          Get.snackbar('Success', 'Welcome, ${googleUser.displayName}',
-              backgroundColor: const Color(0xFF00C7A7), colorText: Colors.white);
+          Get.snackbar(
+            'success'.tr(),
+            'login_snackbar_welcome'.tr(
+              namedArgs: {'name': googleUser.displayName ?? 'User'},
+            ),
+            backgroundColor: const Color(0xFF00C7A7),
+            colorText: Colors.white,
+          );
 
           if (actualRole == 'admin') {
             Get.offAllNamed(AppRoutes.adminReport);
@@ -156,23 +180,26 @@ class LoginController extends GetxController {
             Get.offAllNamed(AppRoutes.main);
           }
         } else {
-          Get.snackbar('Error', result['error'] ?? 'Backend sync failed');
+          Get.snackbar(
+            'error'.tr(),
+            result['error'] ?? 'login_error_backend_sync'.tr(),
+          );
         }
       }
     } catch (e) {
       debugPrint("Biometric Login Error: $e");
-      Get.snackbar('Error', 'Authentication failed');
+      Get.snackbar('error'.tr(), 'login_error_auth_failed'.tr());
     } finally {
       isAuthenticating.value = false;
     }
   }
 
-   Future<void> resetPassword() async {
+  Future<void> resetPassword() async {
     final email = Get.arguments;
     final newPass = newPasswordController.text.trim();
 
     if (newPass.length < 8) {
-      errorMessage.value = "Password must be at least 8 characters.";
+      errorMessage.value = 'reset_pwd_ctrl_error_password_length'.tr();
       return;
     }
 
@@ -183,23 +210,20 @@ class LoginController extends GetxController {
       final response = await http.post(
         Uri.parse('$baseUrl/reset-password'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'newPassword': newPass,
-        }),
+        body: jsonEncode({'email': email, 'newPassword': newPass}),
       );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        // Password changed! Go back to login
         Get.offAllNamed(AppRoutes.login);
-        Get.snackbar("Success", "Password reset successfully. Please login.");
+        Get.snackbar('success'.tr(), 'reset_pwd_ctrl_success_reset'.tr());
       } else {
-        errorMessage.value = data['msg'] ?? "Reset failed.";
+        errorMessage.value =
+            data['msg'] ?? 'reset_pwd_ctrl_error_reset_failed'.tr();
       }
     } catch (e) {
-      errorMessage.value = "Could not update password.";
+      errorMessage.value = 'reset_pwd_ctrl_error_update_failed'.tr();
     } finally {
       isLoading.value = false;
     }
@@ -207,6 +231,7 @@ class LoginController extends GetxController {
 
   Future<void> login() async {
     if (!validateForm()) return;
+
 
     loading.value = true;
     formError.value = ''; 
@@ -229,11 +254,17 @@ class LoginController extends GetxController {
             Get.offAllNamed(AppRoutes.adminReport);
           } else {
             loading.value = false;
-            _showError('Access Denied', 'You do not have Admin privileges.');
+            _showError(
+              'login_error_admin_denied'.tr(),
+              'login_error_admin_denied'.tr(),
+            );
           }
         } else {
           loading.value = false;
-          _showError('Login Failed', result['msg'] ?? 'Invalid Admin credentials');
+          _showError(
+            'login_error_login_failed'.tr(),
+            result['msg'] ?? 'login_error_login_failed'.tr(),
+          );
         }
         return;
       }
@@ -241,10 +272,11 @@ class LoginController extends GetxController {
       // --- 2. REGULAR USER LOGIN: Firebase + MongoDB Sync ---
       try {
         // Step A: Authenticate with Firebase
-        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: userEmail,
-          password: userPassword,
-        );
+        UserCredential userCredential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(
+              email: userEmail,
+              password: userPassword,
+            );
 
         final User? fbUser = userCredential.user;
 
@@ -264,18 +296,20 @@ class LoginController extends GetxController {
             Get.offAllNamed(AppRoutes.main);
           } else {
             loading.value = false;
-            _showError('Backend Error', 'Firebase authenticated, but MongoDB sync failed.');
+            _showError('error'.tr(), 'login_error_backend_sync'.tr());
           }
         }
       } on FirebaseAuthException catch (e) {
         loading.value = false;
-        _showError('Login Failed', e.message ?? 'Authentication failed');
+        _showError(
+          'login_error_login_failed'.tr(),
+          e.message ?? 'login_error_auth_failed'.tr(),
+        );
       }
-
     } catch (e) {
       loading.value = false;
       debugPrint("Login Error: $e");
-      _showError('Connection Error', 'Failed to connect. Please check your internet.');
+      _showError('login_error_connection_failed'.tr(), 'error_network'.tr());
     }
   }
 
@@ -285,12 +319,9 @@ class LoginController extends GetxController {
       final response = await http.post(
         Uri.parse('$baseUrl/reset-password'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'newPassword': newPass,
-        }),
+        body: jsonEncode({'email': email, 'newPassword': newPass}),
       );
-      
+
       final data = jsonDecode(response.body);
       if (response.statusCode != 200 || data['success'] != true) {
         debugPrint("Sync Warning: ${data['msg']}");
@@ -299,11 +330,15 @@ class LoginController extends GetxController {
       debugPrint("Password sync failed: $e");
     }
   }
+
   // Helper function updated to handle local Firebase data or Backend data
-  Future<void> _processSuccessfulLogin(dynamic result, {required bool isFirebase}) async {
+  Future<void> _processSuccessfulLogin(
+    dynamic result, {
+    required bool isFirebase,
+  }) async {
     final responseData = result['data'];
     final prefs = await SharedPreferences.getInstance();
-    
+
     String id = responseData['user']?['id'] ?? '';
     String name = responseData['user']?['name'] ?? '';
     String emailAddr = responseData['user']?['email'] ?? '';
@@ -322,7 +357,7 @@ class LoginController extends GetxController {
     // Update your UserController
     final userController = Get.find<UserController>();
     userController.userId.value = id;
-    
+
     // Only fetch profile from MongoDB if it's an Admin or if you still store extra data there
     if (!isFirebase) {
       await userController.fetchUserProfile();
@@ -334,7 +369,8 @@ class LoginController extends GetxController {
 
   void _showError(String title, String msg) {
     Get.snackbar(
-      title, msg,
+      title,
+      msg,
       backgroundColor: Colors.redAccent,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
@@ -345,12 +381,14 @@ class LoginController extends GetxController {
 
   void onEmailChanged(String value) {
     email.value = value;
-    if (emailError.value.isNotEmpty || formError.value.isNotEmpty) validateEmail();
+    if (emailError.value.isNotEmpty || formError.value.isNotEmpty)
+      validateEmail();
   }
 
   void onPasswordChanged(String value) {
     password.value = value;
-    if (passwordError.value.isNotEmpty || formError.value.isNotEmpty) validatePassword();
+    if (passwordError.value.isNotEmpty || formError.value.isNotEmpty)
+      validatePassword();
   }
 
   void clearAll() {

@@ -1,4 +1,5 @@
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import '../services/api_service.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -179,12 +180,12 @@ class SessionController extends GetxController {
           return SessionModel.fromJson(result['data']);
         }
       } else {
-        error.value = result['msg'] ?? 'Failed to create session';
+        error.value = result['msg'] ?? 'error'.tr();
         success.value = false;
       }
     } catch (e) {
       print('Session Create Error: $e');
-      error.value = 'Error: $e';
+      error.value = 'error_connection'.tr(namedArgs: {'error': e.toString()});
       success.value = false;
     } finally {
       isLoading.value = false;
@@ -220,12 +221,12 @@ class SessionController extends GetxController {
 
         await fetchDashboardData();
       } else {
-        error.value = result['msg'] ?? 'Failed to update';
+        error.value = result['msg'] ?? 'error'.tr();
         success.value = false;
       }
     } catch (e) {
       print('Update Error: $e');
-      error.value = 'Error: $e';
+      error.value = 'error_connection'.tr(namedArgs: {'error': e.toString()});
       success.value = false;
     } finally {
       isLoading.value = false;
@@ -252,11 +253,11 @@ class SessionController extends GetxController {
         success.value = true;
         await fetchDashboardData();
       } else {
-        error.value = result['msg'] ?? 'Failed to update';
+        error.value = result['msg'] ?? 'error'.tr();
         success.value = false;
       }
     } catch (e) {
-      error.value = 'Error: $e';
+      error.value = 'error_connection'.tr(namedArgs: {'error': e.toString()});
       success.value = false;
     } finally {
       isLoading.value = false;

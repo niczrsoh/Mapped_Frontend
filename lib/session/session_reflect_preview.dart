@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SessionReflectionsPreviewScreen extends StatefulWidget {
   final Map<String, dynamic> sessionData;
 
   const SessionReflectionsPreviewScreen({Key? key, required this.sessionData})
-      : super(key: key);
+    : super(key: key);
 
   @override
   _SessionReflectionsPreviewScreenState createState() =>
@@ -48,10 +49,9 @@ class _SessionReflectionsPreviewScreenState
 
           if (reflection['actionItems'] != null &&
               reflection['actionItems'] is List) {
-            _actionItems =
-                (reflection['actionItems'] as List)
-                    .map((e) => e.toString())
-                    .toList();
+            _actionItems = (reflection['actionItems'] as List)
+                .map((e) => e.toString())
+                .toList();
           }
         });
       }
@@ -70,7 +70,7 @@ class _SessionReflectionsPreviewScreenState
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Reflection Preview',
+          'session_title_reflection_preview'.tr(),
           style: GoogleFonts.poppins(color: textColor, fontSize: 18),
         ),
       ),
@@ -84,7 +84,10 @@ class _SessionReflectionsPreviewScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Session Date:',
+                    'home_nav_session'.tr() +
+                        ' ' +
+                        'trainee_lbl_dob'.tr().split(' ').first +
+                        ':',
                     style: GoogleFonts.poppins(
                       color: secondaryTextColor,
                       fontSize: 12,
@@ -109,7 +112,7 @@ class _SessionReflectionsPreviewScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Overall Assessment',
+                    'session_title_overall_assessment'.tr(),
                     style: GoogleFonts.poppins(
                       color: textColor,
                       fontSize: 18,
@@ -118,7 +121,7 @@ class _SessionReflectionsPreviewScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Session Success Rating',
+                    'session_lbl_success_rating'.tr(),
                     style: GoogleFonts.poppins(
                       color: secondaryTextColor,
                       fontSize: 14,
@@ -135,7 +138,7 @@ class _SessionReflectionsPreviewScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Key Takeaways',
+                    'session_title_key_takeaways'.tr(),
                     style: GoogleFonts.poppins(
                       color: accentYellow,
                       fontSize: 18,
@@ -144,15 +147,15 @@ class _SessionReflectionsPreviewScreenState
                   ),
                   const SizedBox(height: 20),
                   _buildReadOnlyField(
-                    label: 'What went well? (Highlights)',
+                    label: 'session_lbl_highlights'.tr(),
                     content: _highlights,
-                    placeholder: 'No highlights recorded.',
+                    placeholder: 'session_msg_no_highlights'.tr(),
                   ),
                   const SizedBox(height: 20),
                   _buildReadOnlyField(
-                    label: 'Areas for Improvement',
+                    label: 'session_lbl_areas_improvement'.tr(),
                     content: _improvements,
-                    placeholder: 'No improvements recorded.',
+                    placeholder: 'session_msg_no_improvements'.tr(),
                   ),
                 ],
               ),
@@ -164,7 +167,7 @@ class _SessionReflectionsPreviewScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Next Session Action Items',
+                    'session_title_action_items'.tr(),
                     style: GoogleFonts.poppins(
                       color: accentGreen,
                       fontSize: 18,
@@ -174,7 +177,7 @@ class _SessionReflectionsPreviewScreenState
                   const SizedBox(height: 20),
                   if (_actionItems.isEmpty)
                     Text(
-                      'No action items set.',
+                      'session_msg_no_action_items'.tr(),
                       style: GoogleFonts.poppins(
                         color: hintColor,
                         fontStyle: FontStyle.italic,
@@ -194,13 +197,11 @@ class _SessionReflectionsPreviewScreenState
               ),
             ),
             const SizedBox(height: 30),
-
           ],
         ),
       ),
     );
   }
-
 
   Widget _buildCard({required Widget child}) {
     return Container(
@@ -218,12 +219,12 @@ class _SessionReflectionsPreviewScreenState
     return Row(
       children:
           List.generate(5, (index) {
-            return Icon(
-              Icons.star_rounded,
-              color: index < _rating ? accentYellow : Colors.white12,
-              size: 36,
-            );
-          }).expand((widget) => [widget, const SizedBox(width: 8)]).toList()
+              return Icon(
+                Icons.star_rounded,
+                color: index < _rating ? accentYellow : Colors.white12,
+                size: 36,
+              );
+            }).expand((widget) => [widget, const SizedBox(width: 8)]).toList()
             ..removeLast(),
     );
   }
@@ -293,8 +294,9 @@ class _SessionReflectionsPreviewScreenState
 
   String _getSessionTitle() {
     final date = _formatSessionDate(widget.sessionData);
-    final level = widget.sessionData['level'] ?? 'Intermediate';
-    return '$date - $level Group';
+    final level =
+        widget.sessionData['level'] ?? 'session_level_intermediate'.tr();
+    return '$date - $level ' + 'session_lbl_group'.tr();
   }
 
   String _formatSessionDate(Map<String, dynamic> data) {
@@ -343,10 +345,9 @@ class _SessionReflectionsPreviewScreenState
           if (monthDay.length >= 2) {
             final mon = monthDay[0];
             final day = monthDay[1];
-            final monCap =
-                mon.isNotEmpty
-                    ? '${mon[0].toUpperCase()}${mon.substring(1).toLowerCase()}'
-                    : mon;
+            final monCap = mon.isNotEmpty
+                ? '${mon[0].toUpperCase()}${mon.substring(1).toLowerCase()}'
+                : mon;
 
             return '$day $monCap';
           }

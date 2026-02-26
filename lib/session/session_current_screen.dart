@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'session_controller.dart';
 import 'package:mapped_frontend/controller/user_controller';
 
@@ -101,7 +102,7 @@ class SessionCurrentScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Coach : $trainer',
+                  '${'coachbot_ctrl_fallback_name'.tr()} : $trainer',
                   style: GoogleFonts.roboto(
                     color: Colors.white,
                     fontWeight: FontWeight.w400,
@@ -226,7 +227,9 @@ class SessionCurrentScreen extends StatelessWidget {
           },
         ),
         title: Text(
-          'Session Dashboard',
+          'home_nav_session'.tr() +
+              ' ' +
+              'admin_manage_title_dashboard'.tr().split(' ').last,
           style: GoogleFonts.roboto(
             color: Colors.white,
             fontSize: 16,
@@ -251,7 +254,9 @@ class SessionCurrentScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Current Session',
+                    'home_search_empty_sessions'.tr().split(' ').first +
+                        ' ' +
+                        'home_nav_session'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -286,7 +291,7 @@ class SessionCurrentScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Current',
+                          'home_search_empty_sessions'.tr().split(' ').first,
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -300,7 +305,7 @@ class SessionCurrentScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 20.0),
                             child: Center(
                               child: Text(
-                                "No Current Sessions Available",
+                                'home_search_empty_sessions'.tr(),
                                 style: GoogleFonts.roboto(color: Colors.white),
                               ),
                             ),
@@ -352,7 +357,8 @@ class SessionCurrentScreen extends StatelessWidget {
                                     return '-';
                                   }(),
                                   venue: session.venue ?? '-',
-                                  trainees: '${session.totalTrainees} Trainees',
+                                  trainees:
+                                      '${session.totalTrainees} ${'participants'.tr()}',
                                   trainer: userController.userName,
                                 );
                               },
@@ -397,7 +403,7 @@ class SessionCurrentScreen extends StatelessWidget {
                         ),
                       ),
                       label: Text(
-                        'ASK COACHBOT',
+                        'ASK ${'coachbot_title_main'.tr().toUpperCase()}',
                         style: GoogleFonts.roboto(
                           color: const Color(0xFF062A20),
                           fontWeight: FontWeight.w500,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart' as img;
 import 'trainee_controller.dart';
@@ -251,11 +252,11 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     final lowerCaseValue = trimmedValue.toLowerCase();
 
     if (trimmedValue.isEmpty) {
-      error = 'This field is required to fill';
+      error = 'trainee_error_required'.tr();
     } else {
       if (key == 'gender') {
         if (lowerCaseValue != 'male' && lowerCaseValue != 'female') {
-          error = 'Must be Male or Female';
+          error = 'trainee_error_gender'.tr();
         }
       } else if (key == 'belt') {
         const allowedBelts = [
@@ -267,15 +268,15 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
           'green',
         ];
         if (!allowedBelts.contains(lowerCaseValue)) {
-          error = 'Invalid belt color';
+          error = 'trainee_error_belt'.tr();
         }
       } else if (key == 'email' && !GetUtils.isEmail(trimmedValue)) {
-        error = 'Invalid Email';
+        error = 'trainee_error_email'.tr();
       } else if ((key == 'phone' || key == 'guardianContact') &&
           (trimmedValue.length < 9 || trimmedValue.length > 12)) {
-        error = 'Invalid Phone';
+        error = 'trainee_error_phone'.tr();
       } else if (key == 'conditions' && !trimmedValue.contains('-')) {
-        error = 'Must use "-" for each different disability';
+        error = 'trainee_error_conditions_format'.tr();
       }
     }
     setState(() {
@@ -298,7 +299,7 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
     _validateField('competency', _competencyCtrl.text);
 
     if (_dobCtrl.text.isEmpty) {
-      setState(() => _errors['dob'] = 'This field is required to fill');
+      setState(() => _errors['dob'] = 'trainee_error_required'.tr());
     }
 
     return _errors.values.any((e) => e != null);
@@ -425,8 +426,8 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
       await Future.delayed(const Duration(milliseconds: 300));
 
       Get.snackbar(
-        "Congratulations!",
-        "Trainee promoted to $nextBelt Belt!",
+        "edit_trainee_snackbar_promotion_title".tr(),
+        "edit_trainee_snackbar_promotion_msg".tr(namedArgs: {'belt': nextBelt}),
         backgroundColor: const Color(0xFF00FFA6),
         colorText: Colors.black,
         duration: const Duration(seconds: 5),
@@ -452,7 +453,11 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Image size must be 1MB or less. Selected image is ${(fileSize / 1048576).toStringAsFixed(2)}MB',
+                  'trainee_error_image_size'.tr(
+                    namedArgs: {
+                      'size': (fileSize / 1048576).toStringAsFixed(2),
+                    },
+                  ),
                   style: const TextStyle(color: Colors.white),
                 ),
                 backgroundColor: Colors.red,
@@ -485,9 +490,9 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library, color: Colors.white),
-              title: const Text(
-                'Choose from gallery',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                'trainee_image_gallery'.tr(),
+                style: const TextStyle(color: Colors.white),
               ),
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -496,9 +501,9 @@ class _EditTraineeScreenState extends State<EditTraineeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Colors.white),
-              title: const Text(
-                'Take a photo',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                'trainee_image_camera'.tr(),
+                style: const TextStyle(color: Colors.white),
               ),
               onTap: () {
                 Navigator.of(ctx).pop();

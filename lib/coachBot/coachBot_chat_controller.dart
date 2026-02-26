@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/helper/constants.dart';
@@ -18,7 +19,7 @@ class CoachBotChatController extends GetxController {
   var isLoading = false.obs;
   var suggestions = <String>[].obs;
   var insights = Rx<CoachInsights?>(null);
-  
+
   // Track if we are viewing a specific historical conversation
   bool isHistoryView = false;
 
@@ -29,7 +30,7 @@ class CoachBotChatController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    
+
     // Check arguments BEFORE loading welcome message
     if (Get.arguments != null) {
       _handleArguments();
@@ -39,7 +40,7 @@ class CoachBotChatController extends GetxController {
     if (!isHistoryView && messages.isEmpty) {
       _loadWelcomeMessage();
     }
-    
+
     _loadSuggestions();
     _loadInsights();
   }
@@ -51,7 +52,7 @@ class CoachBotChatController extends GetxController {
     // Case 1: Viewing History (Map passed from HistoryController)
     if (args is Map<String, dynamic> && args['resumeConversation'] == true) {
       isHistoryView = true;
-      
+
       final String userMsg = args['userMessage'] ?? '';
       final String botResp = args['botResponse'] ?? '';
       final DateTime timestamp = args['timestamp'] ?? DateTime.now();
@@ -60,28 +61,28 @@ class CoachBotChatController extends GetxController {
 
       // Add the historical interaction
       if (userMsg.isNotEmpty) {
-        messages.add(ChatMessage(
-          text: userMsg,
-          isUser: true,
-          timestamp: timestamp,
-        ));
+        messages.add(
+          ChatMessage(text: userMsg, isUser: true, timestamp: timestamp),
+        );
       }
 
       if (botResp.isNotEmpty) {
-        messages.add(ChatMessage(
-          text: botResp,
-          isUser: false,
-          timestamp: timestamp, // or timestamp.add(Duration(seconds: 1))
-          model: model,
-          tokens: tokens,
-          cached: args['cached'] ?? false,
-          preset: args['preset'] ?? false,
-        ));
+        messages.add(
+          ChatMessage(
+            text: botResp,
+            isUser: false,
+            timestamp: timestamp, // or timestamp.add(Duration(seconds: 1))
+            model: model,
+            tokens: tokens,
+            cached: args['cached'] ?? false,
+            preset: args['preset'] ?? false,
+          ),
+        );
       }
-      
+
       // Scroll to bottom after a slight delay to ensure UI builds
       Future.delayed(const Duration(milliseconds: 300), _scrollToBottom);
-    } 
+    }
     // Case 2: Draft Message (String passed as a shortcut)
     else if (args is String) {
       messageController.text = args;
@@ -93,7 +94,6 @@ class CoachBotChatController extends GetxController {
 
   /// Send message to CoachBot API
   Future<void> sendMessage() async {
-    
     final text = messageController.text.trim();
     if (text.isEmpty || isLoading.value) return;
 
@@ -152,7 +152,7 @@ class CoachBotChatController extends GetxController {
 
         // Show badge if response was instant
         if (data['cached'] == true || data['preset'] == true) {
-          _showSuccessSnackbar('⚡ Instant response!');
+          _showSuccessSnackbar('coachbot_snackbar_instant_response'.tr());
         }
 
         // Refresh insights periodically
@@ -161,15 +161,17 @@ class CoachBotChatController extends GetxController {
         }
       } else if (response.statusCode == 400) {
         final error = jsonDecode(response.body);
-        _showErrorMessage(error['error'] ?? 'Invalid request');
+        _showErrorMessage(
+          error['error'] ?? 'coachbot_error_invalid_request'.tr(),
+        );
       } else if (response.statusCode == 429) {
-        _showErrorMessage('Too many requests. Please wait a moment.');
+        _showErrorMessage('coachbot_error_too_many_requests'.tr());
       } else {
-        _showErrorMessage('Failed to get response. Please try again.');
+        _showErrorMessage('coachbot_error_failed_response'.tr());
       }
     } catch (e) {
       print('CoachBot Error: $e');
-      _showErrorMessage('Network error. Please check your connection.');
+      _showErrorMessage('error_network'.tr());
     } finally {
       isLoading.value = false;
       _scrollToBottom();
@@ -189,10 +191,10 @@ class CoachBotChatController extends GetxController {
       }
     } catch (e) {
       suggestions.value = [
-        "Help me plan a beginner session",
-        "What are the belt requirements?",
-        "Show me a warm-up routine",
-        "How do I teach roundhouse kicks?"
+        "coachbot_suggestion_plan_session".tr(),
+        "coachbot_suggestion_belt_reqs".tr(),
+        "coachbot_suggestion_warmup".tr(),
+        "coachbot_suggestion_roundhouse".tr(),
       ];
     }
   }
@@ -225,18 +227,16 @@ class CoachBotChatController extends GetxController {
         : messages;
 
     return recentMessages.map((msg) {
-      return {
-        'role': msg.isUser ? 'user' : 'assistant',
-        'content': msg.text,
-      };
+      return {'role': msg.isUser ? 'user' : 'assistant', 'content': msg.text};
     }).toList();
   }
 
   void _loadWelcomeMessage() {
-    final userName = userController.userData['name'] ?? 'Coach';
+    final userName =
+        userController.userData['name'] ?? 'coachbot_ctrl_fallback_name'.tr();
     messages.add(
       ChatMessage(
-        text: "Hello $userName! 🥋 I'm CoachBot, your Taekwondo coaching assistant.\n\nI can help you with:\n• Planning training sessions\n• Explaining techniques and forms\n• Belt requirements and progression\n• Sparring strategies\n• Safety tips\n\nWhat would you like to know?",
+        text: "coachbot_msg_welcome".tr(namedArgs: {'userName': userName}),
         isUser: false,
         timestamp: DateTime.now(),
         preset: true,
@@ -247,7 +247,7 @@ class CoachBotChatController extends GetxController {
   void _showErrorMessage(String error) {
     messages.add(
       ChatMessage(
-        text: "Sorry, I encountered an error: $error\n\nPlease try again or contact support if the problem persists.",
+        text: "coachbot_msg_error_response".tr(namedArgs: {'error': error}),
         isUser: false,
         timestamp: DateTime.now(),
         isError: true,
@@ -269,7 +269,7 @@ class CoachBotChatController extends GetxController {
 
   void _showSuccessSnackbar(String message) {
     Get.snackbar(
-      'Success',
+      'success'.tr(),
       message,
       snackPosition: SnackPosition.TOP,
       backgroundColor: const Color(0xFF09FACA),
@@ -291,8 +291,8 @@ class CoachBotChatController extends GetxController {
 
   void startVoiceInput() {
     Get.snackbar(
-      'Voice Input',
-      'Voice input coming soon!',
+      'coachbot_snackbar_voice_title'.tr(),
+      'coachbot_snackbar_voice_msg'.tr(),
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: const Color(0xFF09FACA),
       colorText: Colors.white,
@@ -302,14 +302,15 @@ class CoachBotChatController extends GetxController {
 
   void clearConversation() {
     Get.defaultDialog(
-      title: 'Clear Chat',
-      middleText: 'Are you sure you want to clear all messages?',
-      textConfirm: 'Clear',
-      textCancel: 'Cancel',
+      title: 'coachbot_dialog_clear_title'.tr(),
+      middleText: 'coachbot_dialog_clear_msg'.tr(),
+      textConfirm: 'coachbot_btn_clear'.tr(),
+      textCancel: 'cancel'.tr(),
       confirmTextColor: Colors.white,
       onConfirm: () {
         messages.clear();
-        isHistoryView = false; // Reset history mode so welcome message comes back
+        isHistoryView =
+            false; // Reset history mode so welcome message comes back
         _loadWelcomeMessage();
         Get.back();
       },
@@ -362,7 +363,8 @@ class CoachInsights {
   factory CoachInsights.fromJson(Map<String, dynamic> json) {
     return CoachInsights(
       totalQueries: json['totalQueries'] ?? 0,
-      topTopics: (json['topTopics'] as List?)
+      topTopics:
+          (json['topTopics'] as List?)
               ?.map((t) => TopicCount.fromJson(t))
               .toList() ??
           [],
@@ -378,9 +380,6 @@ class TopicCount {
   TopicCount({required this.topic, required this.count});
 
   factory TopicCount.fromJson(Map<String, dynamic> json) {
-    return TopicCount(
-      topic: json['topic'] ?? '',
-      count: json['count'] ?? 0,
-    );
+    return TopicCount(topic: json['topic'] ?? '', count: json['count'] ?? 0);
   }
 }

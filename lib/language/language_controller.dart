@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguageController extends GetxController {
-  var currentLanguage = 'en'.obs; 
+  var currentLanguage = 'en'.obs;
 
   final List<Map<String, String>> languages = [
     {'name': 'English', 'code': 'en', 'flag': '🇺🇸'},
@@ -17,28 +18,34 @@ class LanguageController extends GetxController {
     loadLanguage();
   }
 
-  // Load saved language from storage
+  // Load saved language from storage (sync currentLanguage with prefs only)
+  // EasyLocalization restores its own locale automatically at startup.
   Future<void> loadLanguage() async {
     final prefs = await SharedPreferences.getInstance();
-    currentLanguage.value = prefs.getString('language_code') ?? 'en';
-    // Here you would also update the app's locale if using localization
-    // Get.updateLocale(Locale(currentLanguage.value));
+    final savedCode = prefs.getString('language_code') ?? 'en';
+    currentLanguage.value = savedCode;
   }
 
   // Change and save language
-  Future<void> changeLanguage(String languageCode) async {
+  Future<void> changeLanguage(BuildContext context, String languageCode) async {
     currentLanguage.value = languageCode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language_code', languageCode);
-    
-    // Update app locale (if you are using GetX localization)
-    // Get.updateLocale(Locale(languageCode));
-    
+
+    // Apply locale change — triggers EasyLocalization to rebuild its subtree,
+    // which calls _AppRootState.build, which pushes the new locale to GetMaterialApp
+    await context.setLocale(Locale(languageCode));
+
+    // Wait one frame for the locale rebuild to propagate before navigating away
+    await Future.delayed(const Duration(milliseconds: 100));
+
     Get.back();
-    
+
     Get.snackbar(
-      "Success", 
-      "Language changed to ${_getLanguageName(languageCode)}",
+      "lang_ctrl_snackbar_title".tr(),
+      "lang_ctrl_snackbar_msg".tr(
+        namedArgs: {'name': _getLanguageName(languageCode)},
+      ),
       backgroundColor: Colors.green.withOpacity(0.8),
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,

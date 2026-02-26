@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/help_support/help_support_model.dart';
@@ -49,8 +50,8 @@ class HelpSupportController extends GetxController {
 
     if (titleController.text.trim().isEmpty) {
       Get.snackbar(
-        'Error',
-        'Please enter a title for your issue',
+        'error'.tr(),
+        'help_support_error_title_required'.tr(),
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -59,8 +60,8 @@ class HelpSupportController extends GetxController {
 
     if (descriptionController.text.trim().isEmpty) {
       Get.snackbar(
-        'Error',
-        'Please describe your problem',
+        'error'.tr(),
+        'help_support_error_desc_required'.tr(),
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -69,8 +70,8 @@ class HelpSupportController extends GetxController {
 
     if (descriptionController.text.trim().length < 10) {
       Get.snackbar(
-        'Error',
-        'Please provide more details (at least 10 characters)',
+        'error'.tr(),
+        'help_support_error_desc_length'.tr(),
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -86,8 +87,8 @@ class HelpSupportController extends GetxController {
 
     if (userId.isEmpty) {
       Get.snackbar(
-        'Error',
-        'User not logged in',
+        'error'.tr(),
+        'error_not_logged_in'.tr(),
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -138,9 +139,10 @@ class HelpSupportController extends GetxController {
         return true;
       } else {
         final error = jsonDecode(response.body);
-        final errorMessage = error['message'] ?? 'Failed to submit ticket';
+        final errorMessage =
+            error['message'] ?? 'help_support_error_submit_failed'.tr();
         Get.snackbar(
-          'Error',
+          'error'.tr(),
           errorMessage,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -150,8 +152,8 @@ class HelpSupportController extends GetxController {
     } catch (e) {
       print('Error submitting ticket: $e');
       Get.snackbar(
-        'Error',
-        'Connection error: $e',
+        'error'.tr(),
+        'help_support_error_connection'.tr(namedArgs: {'error': e.toString()}),
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -206,8 +208,8 @@ class HelpSupportController extends GetxController {
   void contactSupport() {
     // You can implement email launch or other contact methods
     Get.snackbar(
-      'Contact Support',
-      'Email: info@insideeu.eu',
+      'help_support_snackbar_contact_title'.tr(),
+      'help_support_snackbar_contact_msg'.tr(),
       backgroundColor: Color(0xFF09FACA),
       colorText: Color(0xFF1A1D29),
       duration: Duration(seconds: 3),

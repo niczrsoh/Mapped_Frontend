@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'profile_editor_model.dart';
 
@@ -92,7 +93,7 @@ class ProfileEditorController extends GetxController {
       print('User: ${userProfile.value!.name}');
     } catch (e) {
       print('Error initializing profile editor: $e');
-      Get.snackbar('Error', 'Failed to load profile data');
+      Get.snackbar('error'.tr(), 'profile_edit_error_load'.tr());
     }
   }
 
@@ -118,17 +119,17 @@ class ProfileEditorController extends GetxController {
     }
 
     if (nameController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Name is required');
+      Get.snackbar('error'.tr(), 'profile_edit_error_name_req'.tr());
       return false;
     }
 
     if (emailController.text.trim().isEmpty) {
-      Get.snackbar('Error', 'Email is required');
+      Get.snackbar('error'.tr(), 'profile_edit_error_email_req'.tr());
       return false;
     }
 
     if (!_isValidEmail(emailController.text.trim())) {
-      Get.snackbar('Error', 'Please enter a valid email');
+      Get.snackbar('error'.tr(), 'profile_edit_error_email_invalid'.tr());
       return false;
     }
 
@@ -161,7 +162,7 @@ class ProfileEditorController extends GetxController {
       }
     } catch (e) {
       print('Error picking image: $e');
-      Get.snackbar('Error', 'Failed to pick image');
+      Get.snackbar('error'.tr(), 'profile_edit_error_pick_image'.tr());
     }
   }
 
@@ -181,7 +182,7 @@ class ProfileEditorController extends GetxController {
       }
     } catch (e) {
       print('Error taking photo: $e');
-      Get.snackbar('Error', 'Failed to take photo');
+      Get.snackbar('error'.tr(), 'profile_edit_error_take_photo'.tr());
     }
   }
 
@@ -194,7 +195,7 @@ class ProfileEditorController extends GetxController {
     try {
       final userId = userProfile.value?.id;
       if (userId == null || userId.isEmpty) {
-        Get.snackbar('Error', 'User ID not found');
+        Get.snackbar('error'.tr(), 'profile_edit_error_id_not_found'.tr());
         return false;
       }
 
@@ -242,7 +243,7 @@ class ProfileEditorController extends GetxController {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(responseBody);
-        
+
         // Handle both response formats
         Map<String, dynamic> userData;
         if (responseData['success'] == true && responseData['data'] != null) {
@@ -252,33 +253,37 @@ class ProfileEditorController extends GetxController {
           // Old format: direct user object
           userData = responseData;
         } else {
-          Get.snackbar('Error', 'Invalid response format');
+          Get.snackbar('error'.tr(), 'profile_edit_error_format'.tr());
           return false;
         }
-        
+
         // Update local user profile
         userProfile.value = UserProfile.fromJson(userData);
-        
+
         // Refresh UserController data to update account page
         await userController.fetchUserProfile();
-        
+
         Get.snackbar(
-          'Success',
-          'Profile updated successfully',
+          'success'.tr(),
+          'profile_edit_success_msg'.tr(),
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        
+
         return true;
       } else {
         final error = jsonDecode(responseBody);
-        final errorMessage = error['message'] ?? 'Failed to update profile';
-        Get.snackbar('Error', errorMessage);
+        final errorMessage =
+            error['message'] ?? 'profile_edit_error_update_failed'.tr();
+        Get.snackbar('error'.tr(), errorMessage);
         return false;
       }
     } catch (e) {
       print('Error saving profile: $e');
-      Get.snackbar('Error', 'Connection error: $e');
+      Get.snackbar(
+        'error'.tr(),
+        'profile_edit_error_connection'.tr(args: [e.toString()]),
+      );
       return false;
     } finally {
       isSaving.value = false;

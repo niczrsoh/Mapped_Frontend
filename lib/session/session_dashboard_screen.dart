@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/session/session_upcoming_screen.dart';
 import 'session_current_screen.dart';
 import 'session_history_screen.dart';
@@ -12,10 +13,10 @@ class SessionDashboardScreen extends StatelessWidget {
   const SessionDashboardScreen({super.key});
 
   String _formatDuration(dynamic duration) {
-    if (duration == null) return '0 Mins';
+    if (duration == null) return '0 ${'duration'.tr()}';
     final d = duration.toString();
     if (d.toLowerCase().contains('min')) return d;
-    return '$d Mins';
+    return '$d ${'duration'.tr()}';
   }
 
   Widget _buildSessionContentRows({
@@ -159,7 +160,7 @@ class SessionDashboardScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Text(
-                    "No $title Sessions Available",
+                    "${'lbl_na'.tr()} $title ${'sessions'.tr()}",
                     style: GoogleFonts.roboto(color: Colors.white54),
                   ),
                 ),
@@ -218,8 +219,10 @@ class SessionDashboardScreen extends StatelessWidget {
                               date: session.uiDate ?? session.date ?? '-',
                               time: _formatDuration(session.duration),
                               venue: session.venue ?? '-',
-                              trainees: '${session.totalTrainees} Trainees',
-                              trainer: 'Coach: Sir ${userController.userName}',
+                              trainees:
+                                  '${session.totalTrainees} ${'participants'.tr()}',
+                              trainer:
+                                  '${'coachbot_ctrl_fallback_name'.tr()}: Sir ${userController.userName}',
                             ),
                           ),
                         );
@@ -244,7 +247,9 @@ class SessionDashboardScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Session Dashboard',
+          'home_nav_session'.tr() +
+              ' ' +
+              'admin_manage_title_dashboard'.tr().split(' ').last,
           style: GoogleFonts.roboto(
             color: Colors.white,
             fontSize: 16,
@@ -284,7 +289,9 @@ class SessionDashboardScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'Session Dashboard',
+                        'home_nav_session'.tr() +
+                            ' ' +
+                            'admin_manage_title_dashboard'.tr().split(' ').last,
                         style: GoogleFonts.roboto(
                           color: Colors.white,
                           fontSize: 12,
@@ -297,11 +304,10 @@ class SessionDashboardScreen extends StatelessWidget {
 
                   _buildScrollableSessionBox(
                     context: context,
-                    title: 'Current',
+                    title: 'home_search_empty_sessions'.tr().split(' ').first,
                     sessions: controller.currentList,
                     navigationTarget: () => const SessionCurrentScreen(),
                   ),
-
 
                   _buildScrollableSessionBox(
                     context: context,

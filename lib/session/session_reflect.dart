@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'session_controller.dart';
 
@@ -86,7 +87,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
               Navigator.of(context).popUntil((route) => route.isFirst),
         ),
         title: Text(
-          'Session Reflections',
+          'session_title_reflections'.tr(),
           style: GoogleFonts.poppins(color: textColor, fontSize: 18),
         ),
       ),
@@ -99,7 +100,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Reviewing Session:',
+                    'session_lbl_reviewing_session'.tr(),
                     style: GoogleFonts.poppins(
                       color: secondaryTextColor,
                       fontSize: 12,
@@ -124,7 +125,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Overall Assessment',
+                    'session_title_overall_assessment'.tr(),
                     style: GoogleFonts.poppins(
                       color: textColor,
                       fontSize: 18,
@@ -133,7 +134,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'How successful was the session?',
+                    'session_msg_how_successful'.tr(),
                     style: GoogleFonts.poppins(
                       color: secondaryTextColor,
                       fontSize: 14,
@@ -150,7 +151,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Key Takeaways',
+                    'session_title_key_takeaways'.tr(),
                     style: GoogleFonts.poppins(
                       color: accentYellow,
                       fontSize: 18,
@@ -159,16 +160,14 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                   ),
                   const SizedBox(height: 20),
                   _buildInputField(
-                    label: 'What went well? (Highlights)',
-                    hint:
-                        'e.g., The participants are seem well and happy during the session. The focus mitt drills really improved reaction speed today; and everyone respected the power control limits....',
+                    label: 'session_lbl_highlights'.tr(),
+                    hint: 'session_hint_highlights'.tr(),
                     controller: _highlightsCtrl,
                   ),
                   const SizedBox(height: 20),
                   _buildInputField(
-                    label: 'Areas for Improvement',
-                    hint:
-                        'e.g., Warm-up shrimps and rolls took too long to organize; several white belts were forgetting to tap early during the submission drills....',
+                    label: 'session_lbl_areas_improvement'.tr(),
+                    hint: 'session_hint_areas_improvement'.tr(),
                     controller: _improvementsCtrl,
                   ),
                 ],
@@ -181,7 +180,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Next Session Action Items',
+                    'session_title_action_items'.tr(),
                     style: GoogleFonts.poppins(
                       color: accentGreen,
                       fontSize: 18,
@@ -190,7 +189,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'What concrete changes will you make next time?',
+                    'session_msg_concrete_changes'.tr(),
                     style: GoogleFonts.poppins(
                       color: secondaryTextColor,
                       fontSize: 14,
@@ -200,13 +199,13 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                   _buildActionItemInput(
                     1,
                     _actionItemCtrls[0],
-                    'e.g. More Side kicks',
+                    'session_hint_action_item_1'.tr(),
                   ),
                   const SizedBox(height: 12),
                   _buildActionItemInput(
                     2,
                     _actionItemCtrls[1],
-                    'e.g. pattern 2 revision',
+                    'session_hint_action_item_2'.tr(),
                   ),
                 ],
               ),
@@ -252,8 +251,8 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                       controller.markReflectionAsSubmitted(id);
 
                       Get.snackbar(
-                        "Success",
-                        "Reflection Saved Successfully",
+                        'success'.tr(),
+                        'session_snackbar_reflection_saved'.tr(),
                         backgroundColor: accentGreen,
                         colorText: Colors.black,
                         snackPosition: SnackPosition.BOTTOM,
@@ -262,10 +261,10 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                       );
                     } else {
                       Get.snackbar(
-                        "Error",
+                        'error'.tr(),
                         controller.error.value.isNotEmpty
                             ? controller.error.value
-                            : "Failed to save feedback",
+                            : 'session_error_save_feedback'.tr(),
                         backgroundColor: Colors.redAccent,
                         colorText: Colors.white,
                         snackPosition: SnackPosition.BOTTOM,
@@ -275,8 +274,8 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                     }
                   } else {
                     Get.snackbar(
-                      "Error",
-                      "Session ID missing",
+                      'error'.tr(),
+                      'session_error_missing_id'.tr(),
                       backgroundColor: Colors.redAccent,
                       colorText: Colors.white,
                     );
@@ -309,7 +308,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                   child: Stack(
                     children: [
                       Text(
-                        'Save',
+                        'save'.tr(),
                         style: GoogleFonts.roboto(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -320,7 +319,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
                         ),
                       ),
                       Text(
-                        'Save',
+                        'save'.tr(),
                         style: GoogleFonts.roboto(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -341,8 +340,9 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
 
   String _getSessionTitle() {
     final date = _formatSessionDate(widget.sessionData);
-    final level = widget.sessionData['level'] ?? 'Intermediate';
-    return '$date - $level Group';
+    final level =
+        widget.sessionData['level'] ?? 'session_level_intermediate'.tr();
+    return '$date - $level ' + 'session_lbl_group'.tr();
   }
 
   String _formatSessionDate(Map<String, dynamic> data) {
@@ -506,7 +506,7 @@ class _SessionReflectionsScreenState extends State<SessionReflectionsScreen> {
               decoration: InputDecoration(
                 isDense: true,
                 hintMaxLines: 3,
-                hintText: 'Add Action Item. ($hint)',
+                hintText: 'session_lbl_add_action_item'.tr() + ' ($hint)',
                 hintStyle: GoogleFonts.poppins(
                   color: accentGreen,
                   fontSize: 14,

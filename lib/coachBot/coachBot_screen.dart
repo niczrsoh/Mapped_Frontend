@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/coachBot/coachBot_controller.dart';
 import 'package:mapped_frontend/coachBot/coachBot_history_screen.dart';
@@ -27,7 +28,7 @@ class CoachBotScreen extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            'CoachBot',
+                            'coachbot_title_main'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -42,9 +43,9 @@ class CoachBotScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.history, color: Colors.white),
                     onPressed: () {
-                        Get.to(() => CoachBotHistoryScreen());
+                      Get.to(() => CoachBotHistoryScreen());
                     },
-                     tooltip: 'Chat History',
+                    tooltip: 'coachbot_tooltip_history'.tr(),
                   ),
                 ],
               ),
@@ -65,7 +66,7 @@ class CoachBotScreen extends StatelessWidget {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: 'Hello, ',
+                                text: 'coachbot_greeting_hello'.tr(),
                                 style: GoogleFonts.poppins(
                                   fontSize: 48,
                                   fontWeight: FontWeight.w400,
@@ -90,7 +91,7 @@ class CoachBotScreen extends StatelessWidget {
                       const SizedBox(height: 8),
 
                       Text(
-                        'How can I help\nyou today?',
+                        'coachbot_greeting_question'.tr(),
                         style: GoogleFonts.poppins(
                           fontSize: 36,
                           fontWeight: FontWeight.w400,
@@ -103,24 +104,26 @@ class CoachBotScreen extends StatelessWidget {
 
                       // Quick Action Buttons
                       _buildQuickActionButton(
-                        icon: Icons.school_outlined, // Good for history/learning
-                        title: 'What is a safe way to teach blocks to a participant with poor vision?',
+                        icon:
+                            Icons.school_outlined, // Good for history/learning
+                        title: 'coachbot_draft_history'.tr(),
                         onTap: () => controller.explainHistory(),
                       ),
 
                       const SizedBox(height: 12),
 
                       _buildQuickActionButton(
-                        icon: Icons.center_focus_strong, // Perfect for techniques
-                        title: 'What are good ways to support a participant who struggles to focus?',
+                        icon:
+                            Icons.sports_martial_arts, // Perfect for techniques
+                        title: 'coachbot_draft_techniques'.tr(),
                         onTap: () => controller.showTechniques(),
                       ),
 
                       const SizedBox(height: 12),
 
                       _buildQuickActionButton(
-                        icon: Icons.sports_martial_arts, // Good for location
-                        title: 'Give me ideas for warm-up games that include everyone.',
+                        icon: Icons.location_on_outlined, // Good for location
+                        title: 'coachbot_draft_find_dojang'.tr(),
                         onTap: () => controller.findDojang(),
                       ),
 
@@ -128,7 +131,7 @@ class CoachBotScreen extends StatelessWidget {
 
                       _buildQuickActionButton(
                         icon: Icons.explore,
-                        title: 'How can I help a student who is very shy and afraid to spar?',
+                        title: 'coachbot_draft_other_options'.tr(),
                         onTap: () => controller.showOtherOptions(),
                       ),
 
@@ -152,7 +155,7 @@ class CoachBotScreen extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Your conversations are processed to improve the technologies powering CoachBot. Don\'t enter anything that you wouldn\'t want to be reviewed or used.',
+                                'coachbot_disclaimer_privacy'.tr(),
                                 style: GoogleFonts.roboto(
                                   fontSize: 12,
                                   color: Colors.white54,
@@ -169,7 +172,7 @@ class CoachBotScreen extends StatelessWidget {
                       // Disclaimer
                       Center(
                         child: Text(
-                          'CoachBot may display inaccurate info, including about people, so double-check its responses.',
+                          'coachbot_disclaimer_accuracy'.tr(),
                           textAlign: TextAlign.center,
                           style: GoogleFonts.roboto(
                             fontSize: 11,
@@ -212,7 +215,7 @@ class CoachBotScreen extends StatelessWidget {
                         controller: controller.messageController,
                         style: GoogleFonts.roboto(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Enter a prompt here...',
+                          hintText: 'coachbot_hint_input'.tr(),
                           hintStyle: GoogleFonts.roboto(
                             color: Colors.white38,
                             fontSize: 14,

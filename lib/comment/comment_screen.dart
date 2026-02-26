@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/forum/forum_controller.dart';
 import 'comment_controller.dart';
@@ -72,7 +73,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         },
       ),
       title: Text(
-        'Comments',
+        'comment_title_main'.tr(),
         style: GoogleFonts.inter(
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -94,7 +95,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       if (controller.comments.isEmpty) {
         return Center(
           child: Text(
-            'No comments yet. Be the first!',
+            'comment_empty_state'.tr(),
             style: GoogleFonts.roboto(color: Colors.white54, fontSize: 16),
           ),
         );
@@ -192,7 +193,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 controller: commentController,
                 style: GoogleFonts.roboto(color: Colors.white, fontSize: 14),
                 decoration: InputDecoration(
-                  hintText: 'Write a comment...',
+                  hintText: 'comment_hint_input'.tr(),
                   hintStyle: GoogleFonts.roboto(color: Colors.white54),
                   filled: true,
                   fillColor: const Color(0xFF1A1D29),
@@ -266,8 +267,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
   void _handleSendComment() async {
     if (!controller.isEligibleToComment) {
       Get.snackbar(
-        "Access Denied",
-        "You are not allowed to reply in the forum until you achieve the green belt.",
+        "comment_snackbar_access_denied_title".tr(),
+        "comment_snackbar_access_denied_msg".tr(),
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
         duration: const Duration(seconds: 4),
@@ -292,8 +293,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
       // Show styled success message
       if (controller.comments.isNotEmpty) {
         Get.snackbar(
-          "Success",
-          "Comment added successfully",
+          "success".tr(),
+          "comment_snackbar_success_msg_long".tr(),
           backgroundColor: const Color(0xFF09FACA),
           colorText: Colors.black,
           duration: const Duration(seconds: 2),

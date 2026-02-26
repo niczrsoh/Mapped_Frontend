@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AboutUsScreen extends StatelessWidget {
@@ -17,7 +18,7 @@ class AboutUsScreen extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'About Us',
+          'about_title'.tr(),
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -43,23 +44,23 @@ class AboutUsScreen extends StatelessWidget {
 
             // 2. TEXT CONTENT
             _buildParagraph(
-              "MAPPED is part of the Traditional Martial Arts for All (TMA4ALL) project - a groundbreaking European initiative dedicated to making all traditional martial arts accessible and inclusive for everyone (Project 101133802 — TMA4ALL)."
+              "about_para_1".tr()
             ),
             _buildParagraph(
-              "We believe that all traditional martial arts can transform lives through physical, psychological and social development, regardless of the style. In fact, research consistently shows that the martial arts coach is the most important factor in improving health, well-being and quality of life among practitioners, regardless of the martial art itself. Our mission is to support all traditional martial arts coaches in creating safe, empowering sessions that welcome people of all abilities, backgrounds, ages and disabilities."
+              "about_para_2".tr()
             ),
             _buildParagraph(
-              "Developed through collaboration between leading inclusive martial arts organisations and universities across Europe, MAPPED is the first fully accessible and inclusive app designed specifically for grassroots martial arts coaches. Whether you're an aspiring coach or an experienced instructor, MAPPED provides the tools, support and community you need to deliver high-quality inclusive martial arts sessions."
+              "about_para_3".tr()
             ),
             _buildParagraph(
-              "Join our growing international network of coaches who are using traditional martial arts to improve lives and build stronger, more inclusive communities."
+              "about_para_4".tr()
             ),
 
             const SizedBox(height: 30),
 
             // 3. PARTNERS SECTION
             Text(
-              "Our Partners",
+              "about_partners_title".tr(),
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -101,7 +102,7 @@ class AboutUsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Co-funded by",
+                      "about_eu_funded_by".tr(),
                       style: GoogleFonts.roboto(
                         color: const Color(0xFF003399), // EU Blue
                         fontSize: 12,
@@ -109,7 +110,7 @@ class AboutUsScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "the European Union",
+                      "about_eu_name".tr(),
                       style: GoogleFonts.roboto(
                         color: const Color(0xFF003399), // EU Blue
                         fontSize: 14,
@@ -124,7 +125,7 @@ class AboutUsScreen extends StatelessWidget {
             
             // Disclaimer
             Text(
-              "Disclaimer\nFunded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Education and Culture Executive Agency (EACEA). Neither the European Union nor EACEA can be held responsible for them.",
+              "about_disclaimer_title".tr() + "\n" + "about_disclaimer_body".tr(),
               style: GoogleFonts.roboto(
                 fontSize: 12,
                 color: const Color.fromARGB(153, 43, 38, 38),

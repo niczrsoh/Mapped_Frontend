@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/admin/admin_account_screen.dart';
 import 'package:mapped_frontend/admin/admin_screen.dart';
 import 'package:mapped_frontend/admin/admin_resource.dart';
-
 
 class AdminMainScreen extends StatelessWidget {
   AdminMainScreen({super.key});
@@ -11,7 +11,7 @@ class AdminMainScreen extends StatelessWidget {
   final RxInt _currentIndex = 0.obs;
 
   final List<Widget> _screens = [
-     AdminManageUsersScreen(), // The content screen below
+    AdminManageUsersScreen(), // The content screen below
      AdminResource(),
     const AdminAccountScreen(),
   ];
@@ -21,19 +21,27 @@ class AdminMainScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF121421),
       body: Obx(() => _screens[_currentIndex.value]),
-      bottomNavigationBar: Obx(() => BottomNavigationBar(
-        backgroundColor: const Color(0xFF1A1D2D),
-        selectedItemColor: const Color(0xFF00C7A7),
-        unselectedItemColor: Colors.white70,
-        currentIndex: _currentIndex.value,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) => _currentIndex.value = index,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.security), label: 'Report'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Resource'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: 'Account'),
-        ],
-      )),
+      bottomNavigationBar: Obx(
+        () => BottomNavigationBar(
+          backgroundColor: const Color(0xFF1A1D2D),
+          selectedItemColor: const Color(0xFF00C7A7),
+          unselectedItemColor: Colors.white70,
+          currentIndex: _currentIndex.value,
+          type: BottomNavigationBarType.fixed,
+          onTap: (index) => _currentIndex.value = index,
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.security),
+              label: 'admin_main_nav_report'.tr(),
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Resource'),
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.account_circle),
+              label: 'admin_main_nav_account'.tr(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

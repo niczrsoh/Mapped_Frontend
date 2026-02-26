@@ -1,5 +1,6 @@
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class NotificationController extends GetxController {
   // Common
@@ -21,8 +22,8 @@ class NotificationController extends GetxController {
   void saveSettings() {
     // Save notification settings to backend/storage
     Get.snackbar(
-      'Success',
-      'Notification settings saved',
+      'success'.tr(),
+      'notification_snackbar_success_msg'.tr(),
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Color(0xFF09FACA),
       colorText: Color(0xFF1A1D29),

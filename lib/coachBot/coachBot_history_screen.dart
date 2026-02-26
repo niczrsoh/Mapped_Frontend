@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/coachBot/coachBot_history_controller.dart';
 import 'package:mapped_frontend/coachBot/coachBot_chat_screen.dart';
@@ -20,7 +21,8 @@ class CoachBotHistoryScreen extends StatelessWidget {
             // History List
             Expanded(
               child: Obx(() {
-                if (controller.isLoading.value && controller.conversations.isEmpty) {
+                if (controller.isLoading.value &&
+                    controller.conversations.isEmpty) {
                   return _buildLoadingState();
                 }
 
@@ -63,20 +65,26 @@ class CoachBotHistoryScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Chat History',
+                  'history_screen_title'.tr(),
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
-                Obx(() => Text(
-                      '${controller.conversations.length} conversations',
-                      style: GoogleFonts.roboto(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                    )),
+                Obx(
+                  () => Text(
+                    'history_screen_subtitle_conversations'.tr(
+                      namedArgs: {
+                        'count': controller.conversations.length.toString(),
+                      },
+                    ),
+                    style: GoogleFonts.roboto(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -91,14 +99,14 @@ class CoachBotHistoryScreen extends StatelessWidget {
               PopupMenuItem(
                 value: 'recent',
                 child: Text(
-                  'Most Recent',
+                  'history_filter_recent'.tr(),
                   style: GoogleFonts.roboto(color: Colors.white),
                 ),
               ),
               PopupMenuItem(
                 value: 'oldest',
                 child: Text(
-                  'Oldest First',
+                  'history_filter_oldest'.tr(),
                   style: GoogleFonts.roboto(color: Colors.white),
                 ),
               ),
@@ -125,11 +133,8 @@ class CoachBotHistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading history...',
-            style: GoogleFonts.roboto(
-              fontSize: 14,
-              color: Colors.white70,
-            ),
+            'history_state_loading'.tr(),
+            style: GoogleFonts.roboto(fontSize: 14, color: Colors.white70),
           ),
         ],
       ),
@@ -156,7 +161,7 @@ class CoachBotHistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No Chat History',
+            'history_state_empty_title'.tr(),
             style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.w600,
@@ -167,12 +172,9 @@ class CoachBotHistoryScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Your conversation history will appear here',
+              'history_state_empty_subtitle'.tr(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.roboto(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
+              style: GoogleFonts.roboto(fontSize: 14, color: Colors.white70),
             ),
           ),
           const SizedBox(height: 32),
@@ -189,7 +191,7 @@ class CoachBotHistoryScreen extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Start New Chat',
+              'history_btn_start_new'.tr(),
               style: GoogleFonts.roboto(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -245,9 +247,7 @@ class CoachBotHistoryScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF252836),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFF09FACA).withOpacity(0.2),
-            ),
+            border: Border.all(color: const Color(0xFF09FACA).withOpacity(0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,14 +313,18 @@ class CoachBotHistoryScreen extends StatelessWidget {
                   if (conversation.tokens > 0)
                     _buildInfoChip(
                       Icons.analytics,
-                      '${conversation.tokens} tokens',
+                      'coachbot_badge_tokens'.tr(
+                        namedArgs: {'tokens': conversation.tokens.toString()},
+                      ),
                       Colors.orange,
                     ),
                   const SizedBox(width: 8),
                   if (conversation.model != null)
                     _buildInfoChip(
                       Icons.memory,
-                      conversation.model!.contains('8b') ? 'Fast' : 'Smart',
+                      conversation.model!.contains('8b')
+                          ? 'coachbot_badge_fast'.tr()
+                          : 'coachbot_badge_smart'.tr(),
                       Colors.purple,
                     ),
                 ],
@@ -362,15 +366,21 @@ class CoachBotHistoryScreen extends StatelessWidget {
     final difference = now.difference(date);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return 'just_now'.tr();
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return 'history_time_minutes_ago'.tr(
+        namedArgs: {'minutes': difference.inMinutes.toString()},
+      );
     } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
+      return 'history_time_hours_ago'.tr(
+        namedArgs: {'hours': difference.inHours.toString()},
+      );
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return 'yesterday'.tr();
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return 'history_time_days_ago'.tr(
+        namedArgs: {'days': difference.inDays.toString()},
+      );
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
