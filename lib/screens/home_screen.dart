@@ -23,6 +23,8 @@ import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
 import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
 import 'package:mapped_frontend/screens/home_search.dart';
+import 'package:mapped_frontend/language/language_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final customGradient = const LinearGradient(
   colors: [Color(0xFF00C7A7), Color(0xFF00FF66)],
@@ -99,9 +101,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return Scaffold(
         backgroundColor: const Color(0xFF141823),
         body: const Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF00FF66),
-          ),
+          child: CircularProgressIndicator(color: Color(0xFF00FF66)),
         ),
       );
     }
@@ -147,18 +147,141 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Greeting
-                Obx(() {
-                  final userName = userController.userName;
-                  return Text(
-                    'home_msg_welcome'.tr(namedArgs: {'userName': userName}),
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                // Greeting + Language Button
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Obx(() {
+                        final userName = userController.userName;
+                        return Text(
+                          'home_msg_welcome'.tr(
+                            namedArgs: {'userName': userName},
+                          ),
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        );
+                      }),
                     ),
-                  );
-                }),
+                    Obx(() {
+                      final langCtrl = Get.isRegistered<LanguageController>()
+                          ? Get.find<LanguageController>()
+                          : Get.put(LanguageController());
+                      final currentCode = langCtrl.currentLanguage.value;
+                      final currentLang = langCtrl.languages.firstWhere(
+                        (l) => l['code'] == currentCode,
+                        orElse: () => {
+                          'code': 'en',
+                          'flag': '🇺🇸',
+                          'name': 'English',
+                        },
+                      );
+                      return PopupMenuButton<String>(
+                        onSelected: (code) async {
+                          langCtrl.currentLanguage.value = code;
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('language_code', code);
+                          if (context.mounted) {
+                            await context.setLocale(Locale(code));
+                          }
+                        },
+                        color: const Color(0xFF1E2230),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(
+                            color: Color(0xFF00C7A7),
+                            width: 1,
+                          ),
+                        ),
+                        offset: const Offset(0, 44),
+                        itemBuilder: (context) => langCtrl.languages
+                            .map(
+                              (lang) => PopupMenuItem<String>(
+                                value: lang['code'],
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      lang['flag']!,
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      lang['code']!.toUpperCase(),
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      lang['name']!,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white54,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    if (lang['code'] == currentCode) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        Icons.check,
+                                        color: Color(0xFF00C7A7),
+                                        size: 16,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        child: Container(
+                          padding: const EdgeInsets.all(1.0),
+                          decoration: BoxDecoration(
+                            gradient: customGradient,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2230),
+                              borderRadius: BorderRadius.circular(19),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  currentLang['flag']!,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  currentCode.toUpperCase(),
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: Colors.white70,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
                 const SizedBox(height: 8),
 
                 Row(
@@ -265,9 +388,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Belt Progress Card
                 GestureDetector(
                   onTap: () {
-                   Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => const BeltDashboardScreen()))
-                    .then((_) => _refreshData());
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (context) => const BeltDashboardScreen(),
+                          ),
+                        )
+                        .then((_) => _refreshData());
                   },
                   child: sectionCard(
                     child: Obx(() {
@@ -688,7 +815,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 Get.find<BottomNavController>().changeIndex(2);
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white24,
                                   borderRadius: BorderRadius.circular(28),
@@ -703,7 +832,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Icon(Icons.forum_outlined, color: Colors.white),
+                                    const Icon(
+                                      Icons.forum_outlined,
+                                      color: Colors.white,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -808,10 +940,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start, 
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.only(top: 6.0), 
+            padding: EdgeInsets.only(top: 6.0),
             child: Icon(Icons.circle, size: 6, color: Colors.white70),
           ),
           const SizedBox(width: 8),

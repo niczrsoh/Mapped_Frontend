@@ -32,9 +32,7 @@ class SessionDetailsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'home_nav_session'.tr() +
-              ' ' +
-              'home_subtitle_participant_info'.tr().split(' ').last,
+          'session_details_title'.tr(),
           style: GoogleFonts.poppins(color: textColor, fontSize: 18),
         ),
       ),
@@ -45,20 +43,22 @@ class SessionDetailsScreen extends StatelessWidget {
           children: [
             // --- Overview Card ---
             _buildCard(
-              title:
-                  'home_subtitle_participant_info'.tr().split(' ').first +
-                  ': ${sessionData['level'] ?? 'Intermediate'}',
+              title: 'session_details_overview_header'.tr(
+                namedArgs: {
+                  'level': '${sessionData['level'] ?? 'Intermediate'}',
+                },
+              ),
               child: Column(
                 children: [
                   Row(
                     children: [
                       _buildOverviewItem(
-                        'trainee_lbl_dob'.tr().split(' ').first,
+                        'session_details_lbl_date'.tr(),
                         _formatSessionDate(sessionData),
                       ),
                       const SizedBox(width: 16),
                       _buildOverviewItem(
-                        'session_lbl_venue'.tr(),
+                        'session_details_lbl_venue'.tr(),
                         '${sessionData['venue'] ?? 'lbl_na'.tr()}',
                       ),
                     ],
@@ -67,14 +67,25 @@ class SessionDetailsScreen extends StatelessWidget {
                   Row(
                     children: [
                       _buildOverviewItem(
-                        'session_lbl_total_duration'.tr(),
-                        '${sessionData['duration'] ?? 'lbl_na'.tr()} ' +
-                            'duration'.tr(),
+                        'session_details_lbl_duration'.tr(),
+                        'session_details_val_mins'.tr(
+                          namedArgs: {
+                            'count':
+                                '${sessionData['duration'] ?? 'lbl_na'.tr()}',
+                          },
+                        ),
                       ),
                       const SizedBox(width: 16),
                       _buildOverviewItem(
-                        'participants'.tr(),
-                        '${sessionData['totalTrainees'] ?? sessionData['pax'] ?? '0'} Pax (Age ${sessionData['ageRange'] ?? 'lbl_na'.tr()})',
+                        'session_details_lbl_participants'.tr(),
+                        'session_details_val_pax'.tr(
+                          namedArgs: {
+                            'count':
+                                '${sessionData['totalTrainees'] ?? sessionData['pax'] ?? '0'}',
+                            'range':
+                                '${sessionData['ageRange'] ?? 'lbl_na'.tr()}',
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -82,14 +93,20 @@ class SessionDetailsScreen extends StatelessWidget {
                   Row(
                     children: [
                       _buildOverviewItem(
-                        'home_nav_session'.tr() +
-                            ' ' +
-                            'session_lbl_number'.tr(),
+                        'session_details_lbl_session_no'.tr(),
                         () {
                           final sn = (sessionData['sessionNo'] ?? '1')
                               .toString();
                           if (sn.contains('/')) {
-                            return sn.replaceAll('/', ' of ');
+                            final parts = sn.split('/');
+                            if (parts.length == 2) {
+                              return 'session_details_val_of'.tr(
+                                namedArgs: {
+                                  'current': parts[0].trim(),
+                                  'total': parts[1].trim(),
+                                },
+                              );
+                            }
                           }
                           return sn;
                         }(),
@@ -102,17 +119,17 @@ class SessionDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             _buildCard(
-              title: 'session_title_prereq_safety'.tr(),
+              title: 'session_details_sec_safety'.tr(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionHeader(
-                    'session_header_safety_notes'.tr().toUpperCase(),
+                    'session_details_hdr_safety'.tr(),
                     accentGreen,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${sessionData['riskAssessment']?.toString().isNotEmpty == true ? sessionData['riskAssessment'] : 'session_msg_no_safety_notes'.tr()}',
+                    '${sessionData['riskAssessment']?.toString().isNotEmpty == true ? sessionData['riskAssessment'] : 'session_details_fallback_safety'.tr()}',
                     style: GoogleFonts.poppins(color: textColor, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
@@ -124,7 +141,7 @@ class SessionDetailsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildSectionHeader(
-                              'session_header_resources'.tr().toUpperCase(),
+                              'session_details_hdr_resources'.tr(),
                               accentGreen,
                             ),
                             const SizedBox(height: 8),
@@ -144,7 +161,7 @@ class SessionDetailsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildSectionHeader(
-                              'session_header_support_staff'.tr().toUpperCase(),
+                              'session_details_hdr_support'.tr(),
                               accentGreen,
                             ),
                             const SizedBox(height: 8),
@@ -167,13 +184,12 @@ class SessionDetailsScreen extends StatelessWidget {
 
             // --- Session Agenda Card ---
             _buildCard(
-              title:
-                  'home_nav_session'.tr() + ' ' + 'session_title_agenda'.tr(),
+              title: 'session_details_sec_agenda'.tr(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionHeader(
-                    'session_header_primary_goal'.tr().toUpperCase(),
+                    'session_details_hdr_goal'.tr(),
                     secondaryTextColor,
                   ),
                   const SizedBox(height: 8),
@@ -186,8 +202,12 @@ class SessionDetailsScreen extends StatelessWidget {
                   // Timeline
                   if (sessionData['warmup'] != null)
                     _buildTimelineItem(
-                      duration: '${sessionData['warmup']['time'] ?? '0'} m',
-                      title: 'session_lbl_warmup'.tr(),
+                      duration: 'session_details_unit_m'.tr(
+                        namedArgs: {
+                          'count': '${sessionData['warmup']['time'] ?? '0'}',
+                        },
+                      ),
+                      title: 'session_details_phase_warmup'.tr(),
                       description:
                           '${sessionData['warmup']['desc'] ?? 'lbl_na'.tr()}',
                       dotColor: accentCyan,
@@ -195,16 +215,24 @@ class SessionDetailsScreen extends StatelessWidget {
                     ),
                   if (sessionData['activity'] != null)
                     _buildTimelineItem(
-                      duration: '${sessionData['activity']['time'] ?? '0'} m',
-                      title: 'session_lbl_main_activity'.tr(),
+                      duration: 'session_details_unit_m'.tr(
+                        namedArgs: {
+                          'count': '${sessionData['activity']['time'] ?? '0'}',
+                        },
+                      ),
+                      title: 'session_details_phase_activity'.tr(),
                       description:
                           '${sessionData['activity']['desc'] ?? 'lbl_na'.tr()}',
                       dotColor: accentGreen,
                     ),
                   if (sessionData['cooldown'] != null)
                     _buildTimelineItem(
-                      duration: '${sessionData['cooldown']['time'] ?? '0'} m',
-                      title: 'session_lbl_cooldown'.tr(),
+                      duration: 'session_details_unit_m'.tr(
+                        namedArgs: {
+                          'count': '${sessionData['cooldown']['time'] ?? '0'}',
+                        },
+                      ),
+                      title: 'session_details_phase_cooldown'.tr(),
                       description:
                           '${sessionData['cooldown']['desc'] ?? 'lbl_na'.tr()}',
                       dotColor: accentCyan,
@@ -224,12 +252,12 @@ class SessionDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionHeader(
-                          'session_header_contingency_plan'.tr().toUpperCase(),
+                          'session_details_hdr_contingency'.tr(),
                           accentRed,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '${sessionData['contingencies']?.toString().isNotEmpty == true ? sessionData['contingencies'] : 'session_msg_no_contingency_plan'.tr()}',
+                          '${sessionData['contingencies']?.toString().isNotEmpty == true ? sessionData['contingencies'] : 'session_details_fallback_contingency'.tr()}',
                           style: GoogleFonts.poppins(
                             color: textColor,
                             fontSize: 13,
@@ -325,7 +353,7 @@ class SessionDetailsScreen extends StatelessWidget {
                   child: Stack(
                     children: [
                       Text(
-                        'session_btn_reflect'.tr(),
+                        'session_details_btn_reflect'.tr(),
                         style: GoogleFonts.roboto(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -336,7 +364,7 @@ class SessionDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'session_btn_reflect'.tr(),
+                        'session_details_btn_reflect'.tr(),
                         style: GoogleFonts.roboto(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,

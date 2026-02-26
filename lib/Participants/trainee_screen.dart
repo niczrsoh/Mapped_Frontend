@@ -17,7 +17,8 @@ class TraineesScreen extends StatefulWidget {
 }
 
 class _TraineesScreenState extends State<TraineesScreen> {
-  String selectedFilter = 'all'.tr();
+  // Store the raw belt code ('all', 'W', 'Y', etc.) — never a translated string
+  String selectedFilter = 'all';
   String searchQuery = '';
 
   final TraineeController traineeController = Get.put(TraineeController());
@@ -230,12 +231,12 @@ class _TraineesScreenState extends State<TraineesScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildFilterChip('all'.tr()),
+                    _buildFilterChip('all', 'all'.tr()),
                     const SizedBox(width: 12),
                     ...BeltDefinitions.belts.map(
                       (b) => Padding(
                         padding: const EdgeInsets.only(right: 12),
-                        child: _buildFilterChip(b.name),
+                        child: _buildFilterChip(b.id, b.name.tr()),
                       ),
                     ),
                   ],
@@ -252,13 +253,9 @@ class _TraineesScreenState extends State<TraineesScreen> {
                   }
 
                   var displayList = traineeController.traineeList.toList();
-                  if (selectedFilter != 'all'.tr()) {
+                  if (selectedFilter != 'all') {
                     displayList = displayList
-                        .where(
-                          (t) =>
-                              t['belt'].toString().toLowerCase() ==
-                              selectedFilter.toLowerCase(),
-                        )
+                        .where((t) => t['belt'].toString() == selectedFilter)
                         .toList();
                   }
 
@@ -315,12 +312,12 @@ class _TraineesScreenState extends State<TraineesScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = selectedFilter == label;
+  Widget _buildFilterChip(String code, String label) {
+    final isSelected = selectedFilter == code;
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedFilter = label;
+          selectedFilter = code;
         });
       },
       child: Container(

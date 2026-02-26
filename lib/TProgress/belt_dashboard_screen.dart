@@ -1,8 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart' hide Trans;
-import 'package:easy_localization/easy_localization.dart';
+import 'package:get/get.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'belt_progress_ring_controller.dart';
@@ -66,9 +65,8 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
 
     for (int i = 0; i < belts.length; i++) {
       final code = belts[i].id;
-      final data = ringController.detailedBeltData.firstWhereOrNull(
-        (b) => b.beltColor == code,
-      );
+      final data = ringController.detailedBeltData
+          .firstWhereOrNull((b) => b.beltColor == code);
 
       bool isPassed = data?.isCompleted ?? false;
 
@@ -95,7 +93,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'belt_dash_title'.tr(),
+          'Dashboard',
           style: GoogleFonts.inter(
             color: Colors.white,
             fontWeight: FontWeight.w400,
@@ -129,7 +127,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                       ],
                     ),
                     child: Text(
-                      'belt_dash_badge'.tr(),
+                      "Dashboard",
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontWeight: FontWeight.w400,
@@ -156,7 +154,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                   children: [
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_white'.tr(),
+                      beltName: 'White Belt - Get Started',
                       beltId: BeltDefinitions.white,
                       color: Colors.white,
                       currentBeltCode: currentBeltCode,
@@ -164,7 +162,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_yellow'.tr(),
+                      beltName: 'Yellow Belt - Build Consistency',
                       beltId: BeltDefinitions.yellow,
                       color: const Color(0xFFFFD700),
                       currentBeltCode: currentBeltCode,
@@ -172,7 +170,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_green'.tr(),
+                      beltName: 'Green Belt - Start Adapting',
                       beltId: BeltDefinitions.green,
                       color: const Color(0xFF4CAF50),
                       currentBeltCode: currentBeltCode,
@@ -180,7 +178,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_blue'.tr(),
+                      beltName: 'Blue Belt - Support Others',
                       beltId: BeltDefinitions.blue,
                       color: const Color(0xFF2196F3),
                       currentBeltCode: currentBeltCode,
@@ -188,7 +186,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_brown'.tr(),
+                      beltName: 'Brown Belt - Lead by Example',
                       beltId: BeltDefinitions.brown,
                       color: const Color(0xFFA52A2A),
                       currentBeltCode: currentBeltCode,
@@ -196,7 +194,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_black'.tr(),
+                      beltName: 'Black Belt - Master',
                       beltId: BeltDefinitions.black,
                       color: const Color(0xFF000000),
                       currentBeltCode: currentBeltCode,
@@ -218,15 +216,16 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     if (beltId == BeltDefinitions.black) {
       bool achieved = beltData?.isCompleted ?? false;
 
-      return BeltDataResult([
-        BeltTask(
-          icon: Icons.star,
-          label: achieved
-              ? 'belt_dash_status_achieved'.tr()
-              : 'belt_dash_status_not_achieved'.tr(),
-          value: "",
-        ),
-      ], achieved ? 100 : 0);
+      return BeltDataResult(
+        [
+          BeltTask(
+            icon: Icons.star,
+            label: achieved ? "Mastery Achieved" : "Not yet achieved",
+            value: "",
+          ),
+        ],
+        achieved ? 100 : 0, 
+      );
     }
 
     final requirement = BeltRequirementsData.getFor(beltId);
@@ -240,6 +239,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     int currentTips = beltData?.progress.shareTipCount ?? 0;
     int currentReflect = beltData?.progress.reflectionCount ?? 0;
 
+
     double totalCurrentScore = 0.0;
     double totalTargetScore = 0.0;
 
@@ -250,49 +250,34 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       switch (taskDef.type) {
         case RequirementType.session:
           currentMetricValue = currentSess;
-          valueText = 'belt_dash_metric_sessions'.tr(
-            namedArgs: {'count': currentSess.toString()},
-          );
+          valueText = "$currentSess Sessions";
           break;
         case RequirementType.activeDay:
           currentMetricValue = currentDays;
-          valueText = 'belt_dash_metric_days'.tr(
-            namedArgs: {'count': currentDays.toString()},
-          );
+          valueText = "$currentDays Days";
           break;
         case RequirementType.resource:
           currentMetricValue = openResources;
-          valueText = 'belt_dash_metric_resources'.tr(
-            namedArgs: {'count': openResources.toString()},
-          );
+          valueText = "$openResources Resources";
           break;
         case RequirementType.recommendation:
           currentMetricValue = currentRecs;
-          valueText = 'belt_dash_metric_times'.tr(
-            namedArgs: {'count': currentRecs.toString()},
-          );
+          valueText = "$currentRecs Times";
           break;
         case RequirementType.reflection:
           currentMetricValue = beltData?.progress.reflectionCount ?? 0;
-          valueText = 'belt_dash_metric_reflection'.tr(
-            namedArgs: {'count': currentReflect.toString()},
-          );
+          valueText = "$currentReflect Short Reflection";
           break;
         case RequirementType.forumPost:
           currentMetricValue = currentPosts;
-          valueText = 'belt_dash_metric_forum'.tr(
-            namedArgs: {'count': currentPosts.toString()},
-          );
+          valueText = "$currentPosts time";
           break;
         case RequirementType.shareTip:
           currentMetricValue = currentTips;
-          valueText = 'belt_dash_metric_tip'.tr(
-            namedArgs: {'count': currentTips.toString()},
-          );
+          valueText = "$currentTips Tip/ Res";
           break;
         case RequirementType.mastery:
-          currentMetricValue =
-              1; // Arbitrary value, doesn't matter since target is 0
+          currentMetricValue = 1; // Arbitrary value, doesn't matter since target is 0
           break;
       }
 
@@ -302,7 +287,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       tasks.add(
         BeltTask(
           icon: taskDef.icon,
-          label: taskDef.dashboardLabel.tr(),
+          label: taskDef.dashboardLabel,
           value: valueText,
         ),
       );
@@ -312,7 +297,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     if (totalTargetScore > 0) {
       finalPercent = ((totalCurrentScore / totalTargetScore) * 100).round();
     }
-
+    
     if (beltData != null && beltData.isCompleted) finalPercent = 100;
 
     return BeltDataResult(tasks, finalPercent);
@@ -326,25 +311,27 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     required String currentBeltCode,
   }) {
     String cleanName = beltName.split(' ')[0];
-
+    
     BeltProgressModelV2? beltData;
     try {
       beltData = ringController.detailedBeltData.firstWhereOrNull(
-        (b) => b.beltColor == beltId || b.beltColor == cleanName,
+        (b) => b.beltColor == beltId || b.beltColor == cleanName
       );
     } catch (e) {
       // no data found
     }
 
-    final result = _buildBeltTasks(beltId: beltId, beltData: beltData);
+    final result = _buildBeltTasks(
+      beltId: beltId,
+      beltData: beltData,
+    );
 
     int displayPercentage = result.percentage;
     if (displayPercentage >= 100) displayPercentage = 100;
 
     // Lock Logic matching Home Screen
     bool isLocked = false;
-    if (beltId == BeltDefinitions.black &&
-        currentBeltCode != BeltDefinitions.black) {
+    if (beltId == BeltDefinitions.black && currentBeltCode != BeltDefinitions.black) {
       isLocked = true;
     }
 
@@ -352,8 +339,8 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       onTap: () {
         if (isLocked) {
           Get.snackbar(
-            'belt_dash_snackbar_locked_title'.tr(),
-            'belt_dash_snackbar_locked_msg'.tr(),
+            "Locked",
+            "Complete the Brown Belt to unlock Mastery.",
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.white10,
             colorText: Colors.white,
@@ -367,8 +354,8 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       },
       child: BeltCard(
         beltName: beltName,
-        percentage: displayPercentage,
-        color: color,
+        percentage: displayPercentage, 
+        color: color, 
         tasks: result.tasks,
       ),
     );
@@ -430,11 +417,9 @@ class BeltCard extends StatelessWidget {
   Widget build(BuildContext context) {
     int percentageLeft = 100 - percentage;
     String progressLabel = percentage >= 100
-        ? 'belt_dash_status_achieved'.tr()
-        : 'belt_dash_status_left'.tr(
-            namedArgs: {'percent': percentageLeft.toString()},
-          );
-
+        ? "Achieved"
+        : "$percentageLeft% Left";
+        
     return Container(
       decoration: BoxDecoration(
         // Visual Style: White -> Green gradient
@@ -499,46 +484,38 @@ class BeltCard extends StatelessWidget {
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: tasks
-                            .map(
-                              (task) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      task.icon,
+                        children: tasks.map((task) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(task.icon, color: Colors.white, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: GoogleFonts.roboto(
                                       color: Colors.white,
-                                      size: 16,
+                                      fontSize: 12,
+                                      height: 1.4,
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: GoogleFonts.roboto(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            height: 1.4,
-                                          ),
-                                          children: [
-                                            TextSpan(text: '${task.label} '),
-                                            TextSpan(
-                                              text: task.value,
-                                              style: const TextStyle(
-                                                // Visual Style: Specific Green for values
-                                                color: Color(0xFF00FFA6),
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
+                                    children: [
+                                      TextSpan(text: '${task.label} '),
+                                      TextSpan(
+                                        text: task.value,
+                                        style: const TextStyle(
+                                          // Visual Style: Specific Green for values
+                                          color: Color(0xFF00FFA6),
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            )
-                            .toList(),
+                            ],
+                          ),
+                        )).toList(),
                       ),
                     ),
                   ),

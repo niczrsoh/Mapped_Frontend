@@ -22,7 +22,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
   final _paxCtrl = TextEditingController();
   final _sessionNoCtrl = TextEditingController();
   final _ageRangeCtrl = TextEditingController();
-  String _selectedLevel = "Beginner";
+  String _selectedLevel = 'session_planner_level_beginner';
   DateTime? _selectedDate;
   String? _dateError;
   String? _venueError;
@@ -80,22 +80,22 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
   bool _validateAll() {
     setState(() {
       _dateError = _dateCtrl.text.isEmpty
-          ? "trainee_error_required".tr()
+          ? 'session_planner_error_required'.tr()
           : null;
       _venueError = _venueCtrl.text.trim().isEmpty
-          ? "trainee_error_required".tr()
+          ? 'session_planner_error_required'.tr()
           : null;
       _paxError = _paxCtrl.text.trim().isEmpty
-          ? "trainee_error_required".tr()
+          ? 'session_planner_error_required'.tr()
           : null;
       _timeError = _durationCtrl.text.trim().isEmpty
-          ? "trainee_error_required".tr()
+          ? 'session_planner_error_required'.tr()
           : null;
       _ageError = _ageRangeCtrl.text.trim().isEmpty
-          ? "trainee_error_required".tr()
+          ? 'session_planner_error_required'.tr()
           : null;
       _sessionError = _sessionNoCtrl.text.trim().isEmpty
-          ? "trainee_error_required".tr()
+          ? 'session_planner_error_required'.tr()
           : null;
     });
 
@@ -138,7 +138,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
     if (!_validateAll()) {
       Get.snackbar(
         'error'.tr(),
-        'session_error_fill_required_fields'.tr(),
+        'add_trainee_error_fill_all'.tr(),
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
@@ -180,9 +180,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'home_nav_session'.tr() +
-              ' ' +
-              'admin_manage_title_dashboard'.tr().split(' ').last,
+          'session_planner_title'.tr(),
           style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
         ),
       ),
@@ -191,10 +189,10 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Column(
             children: [
-              _buildBadge('session_badge_coaching_plan'.tr()),
+              _buildBadge('session_planner_badge'.tr()),
               const SizedBox(height: 12),
               Text(
-                'session_msg_fill_details'.tr(),
+                'session_planner_subtitle'.tr(),
                 style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 25),
@@ -225,12 +223,11 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
   }
 
   Widget _buildLevelSelector() {
-    List<String> levels = [
-      'session_level_beginner'.tr(),
-      'session_level_intermediate'.tr(),
-      'session_level_advanced'.tr(),
+    final List<String> levels = [
+      'session_planner_level_beginner',
+      'session_planner_level_intermediate',
+      'session_planner_level_advanced',
     ];
-    List<String> levelValues = ['Beginner', 'Intermediate', 'Advanced'];
     return Container(
       height: 48,
       padding: const EdgeInsets.all(4),
@@ -239,11 +236,11 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
-        children: List.generate(levels.length, (index) {
-          bool isSelected = _selectedLevel == levelValues[index];
+        children: levels.map((l) {
+          bool isSelected = _selectedLevel == l;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _selectedLevel = levelValues[index]),
+              onTap: () => setState(() => _selectedLevel = l),
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -258,7 +255,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  levels[index],
+                  l.tr(),
                   style: GoogleFonts.poppins(
                     color: isSelected ? const Color(0xFF141823) : Colors.grey,
                     fontSize: 13,
@@ -270,7 +267,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
               ),
             ),
           );
-        }),
+        }).toList(),
       ),
     );
   }
@@ -302,7 +299,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'session_title_general'.tr(),
+                  'session_planner_sec_general'.tr(),
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
                 ),
                 const SizedBox(height: 20),
@@ -315,50 +312,44 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
                   childAspectRatio: 2.2,
                   children: [
                     _buildInput(
-                      'trainee_lbl_dob'.tr().split(' ').first,
-                      'session_hint_date'.tr(),
+                      'session_planner_lbl_date'.tr(),
+                      'session_planner_hint_date'.tr(),
                       _dateCtrl,
                       readOnly: true,
                       onTap: _pickDate,
                       error: _dateError,
                     ),
                     _buildInput(
-                      'session_lbl_venue'.tr(),
-                      'session_hint_venue'.tr(),
+                      'session_planner_lbl_venue'.tr(),
+                      'session_planner_hint_venue'.tr(),
                       _venueCtrl,
                       error: _venueError,
                     ),
                     _buildInput(
-                      'duration'.tr() +
-                          ' (' +
-                          'val_min'.tr().split(' ').last +
-                          ')',
-                      '60',
+                      'session_planner_lbl_duration'.tr(),
+                      'session_planner_hint_duration'.tr(),
                       _durationCtrl,
                       isNumber: true,
                       error: _timeError,
                     ),
                     _buildInput(
-                      'participants'.tr(),
-                      'session_hint_pax'.tr(),
+                      'session_planner_lbl_participants'.tr(),
+                      'session_planner_hint_participants'.tr(),
                       _paxCtrl,
                       keyboard: TextInputType.number,
                       error: _paxError,
                       isNumber: true,
                     ),
                     _buildInput(
-                      'home_nav_session'.tr() +
-                          ' ' +
-                          'session_lbl_number'.tr() +
-                          '.',
-                      '1',
+                      'session_planner_lbl_session_no'.tr(),
+                      'session_planner_hint_session_no'.tr(),
                       _sessionNoCtrl,
                       isNumber: true,
                       error: _sessionError,
                     ),
                     _buildInput(
-                      'session_lbl_age_range'.tr(),
-                      'session_hint_age_range'.tr(),
+                      'session_planner_lbl_age'.tr(),
+                      'session_planner_hint_age'.tr(),
                       _ageRangeCtrl,
                       error: _ageError,
                     ),
@@ -445,7 +436,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
           child: Stack(
             children: [
               Text(
-                'next'.tr(),
+                'session_planner_btn_next'.tr(),
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -456,7 +447,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
                 ),
               ),
               Text(
-                'next'.tr(),
+                'session_planner_btn_next'.tr(),
                 style: GoogleFonts.roboto(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,

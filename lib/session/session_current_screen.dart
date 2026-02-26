@@ -102,7 +102,9 @@ class SessionCurrentScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${'coachbot_ctrl_fallback_name'.tr()} : $trainer',
+                  'session_current_coach_prefix'.tr(
+                    namedArgs: {'name': trainer},
+                  ),
                   style: GoogleFonts.roboto(
                     color: Colors.white,
                     fontWeight: FontWeight.w400,
@@ -140,7 +142,7 @@ class SessionCurrentScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Ai Success for Plan Today',
+              'session_current_ai_plan_title'.tr(),
               style: GoogleFonts.roboto(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -149,7 +151,7 @@ class SessionCurrentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Warm-up (10 min)',
+              'session_current_warmup_title'.tr(),
               style: GoogleFonts.roboto(
                 color: const Color(0xFF00FFA6),
                 fontWeight: FontWeight.w400,
@@ -158,7 +160,7 @@ class SessionCurrentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '• Line drills with seated option\n• Elastic band mobility',
+              'session_current_warmup_desc'.tr(),
               style: GoogleFonts.roboto(
                 color: Colors.white,
                 fontSize: 13,
@@ -167,7 +169,7 @@ class SessionCurrentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Drill 1 (15 min)',
+              'session_current_drill_title'.tr(),
               style: GoogleFonts.roboto(
                 color: const Color(0xFF00FFA6),
                 fontWeight: FontWeight.w400,
@@ -176,7 +178,7 @@ class SessionCurrentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '• Straight punch combos (L/R)\n• Partner pads - pair by strength',
+              'session_current_drill_desc'.tr(),
               style: GoogleFonts.roboto(
                 color: Colors.white,
                 fontSize: 13,
@@ -185,7 +187,7 @@ class SessionCurrentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Cooldown (5 min)',
+              'session_current_cooldown_title'.tr(),
               style: GoogleFonts.roboto(
                 color: const Color(0xFF00FFA6),
                 fontWeight: FontWeight.w400,
@@ -194,7 +196,7 @@ class SessionCurrentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '• Breathing + wrist/ankle circles\n• Reflection prompt',
+              'session_current_cooldown_desc'.tr(),
               style: GoogleFonts.roboto(
                 color: Colors.white,
                 fontSize: 13,
@@ -227,9 +229,7 @@ class SessionCurrentScreen extends StatelessWidget {
           },
         ),
         title: Text(
-          'home_nav_session'.tr() +
-              ' ' +
-              'admin_manage_title_dashboard'.tr().split(' ').last,
+          'session_current_title'.tr(),
           style: GoogleFonts.roboto(
             color: Colors.white,
             fontSize: 16,
@@ -254,9 +254,7 @@ class SessionCurrentScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'home_search_empty_sessions'.tr().split(' ').first +
-                        ' ' +
-                        'home_nav_session'.tr(),
+                    'session_current_header'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -291,7 +289,7 @@ class SessionCurrentScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'home_search_empty_sessions'.tr().split(' ').first,
+                          'session_current_lbl_current'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -305,7 +303,7 @@ class SessionCurrentScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 20.0),
                             child: Center(
                               child: Text(
-                                'home_search_empty_sessions'.tr(),
+                                'session_current_empty'.tr(),
                                 style: GoogleFonts.roboto(color: Colors.white),
                               ),
                             ),
@@ -337,7 +335,13 @@ class SessionCurrentScreen extends StatelessWidget {
                                         final n =
                                             int.tryParse(numMatch.group(0)!) ??
                                             0;
-                                        return n == 1 ? '$n Min' : '$n Mins';
+                                        return n == 1
+                                            ? 'session_current_min_singular'.tr(
+                                                namedArgs: {'count': '$n'},
+                                              )
+                                            : 'session_current_min_plural'.tr(
+                                                namedArgs: {'count': '$n'},
+                                              );
                                       }
                                       if (d.toLowerCase().contains('min')) {
                                         return d.replaceAllMapped(
@@ -348,17 +352,36 @@ class SessionCurrentScreen extends StatelessWidget {
                                           (m) {
                                             final g =
                                                 m.group(0)?.toLowerCase() ?? '';
-                                            return g == 'mins' ? 'Mins' : 'Min';
+                                            return g == 'mins'
+                                                ? 'session_current_min_plural'
+                                                      .tr(
+                                                        namedArgs: {
+                                                          'count': '',
+                                                        },
+                                                      )
+                                                      .trim()
+                                                : 'session_current_min_singular'
+                                                      .tr(
+                                                        namedArgs: {
+                                                          'count': '',
+                                                        },
+                                                      )
+                                                      .trim();
                                           },
                                         );
                                       }
-                                      return '$d Mins';
+                                      return 'session_current_min_plural'.tr(
+                                        namedArgs: {'count': d},
+                                      );
                                     }
                                     return '-';
                                   }(),
                                   venue: session.venue ?? '-',
-                                  trainees:
-                                      '${session.totalTrainees} ${'participants'.tr()}',
+                                  trainees: 'session_current_trainees_count'.tr(
+                                    namedArgs: {
+                                      'count': '${session.totalTrainees}',
+                                    },
+                                  ),
                                   trainer: userController.userName,
                                 );
                               },
@@ -403,7 +426,7 @@ class SessionCurrentScreen extends StatelessWidget {
                         ),
                       ),
                       label: Text(
-                        'ASK ${'coachbot_title_main'.tr().toUpperCase()}',
+                        'btn_coachbot'.tr(),
                         style: GoogleFonts.roboto(
                           color: const Color(0xFF062A20),
                           fontWeight: FontWeight.w500,

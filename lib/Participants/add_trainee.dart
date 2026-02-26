@@ -481,7 +481,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
         _emailCtrl.text.isEmpty ||
         _guardianNameCtrl.text.isEmpty ||
         _guardianContactCtrl.text.isEmpty) {
-      traineeController.error.value = 'Please fill in all required fields';
+      traineeController.error.value = 'add_trainee_error_fill_all'.tr();
       return;
     }
 
@@ -557,7 +557,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Are you sure want to add a Participant?',
+                    'add_trainee_dialog_confirm_msg'.tr(),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.roboto(
                       color: Colors.black87,
@@ -580,7 +580,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              'CANCEL',
+                              'cancel_caps'.tr(),
                               style: GoogleFonts.roboto(
                                 color: Colors.black87,
                                 fontSize: 16,
@@ -608,7 +608,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              'OK',
+                              'ok'.tr(),
                               style: GoogleFonts.roboto(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w500,
@@ -714,7 +714,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Add Participant',
+                        'add_trainee_title_main'.tr(),
                         style: GoogleFonts.roboto(
                           color: Colors.white,
                           fontSize: 16,
@@ -746,7 +746,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                           ],
                         ),
                         child: _outlinedText(
-                          'Cancel',
+                          'cancel'.tr(),
                           GoogleFonts.roboto(
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
@@ -777,7 +777,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                           ],
                         ),
                         child: _outlinedText(
-                          'Add',
+                          'add'.tr(),
                           GoogleFonts.roboto(
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
@@ -833,7 +833,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                'Upload',
+                                'add_trainee_btn_upload'.tr(),
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -854,7 +854,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                 Expanded(
                                   flex: 2,
                                   child: _buildTopFieldContainer(
-                                    label: 'Name',
+                                    label: 'trainee_lbl_name'.tr(),
                                     fieldKey: 'name',
                                     child: SizedBox(
                                       height: formFieldHeight,
@@ -875,7 +875,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                               const EdgeInsets.symmetric(
                                                 horizontal: 0,
                                               ),
-                                          hintText: 'Rayyan Firas',
+                                          hintText: 'trainee_hint_name'.tr(),
                                           hintStyle: GoogleFonts.poppins(
                                             color: Colors.white54,
                                             fontSize: 12,
@@ -892,7 +892,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                 Expanded(
                                   flex: 1,
                                   child: _buildTopFieldContainer(
-                                    label: 'Belt',
+                                    label: 'trainee_lbl_belt'.tr(),
                                     fieldKey: 'belt',
                                     child: SizedBox(
                                       height: formFieldHeight,
@@ -912,7 +912,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                               const EdgeInsets.symmetric(
                                                 horizontal: 0,
                                               ),
-                                          hintText: 'White',
+                                          hintText: 'trainee_hint_belt'.tr(),
                                           hintStyle: GoogleFonts.poppins(
                                             color: Colors.white54,
                                             fontSize: 12,
@@ -932,7 +932,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                 Expanded(
                                   flex: 2,
                                   child: _buildTopFieldContainer(
-                                    label: 'Date of Birth',
+                                    label: 'trainee_lbl_dob'.tr(),
                                     fieldKey: 'dob',
                                     child: GestureDetector(
                                       onTap: _pickDob,
@@ -955,7 +955,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                                   const EdgeInsets.symmetric(
                                                     horizontal: 0,
                                                   ),
-                                              hintText: '16 January 2013',
+                                              hintText: 'trainee_hint_dob'.tr(),
                                               hintStyle: GoogleFonts.poppins(
                                                 color: Colors.white54,
                                                 fontSize: 12,
@@ -973,7 +973,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                 Expanded(
                                   flex: 1,
                                   child: _buildTopFieldContainer(
-                                    label: 'Gender',
+                                    label: 'trainee_lbl_gender'.tr(),
                                     fieldKey: 'gender',
                                     child: SizedBox(
                                       height: formFieldHeight,
@@ -993,7 +993,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                                               const EdgeInsets.symmetric(
                                                 horizontal: 0,
                                               ),
-                                          hintText: 'Female',
+                                          hintText: 'trainee_hint_gender'.tr(),
                                           hintStyle: GoogleFonts.poppins(
                                             color: Colors.white54,
                                             fontSize: 12,
@@ -1020,7 +1020,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Contact',
+                      'trainee_title_contact'.tr(),
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontSize: 16,
@@ -1029,29 +1029,29 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                     ),
                     const SizedBox(height: 12),
                     _boxedField(
-                      'Phone',
+                      'trainee_lbl_phone'.tr(),
                       _phoneCtrl,
                       _phoneFocus,
                       'phone',
-                      hint: '+60 ...',
+                      hint: 'trainee_hint_phone'.tr(),
                       keyboardType: TextInputType.phone,
                       formatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
                     const SizedBox(height: 8),
                     _boxedField(
-                      'Email',
+                      'trainee_lbl_email'.tr(),
                       _emailCtrl,
                       _emailFocus,
                       'email',
-                      hint: 'email@gmail.com',
+                      hint: 'trainee_hint_email'.tr(),
                     ),
                     const SizedBox(height: 8),
                     _boxedField(
-                      'Address',
+                      'trainee_lbl_address'.tr(),
                       _addressCtrl,
                       _addressFocus,
                       'address',
-                      hint: 'Address ...',
+                      hint: 'trainee_hint_address'.tr(),
                       maxLines: 3,
                       maxLength: 2000,
                     ),
@@ -1064,7 +1064,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Guardian & Emergency',
+                      'trainee_title_guardian'.tr(),
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontSize: 16,
@@ -1073,30 +1073,30 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                     ),
                     const SizedBox(height: 12),
                     _boxedField(
-                      'Guardian',
+                      'trainee_lbl_guardian_name'.tr(),
                       _guardianNameCtrl,
                       _guardianNameFocus,
                       'guardianName',
-                      hint: 'Name ...',
+                      hint: 'trainee_hint_guardian_name'.tr(),
                       maxLength: 50,
                     ),
                     const SizedBox(height: 8),
                     _boxedField(
-                      'Guardian Contact',
+                      'trainee_lbl_guardian_contact'.tr(),
                       _guardianContactCtrl,
                       _guardianContactFocus,
                       'guardianContact',
-                      hint: '+60 ...',
+                      hint: 'trainee_hint_phone'.tr(),
                       keyboardType: TextInputType.phone,
                       formatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
                     const SizedBox(height: 8),
                     _boxedField(
-                      'Address',
+                      'trainee_lbl_address'.tr(),
                       _guardianAddressCtrl,
                       _guardianAddressFocus,
                       'guardianAddress',
-                      hint: 'Address ...',
+                      hint: 'trainee_hint_address'.tr(),
                       maxLines: 3,
                       maxLength: 2000,
                     ),
@@ -1109,7 +1109,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Aim / Goals',
+                      'trainee_title_goals_long'.tr(),
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontSize: 16,
@@ -1118,11 +1118,11 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                     ),
                     const SizedBox(height: 12),
                     _boxedField(
-                      'Goals',
+                      'trainee_lbl_goals'.tr(),
                       _goalsCtrl,
                       _goalsFocus,
                       'goals',
-                      hint: 'I want ...',
+                      hint: 'trainee_hint_goals'.tr(),
                       maxLines: 3,
                       height: 60,
                       maxLength: 2000,
@@ -1136,7 +1136,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Disability & Medical Concern',
+                      'trainee_title_medical'.tr(),
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontSize: 16,
@@ -1145,12 +1145,11 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                     ),
                     const SizedBox(height: 12),
                     _boxedField(
-                      'Conditions',
+                      'trainee_lbl_conditions'.tr(),
                       _conditionsCtrl,
                       _conditionsFocus,
                       'conditions',
-                      hint:
-                          'List all the disabilities & medical concern, e.g.\n\n-high blood pressure\n-Pregnant\n-Leg joint problem\n-Heart Attack\n-Autism\n-ADHD\n-PTSD\n-Chest pain',
+                      hint: 'trainee_hint_conditions_long'.tr(),
                       maxLines: 8,
                       height: 140,
                       maxLength: 2000,
@@ -1164,7 +1163,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Competency',
+                      'trainee_title_competency'.tr(),
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontSize: 16,
@@ -1173,11 +1172,11 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                     ),
                     const SizedBox(height: 12),
                     _boxedField(
-                      'Competency',
+                      'trainee_lbl_competency'.tr(),
                       _competencyCtrl,
                       _competencyFocus,
                       'competency',
-                      hint: 'I want ...',
+                      hint: 'trainee_hint_competency'.tr(),
                       maxLines: 3,
                       height: 60,
                       maxLength: 2000,

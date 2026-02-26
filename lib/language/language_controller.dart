@@ -32,13 +32,16 @@ class LanguageController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language_code', languageCode);
 
-    // Apply locale change — triggers EasyLocalization to rebuild its subtree,
-    // which calls _AppRootState.build, which pushes the new locale to GetMaterialApp
-    await context.setLocale(Locale(languageCode));
+    // If locale already matches, skip setLocale (it's a no-op anyway) and
+    // just navigate back — avoids stale-context issues on the same language
+    final alreadyCurrent = context.locale.languageCode == languageCode;
 
-    // Wait one frame for the locale rebuild to propagate before navigating away
-    await Future.delayed(const Duration(milliseconds: 100));
+    if (!alreadyCurrent) {
+      // Apply locale change first while context is still mounted
+      await context.setLocale(Locale(languageCode));
+    }
 
+    // Always navigate back to account screen
     Get.back();
 
     Get.snackbar(
