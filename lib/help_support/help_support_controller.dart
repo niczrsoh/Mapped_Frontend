@@ -11,7 +11,7 @@ class HelpSupportController extends GetxController {
   // Configuration
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "https://mapped-backend-node-js.onrender.com";
+      : "http://10.0.2.2:5000";
 
   // Form key
   final formKey = GlobalKey<FormState>();

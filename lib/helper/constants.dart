@@ -1,2 +1,2 @@
-const String apiBaseUrl = 'https://mapped-backend-node-js.onrender.com';
+const String apiBaseUrl = 'http://10.0.2.2:5000';
 

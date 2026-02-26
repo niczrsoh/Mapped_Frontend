@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
 import 'package:mapped_frontend/controller/user_controller';
@@ -28,7 +26,7 @@ class LoginController extends GetxController {
   final isLoading = false.obs;
   final errorMessage = "".obs;
 
-  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
+  final String baseUrl = "http://10.0.2.2:5000/api/users";
 
   // 🔥 Reactive name to display on the Touch ID Screen
   final RxString storedName = ''.obs;
