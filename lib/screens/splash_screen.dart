@@ -3,15 +3,21 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/controller/user_controller';
+import 'package:shared_preferences/shared_preferences.dart';          // <-- added
+import 'package:mapped_frontend/global/routes.dart';                   // <-- added (must contain AppRoutes.main & AppRoutes.adminReport)
 
 // ------------------------------------------------------------
-// Route names
+// Route names (if not already defined elsewhere, you can keep them here)
 // ------------------------------------------------------------
 class AppRoutes {
   static const String welcome = '/welcome';
   static const String onboarding = '/onboarding';
   static const String register = '/register';
   static const String login = '/login';
+  // These two must exist in your actual routes file
+  static const String main = '/main';
+  static const String adminReport = '/admin-report';
 }
 
 // ------------------------------------------------------------
@@ -32,6 +38,10 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _textController;
 
   int _currentStage = 0;
+
+  // --- New variables for auto‑login ---
+  String? _nextRoute;          // will hold the destination after animation
+  bool _sessionChecked = false; // becomes true when the login check finishes
 
   @override
   void initState() {
@@ -57,7 +67,32 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
     );
 
+    // --- Start both the animation and the session check ---
+    _checkLoginStatus();        // <-- added
     _startSplashSequence();
+  }
+
+  // --- New method: check if user is already logged in ---
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('user_id');
+
+    if (userId != null) {
+      // User has a saved session – restore the user ID and fetch profile
+      final userController = Get.find<UserController>();
+      userController.userId.value = userId;
+
+      // Optional: fetch the latest profile from the backend
+      await userController.fetchUserProfile();
+
+      // Determine destination based on role
+      final role = prefs.getString('user_role') ?? 'trainee';
+      _nextRoute = (role == 'admin') ? AppRoutes.adminReport : AppRoutes.main;
+    } else {
+      // No saved session → go to welcome screen
+      _nextRoute = AppRoutes.welcome;
+    }
+    _sessionChecked = true;
   }
 
   void _startSplashSequence() async {
@@ -84,9 +119,14 @@ class _SplashScreenState extends State<SplashScreen>
     _circleController.reset();
     _textController.reset();
 
-    // Navigate to the WelcomeScreen
+    // --- Wait for the session check to finish (should already be done) ---
+    while (!_sessionChecked) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    // --- Navigate to the determined route ---
     if (mounted) {
-      Get.offNamed(AppRoutes.welcome);
+      Get.offNamed(_nextRoute!);
     }
   }
 
@@ -244,7 +284,7 @@ class _SplashScreenState extends State<SplashScreen>
 }
 
 // ------------------------------------------------------------
-// Custom Painters
+// Custom Painters (unchanged)
 // ------------------------------------------------------------
 class MapPinPainter extends CustomPainter {
   final double glowIntensity;
@@ -429,7 +469,7 @@ class GradientBorderCirclePainter extends CustomPainter {
 }
 
 // ------------------------------------------------------------
-// Welcome Screen
+// Welcome Screen (unchanged)
 // ------------------------------------------------------------
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -579,7 +619,7 @@ class WelcomeScreen extends StatelessWidget {
 }
 
 // ------------------------------------------------------------
-// Onboarding Data Model
+// Onboarding Data Model (unchanged)
 // ------------------------------------------------------------
 class OnboardingData {
   final String title;
@@ -596,7 +636,7 @@ class OnboardingData {
 }
 
 // ------------------------------------------------------------
-// Onboarding Screen
+// Onboarding Screen (unchanged)
 // ------------------------------------------------------------
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
