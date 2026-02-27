@@ -26,7 +26,7 @@ class LoginController extends GetxController {
   final isLoading = false.obs;
   final errorMessage = "".obs;
 
-  final String baseUrl = "http://10.0.2.2:5000/api/users";
+  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
 
   // 🔥 Reactive name to display on the Touch ID Screen
   final RxString storedName = ''.obs;

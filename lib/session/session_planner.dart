@@ -22,7 +22,7 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
   final _paxCtrl = TextEditingController();
   final _sessionNoCtrl = TextEditingController();
   final _ageRangeCtrl = TextEditingController();
-  String _selectedLevel = 'session_planner_level_beginner';
+  String _selectedLevel = 'session_planner_level_beginner'.tr();
   DateTime? _selectedDate;
   String? _dateError;
   String? _venueError;
@@ -224,9 +224,9 @@ class _SessionPlannerScreenState extends State<SessionPlannerScreen> {
 
   Widget _buildLevelSelector() {
     final List<String> levels = [
-      'session_planner_level_beginner',
-      'session_planner_level_intermediate',
-      'session_planner_level_advanced',
+      'session_planner_level_beginner'.tr(),
+      'session_planner_level_intermediate'.tr(),
+      'session_planner_level_advanced'.tr(),
     ];
     return Container(
       height: 48,

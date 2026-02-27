@@ -373,7 +373,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
-                                        widget.beltName,
+                                        widget.beltName.tr(),
                                         style: GoogleFonts.inter(
                                           color: Colors.white,
                                           fontSize: 20,
@@ -597,7 +597,7 @@ class _BeltProgressScreenState extends State<BeltProgressScreen>
         Image.asset(_getBeltAssetPath(name), height: 24, fit: BoxFit.contain),
         const SizedBox(width: 8),
         Text(
-          name,
+          name.tr(),
           style: GoogleFonts.inter(
             color: color,
             fontSize: 18,

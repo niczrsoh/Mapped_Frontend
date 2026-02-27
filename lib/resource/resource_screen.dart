@@ -334,10 +334,7 @@ class ResourceScreen extends StatelessWidget {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                'resource_card_author_meta'.tr(args: [
-                                  resource.authorName,
-                                  resource.timeAgo,
-                                ]),
+                                '${resource.authorName} • ${resource.timeAgo}',
                                 style: GoogleFonts.roboto(
                                   fontSize: 11,
                                   color: Colors.white54,

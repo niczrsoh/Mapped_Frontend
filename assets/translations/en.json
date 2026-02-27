@@ -727,6 +727,19 @@
   "session_current_drill_desc": "• Straight punch combos (L/R)\n• Partner pads - pair by strength",
   "session_current_cooldown_title": "Cooldown (5 min)",
   "session_current_cooldown_desc": "• Breathing + wrist/ankle circles\n• Reflection prompt",
+
+
+  "session_badge_coaching_plan": "Coaching Session Plan",
+  "session_msg_fill_details": "Fill in the details for your upcoming session.",
+  "session_title_prerequisites": "Pre-requisites",
+  "session_lbl_risk_assessment": "Risk Assessment",
+  "session_hint_risk_assessment": "Enter safety details... (e.g. Verified all students have trimmed fingernails...)",
+  "session_lbl_resources_required": "Resources Required",
+  "session_hint_resources_required": "List equipment... (e.g. 12 Double Kicking Paddles...)",
+  "session_lbl_others_involved_role": "Others involved & Role",
+  "session_hint_others_involved_role": "List all involvements (e.g. Assistant Instructor Sarah...)",
+  "session_error_fill_required_fields": "Please fill in all required fields",
+  "session_btn_back": "Back",
   
   "btn_coachbot": "ASK COACHBOT",
 
@@ -839,6 +852,31 @@
   "session_pre_error_required": "Required",
   "session_pre_snackbar_error_msg": "Please fill in all required fields",
 
+  "session_title_reflections": "Session Reflections",
+  "session_lbl_reviewing_session": "Reviewing Session:",
+  "session_title_overall_assessment": "Overall Assessment",
+  "session_msg_how_successful": "How successful was the session?",
+  "session_title_key_takeaways": "Key Takeaways",
+  "session_lbl_highlights": "What went well? (Highlights)",
+  "session_hint_highlights": "e.g., The participants were engaged; the focus mitt drills improved reaction speed; everyone respected power control limits.",
+  "session_lbl_areas_improvement": "Areas for Improvement",
+  "session_hint_areas_improvement": "e.g., Warm-up took too long; white belts forgot to tap early during submissions.",
+  "session_title_action_items": "Next Session Action Items",
+  "session_msg_concrete_changes": "What concrete changes will you make next time?",
+  "session_hint_action_item_1": "e.g. More side kicks",
+  "session_hint_action_item_2": "e.g. Pattern 2 revision",
+  "session_snackbar_reflection_saved": "Reflection Saved Successfully",
+  "session_error_save_feedback": "Failed to save feedback",
+  "session_error_missing_id": "Session ID missing",
+  "session_level_intermediate": "Intermediate",
+  "session_lbl_group": "Group",
+  "session_lbl_add_action_item": "Add Action Item",
+  "session_title_upcoming_sessions": "Upcoming Sessions",
+  "session_lbl_upcoming": "Upcoming",
+  "session_empty_upcoming_sessions": "No Upcoming Sessions Available",
+  "session_btn_ask_coachbot": "ASK COACHBOT",
+  "session_btn_edit_session": "Edit Session",
+
   "ref_preview_title": "Reflection Preview",
   "ref_preview_lbl_date": "Session Date:",
   "ref_preview_val_group": "{date} - {level} Group",
@@ -944,6 +982,7 @@
   
   "belt_prog_col_requirement": "Requirement",
   "belt_prog_col_progress": "Progress",
+  "belt_prog_btn_start" : "Online Start",
   
   "belt_prog_call_to_action": "Need help? Visit our online course to learn more about inclusive practice in martial arts.",
   
