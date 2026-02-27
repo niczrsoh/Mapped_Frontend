@@ -14,6 +14,7 @@ import 'package:mapped_frontend/account/account_screen.dart';
 import 'package:mapped_frontend/screens/about_us_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 
 class AccountController extends GetxController {
   var notificationsEnabled = true.obs;
@@ -84,15 +85,15 @@ class AccountController extends GetxController {
             text: 'account_menu_edit_profile'.tr(),
             onTap: () => navigateToProfileEditor(context),
           ),
-          AccountMenuItem(
-            iconPath: 'assets/images/notification.png',
-            text: 'account_menu_notifications'.tr(),
-            badge: notificationsEnabled.value
-                ? 'account_badge_on'.tr()
-                : 'account_badge_off'.tr(),
-            badgeColor: Color(0xFF09FACA),
-            onTap: () => navigateToNotifications(context),
-          ),
+          // AccountMenuItem(
+          //   iconPath: 'assets/images/notification.png',
+          //   text: 'account_menu_notifications'.tr(),
+          //   badge: notificationsEnabled.value
+          //       ? 'account_badge_on'.tr()
+          //       : 'account_badge_off'.tr(),
+          //   badgeColor: Color(0xFF09FACA),
+          //   onTap: () => navigateToNotifications(context),
+          // ),
           AccountMenuItem(
             iconPath: 'assets/images/logout.png',
             text: 'logout'.tr(),
@@ -142,6 +143,11 @@ class AccountController extends GetxController {
             iconPath: 'assets/images/about.png',
             text: 'account_menu_about'.tr(),
             onTap: navigateToAbout,
+          ),
+          AccountMenuItem(
+            iconPath: 'assets/images/logout.png',
+            text: 'Delete Account',
+            onTap: deleteAccount,
           ),
         ],
       ),
@@ -221,6 +227,48 @@ class AccountController extends GetxController {
         } catch (e) {
           Get.back();
           _showErrorDialog('account_error_logout_failed'.tr());
+        }
+      },
+    );
+  }
+
+  // Delete Account Method
+  Future<void> deleteAccount() async {
+    Get.defaultDialog(
+      title: 'Delete Account',
+      middleText:
+          'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+      textConfirm: 'Delete',
+      textCancel: 'Cancel',
+      confirmTextColor: Colors.white,
+      cancelTextColor: Color(0xFF09FACA),
+      buttonColor: Colors.red,
+      onConfirm: () async {
+        try {
+          Get.back(); // close dialog
+          isLoading.value = true;
+          final apiService = ApiService();
+          final userId = userController.userId.value;
+
+          final result = await apiService.deleteAccount(userId);
+
+          if (result['success'] == true) {
+            await _performLogout();
+            Get.offAllNamed('/login');
+            Get.snackbar(
+              'Success',
+              'Account deleted successfully',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green.withValues(alpha: 0.8),
+              colorText: Colors.white,
+            );
+          } else {
+            _showErrorDialog(result['error'] ?? 'Failed to delete account');
+          }
+        } catch (e) {
+          _showErrorDialog('Failed to delete account. Please try again.');
+        } finally {
+          isLoading.value = false;
         }
       },
     );
