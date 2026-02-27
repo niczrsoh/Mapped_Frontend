@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
@@ -22,6 +23,8 @@ import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
 import 'package:mapped_frontend/TProgress/data/belt_requirements.dart';
 import 'package:mapped_frontend/screens/home_search.dart';
+import 'package:mapped_frontend/language/language_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final customGradient = const LinearGradient(
   colors: [Color(0xFF00C7A7), Color(0xFF00FF66)],
@@ -98,9 +101,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return Scaffold(
         backgroundColor: const Color(0xFF141823),
         body: const Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF00FF66),
-          ),
+          child: CircularProgressIndicator(color: Color(0xFF00FF66)),
         ),
       );
     }
@@ -146,18 +147,141 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Greeting
-                Obx(() {
-                  final userName = userController.userName;
-                  return Text(
-                    'Welcome back, Coach $userName',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                // Greeting + Language Button
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Obx(() {
+                        final userName = userController.userName;
+                        return Text(
+                          'home_msg_welcome'.tr(
+                            namedArgs: {'userName': userName},
+                          ),
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        );
+                      }),
                     ),
-                  );
-                }),
+                    Obx(() {
+                      final langCtrl = Get.isRegistered<LanguageController>()
+                          ? Get.find<LanguageController>()
+                          : Get.put(LanguageController());
+                      final currentCode = langCtrl.currentLanguage.value;
+                      final currentLang = langCtrl.languages.firstWhere(
+                        (l) => l['code'] == currentCode,
+                        orElse: () => {
+                          'code': 'en',
+                          'flag': '🇺🇸',
+                          'name': 'English',
+                        },
+                      );
+                      return PopupMenuButton<String>(
+                        onSelected: (code) async {
+                          langCtrl.currentLanguage.value = code;
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('language_code', code);
+                          if (context.mounted) {
+                            await context.setLocale(Locale(code));
+                          }
+                        },
+                        color: const Color(0xFF1E2230),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(
+                            color: Color(0xFF00C7A7),
+                            width: 1,
+                          ),
+                        ),
+                        offset: const Offset(0, 44),
+                        itemBuilder: (context) => langCtrl.languages
+                            .map(
+                              (lang) => PopupMenuItem<String>(
+                                value: lang['code'],
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      lang['flag']!,
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      lang['code']!.toUpperCase(),
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      lang['name']!,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white54,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    if (lang['code'] == currentCode) ...[
+                                      const Spacer(),
+                                      const Icon(
+                                        Icons.check,
+                                        color: Color(0xFF00C7A7),
+                                        size: 16,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        child: Container(
+                          padding: const EdgeInsets.all(1.0),
+                          decoration: BoxDecoration(
+                            gradient: customGradient,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2230),
+                              borderRadius: BorderRadius.circular(19),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  currentLang['flag']!,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  currentCode.toUpperCase(),
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: Colors.white70,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
                 const SizedBox(height: 8),
 
                 Row(
@@ -174,8 +298,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     const SizedBox(width: 8),
                     Obx(() {
                       final count = sessionController.currentList.length;
-                      final label =
-                          "$count ${count == 1 ? 'session' : 'sessions'} today";
+                      final label = count == 1
+                          ? 'home_msg_session_count.one'.tr(
+                              namedArgs: {'count': count.toString()},
+                            )
+                          : 'home_msg_session_count.other'.tr(
+                              namedArgs: {'count': count.toString()},
+                            );
                       return Text(
                         label,
                         style: GoogleFonts.poppins(
@@ -222,8 +351,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                               decoration: InputDecoration(
                                 isCollapsed: true,
-                                hintText:
-                                    'Search Students, Sessions, Forums ...',
+                                hintText: 'home_hint_search'.tr(),
                                 hintStyle: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.95),
                                   fontSize: 14,
@@ -236,8 +364,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               readOnly: true,
                               onTap: () {
                                 Get.snackbar(
-                                  'Coming Soon',
-                                  'Search feature will be available soon',
+                                  'home_snackbar_coming_soon_title'.tr(),
+                                  'home_snackbar_coming_soon_msg'.tr(),
                                   snackPosition: SnackPosition.BOTTOM,
                                 );
                               },
@@ -260,9 +388,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Belt Progress Card
                 GestureDetector(
                   onTap: () {
-                   Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => const BeltDashboardScreen()))
-                    .then((_) => _refreshData());
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (context) => const BeltDashboardScreen(),
+                          ),
+                        )
+                        .then((_) => _refreshData());
                   },
                   child: sectionCard(
                     child: Obx(() {
@@ -279,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                         final data = beltController.detailedBeltData
                             .firstWhereOrNull((b) => b.beltColor == code);
-                            
+
                         bool isPassed = data?.isCompleted ?? false;
 
                         if (!isPassed) {
@@ -310,19 +442,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       final currentBeltDef = BeltDefinitions.getByCode(
                         currentBeltCode,
                       );
-                      final String beltName = currentBeltDef.name;
+                      final String beltName = currentBeltDef.name.tr();
                       final Color beltColor = currentBeltDef.color;
 
                       final String nextBeltName =
                           (currentBeltIndex < belts.length - 1)
-                          ? belts[currentBeltIndex + 1].name
-                          : "Mastery";
+                          ? belts[currentBeltIndex + 1].name.tr()
+                          : 'home_lbl_mastery'.tr();
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'My Certification Progress',
+                            'home_title_certification_progress'.tr(),
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 16,
@@ -339,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Current Belt: ',
+                                'home_lbl_current_belt'.tr(),
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 14,
@@ -371,8 +503,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 onTap: () {
                                   if (isLocked) {
                                     Get.snackbar(
-                                      "Locked",
-                                      "Complete the Brown Belt to unlock Mastery.",
+                                      'home_snackbar_locked_title'.tr(),
+                                      'home_snackbar_locked_msg'.tr(),
                                       snackPosition: SnackPosition.BOTTOM,
                                       backgroundColor: Colors.white12,
                                       colorText: Colors.white,
@@ -413,7 +545,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Progress to $nextBeltName Belt',
+                                'home_msg_progress_to_belt'.tr(
+                                  namedArgs: {'nextBeltName': nextBeltName},
+                                ),
                                 style: GoogleFonts.poppins(
                                   color: const Color.fromARGB(
                                     255,
@@ -453,7 +587,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               runSpacing: 4,
                               children: [
                                 Text(
-                                  'Remaining Requirements',
+                                  'home_lbl_remaining_requirements'.tr(),
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 13,
@@ -529,7 +663,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "Mastery Achieved",
+                                  'home_msg_mastery_achieved'.tr(),
                                   style: GoogleFonts.poppins(
                                     color: const Color(0xFF00FF66),
                                     fontSize: 14,
@@ -563,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Participants',
+                              'participants'.tr(),
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
@@ -571,7 +705,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Participant information',
+                              'home_subtitle_participant_info'.tr(),
                               style: GoogleFonts.poppins(color: Colors.white),
                             ),
                           ],
@@ -608,7 +742,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Today's Recommendation",
+                          'home_title_recommendation'.tr(),
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -616,7 +750,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Adapting warm-up for all abilities',
+                          'home_subtitle_recommendation_topic'.tr(),
                           style: GoogleFonts.poppins(color: Colors.white),
                         ),
                       ],
@@ -630,7 +764,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Quick Actions',
+                        'home_title_quick_actions'.tr(),
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -662,7 +796,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Resource',
+                                      'home_btn_resource'.tr(),
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                       ),
@@ -681,7 +815,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 Get.find<BottomNavController>().changeIndex(2);
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white24,
                                   borderRadius: BorderRadius.circular(28),
@@ -690,11 +826,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Forum',
-                                      style: GoogleFonts.poppins(color: Colors.white),
+                                      'forum'.tr(),
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                      ),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Icon(Icons.forum_outlined, color: Colors.white),
+                                    const Icon(
+                                      Icons.forum_outlined,
+                                      color: Colors.white,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -739,7 +880,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ).then((_) => _refreshData());
                       },
                       child: Text(
-                        'Plan a Session',
+                        'home_btn_plan_session'.tr(),
                         style: GoogleFonts.poppins(color: Colors.white),
                       ),
                     ),
@@ -783,10 +924,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     for (var task in requirement.tasks) {
       int currentValue = _getProgressValue(task, data, requirement);
 
-      String text = "${task.homeLabel}: $currentValue / ${task.target}";
+      String text = "${task.homeLabel.tr()}: $currentValue / ${task.target}";
 
       if (task.type == RequirementType.activeDay) {
-        text += " days";
+        text += 'home_lbl_days'.tr();
       }
 
       reqs.add(_reqLine(text));
@@ -799,10 +940,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start, 
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.only(top: 6.0), 
+            padding: EdgeInsets.only(top: 6.0),
             child: Icon(Icons.circle, size: 6, color: Colors.white70),
           ),
           const SizedBox(width: 8),
@@ -916,7 +1057,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   String _getBeltName(String code) {
-    return BeltDefinitions.getByCode(code).name;
+    return BeltDefinitions.getByCode(code).name.tr();
   }
 
   Color _getBeltColor(String code) {

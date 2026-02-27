@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -40,37 +41,30 @@ class ResourceController extends GetxController {
   var isReportConfirmed = false.obs;
   var isAdmin = false.obs;
 
-  final List<String> reportReasons = [
-    "Harassment",
-    "Fraud / Scam",
-    "Spam",
-    "Misinformation",
-    "Self-Harm",
-    "Graphic Content",
-    "Sexual Content",
-    "Fake Account",
-    "Hacked Account",
-    "Hateful Speech",
+  List<String> get reportReasons => [
+    "forum_report_reason_harassment".tr(),
+    "forum_report_reason_fraud".tr(),
+    "forum_report_reason_spam".tr(),
+    "forum_report_reason_misinfo".tr(),
+    "forum_report_reason_self_harm".tr(),
+    "forum_report_reason_graphic".tr(),
+    "forum_report_reason_sexual".tr(),
+    "forum_report_reason_fake".tr(),
+    "forum_report_reason_hacked".tr(),
+    "forum_report_reason_hateful".tr(),
   ];
 
-  final Map<String, String> reasonDefinitions = {
-    "Harassment":
-        "Attacks or intimidation toward others with abusive language or deliberately and repeatedly disrupting conversations, including revealing others' personal or sensitive information. This includes unwanted romantic advances, sexual remarks and or requests for sexual favors.",
-    "Fraud / Scam":
-        "Illegal activities, malware, or promotion of illegal products or services.",
-    "Spam":
-        "Irrelevant, repetitive content intended to artificially increase engagement, or other inappropriate promotional content.",
-    "Misinformation":
-        "False content or information about the post, that present untrue facts or events as though they are true or likely to be true.",
-    "Self-Harm":
-        "Promotion, encouragement or any portrayal of self-harm or suicide.",
-    "Graphic Content": "Excessively gruesome or graphic material.",
-    "Sexual Content": "Nudity or other content that's sexual in nature.",
-    "Fake Account":
-        "Inaccurate or misleading representation of a person or organization.",
-    "Hacked Account": "Unauthorized account takeover.",
-    "Hateful Speech":
-        "Attacks or incitement of violence against individuals or groups based on their actual or perceived traits, or any other speech that promotes hatred.",
+  Map<String, String> get reasonDefinitions => {
+    "forum_report_reason_harassment".tr(): "forum_report_def_harassment".tr(),
+    "forum_report_reason_fraud".tr(): "forum_report_def_fraud".tr(),
+    "forum_report_reason_spam".tr(): "forum_report_def_spam".tr(),
+    "forum_report_reason_misinfo".tr(): "forum_report_def_misinfo".tr(),
+    "forum_report_reason_self_harm".tr(): "forum_report_def_self_harm".tr(),
+    "forum_report_reason_graphic".tr(): "forum_report_def_graphic".tr(),
+    "forum_report_reason_sexual".tr(): "forum_report_def_sexual".tr(),
+    "forum_report_reason_fake".tr(): "forum_report_def_fake".tr(),
+    "forum_report_reason_hacked".tr(): "forum_report_def_hacked".tr(),
+    "forum_report_reason_hateful".tr(): "forum_report_def_hateful".tr(),
   };
 
   @override
@@ -234,7 +228,7 @@ class ResourceController extends GetxController {
           } else {
             print('⚠️ Unexpected response format: ${data.runtimeType}');
             print('⚠️ Response: $data');
-            Get.snackbar("Error", "Unexpected response format from server");
+            Get.snackbar("error".tr(), "resource_ctrl_error_format".tr());
             return;
           }
 
@@ -264,23 +258,33 @@ class ResourceController extends GetxController {
           print('✅ Resources loaded successfully: ${resources.length}');
         } catch (e) {
           print('❌ Error parsing response: $e');
-          Get.snackbar("Error", "Failed to parse resources data: $e");
+          Get.snackbar(
+            "error".tr(),
+            "resource_ctrl_error_parse_fail".tr(
+              namedArgs: {'error': e.toString()},
+            ),
+          );
         }
       } else if (response.statusCode == 404) {
         print('❌ Endpoint not found: ${response.statusCode}');
-        Get.snackbar("Error", "Resources endpoint not found");
+        Get.snackbar("error".tr(), "resource_ctrl_error_not_found".tr());
         resources.value = [];
       } else {
         print('❌ Server error: ${response.statusCode}');
         print('❌ Response: ${response.body}');
         Get.snackbar(
-          "Error",
-          "Failed to load resources (${response.statusCode})",
+          "error".tr(),
+          "resource_ctrl_error_load_fail".tr(
+            namedArgs: {'status': response.statusCode.toString()},
+          ),
         );
       }
     } catch (e) {
       print("❌ Error loading resources: $e");
-      Get.snackbar("Error", "Could not connect to server: $e");
+      Get.snackbar(
+        "error".tr(),
+        "resource_ctrl_error_connection".tr(namedArgs: {'error': e.toString()}),
+      );
     } finally {
       isLoading.value = false;
     }
@@ -320,12 +324,12 @@ class ResourceController extends GetxController {
     List<String>? imagePaths,
   }) async {
     if (!isAdmin.value) {
-      Get.snackbar("Permission Denied", "Only admins can upload resources.");
+      Get.snackbar("error".tr(), "resource_ctrl_error_permission_denied".tr());
       return false;
     }
 
     if (currentUserId.isEmpty) {
-      Get.snackbar("Error", "You must be logged in to create resources.");
+      Get.snackbar("error".tr(), "resource_ctrl_error_login_create".tr());
       return false;
     }
 
@@ -374,19 +378,22 @@ class ResourceController extends GetxController {
 
       if (response.statusCode == 201) {
         Get.snackbar(
-          'Success',
-          'Resource created successfully',
+          'success'.tr(),
+          'resource_ctrl_snackbar_create_success'.tr(),
           snackPosition: SnackPosition.BOTTOM,
         );
         loadResources(); // Reload resources
         return true;
       } else {
-        Get.snackbar("Error", "Failed to create resource");
+        Get.snackbar("error".tr(), "resource_ctrl_error_create_fail".tr());
         return false;
       }
     } catch (e) {
       print('Create resource error: $e');
-      Get.snackbar("Error", "Could not connect to server");
+      Get.snackbar(
+        "error".tr(),
+        "error_connection".tr(namedArgs: {'error': e.toString()}),
+      );
       return false;
     }
   }
@@ -413,15 +420,21 @@ class ResourceController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        Get.snackbar("Success", "Resource updated successfully");
+        Get.snackbar(
+          "success".tr(),
+          "resource_ctrl_snackbar_update_success".tr(),
+        );
         loadResources();
         return true;
       } else {
-        Get.snackbar("Error", "Could not update resource");
+        Get.snackbar("error".tr(), "resource_ctrl_error_update_fail".tr());
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Could not connect to server");
+      Get.snackbar(
+        "error".tr(),
+        "error_connection".tr(namedArgs: {'error': e.toString()}),
+      );
       return false;
     }
   }
@@ -439,14 +452,20 @@ class ResourceController extends GetxController {
 
       if (response.statusCode == 200) {
         resources.removeWhere((r) => r.id == resource.id);
-        Get.snackbar("Success", "Resource deleted successfully");
+        Get.snackbar(
+          "success".tr(),
+          "resource_ctrl_snackbar_delete_success".tr(),
+        );
         return true;
       } else {
-        Get.snackbar("Error", "Could not delete resource");
+        Get.snackbar("error".tr(), "resource_ctrl_error_delete_fail".tr());
         return false;
       }
     } catch (e) {
-      Get.snackbar("Error", "Could not connect to server");
+      Get.snackbar(
+        "error".tr(),
+        "error_connection".tr(namedArgs: {'error': e.toString()}),
+      );
       return false;
     }
   }

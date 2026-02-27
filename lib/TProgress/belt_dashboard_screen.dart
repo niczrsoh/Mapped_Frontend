@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'belt_progress_ring_controller.dart';
@@ -65,8 +66,9 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
 
     for (int i = 0; i < belts.length; i++) {
       final code = belts[i].id;
-      final data = ringController.detailedBeltData
-          .firstWhereOrNull((b) => b.beltColor == code);
+      final data = ringController.detailedBeltData.firstWhereOrNull(
+        (b) => b.beltColor == code,
+      );
 
       bool isPassed = data?.isCompleted ?? false;
 
@@ -216,16 +218,13 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     if (beltId == BeltDefinitions.black) {
       bool achieved = beltData?.isCompleted ?? false;
 
-      return BeltDataResult(
-        [
-          BeltTask(
-            icon: Icons.star,
-            label: achieved ? "Mastery Achieved" : "Not yet achieved",
-            value: "",
-          ),
-        ],
-        achieved ? 100 : 0, 
-      );
+      return BeltDataResult([
+        BeltTask(
+          icon: Icons.star,
+          label: achieved ? "Mastery Achieved" : "Not yet achieved",
+          value: "",
+        ),
+      ], achieved ? 100 : 0);
     }
 
     final requirement = BeltRequirementsData.getFor(beltId);
@@ -238,7 +237,6 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     int currentPosts = beltData?.progress.postCount ?? 0;
     int currentTips = beltData?.progress.shareTipCount ?? 0;
     int currentReflect = beltData?.progress.reflectionCount ?? 0;
-
 
     double totalCurrentScore = 0.0;
     double totalTargetScore = 0.0;
@@ -277,7 +275,8 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           valueText = "$currentTips Tip/ Res";
           break;
         case RequirementType.mastery:
-          currentMetricValue = 1; // Arbitrary value, doesn't matter since target is 0
+          currentMetricValue =
+              1; // Arbitrary value, doesn't matter since target is 0
           break;
       }
 
@@ -287,7 +286,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       tasks.add(
         BeltTask(
           icon: taskDef.icon,
-          label: taskDef.dashboardLabel,
+          label: taskDef.dashboardLabel.tr(),
           value: valueText,
         ),
       );
@@ -297,7 +296,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     if (totalTargetScore > 0) {
       finalPercent = ((totalCurrentScore / totalTargetScore) * 100).round();
     }
-    
+
     if (beltData != null && beltData.isCompleted) finalPercent = 100;
 
     return BeltDataResult(tasks, finalPercent);
@@ -311,27 +310,25 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
     required String currentBeltCode,
   }) {
     String cleanName = beltName.split(' ')[0];
-    
+
     BeltProgressModelV2? beltData;
     try {
       beltData = ringController.detailedBeltData.firstWhereOrNull(
-        (b) => b.beltColor == beltId || b.beltColor == cleanName
+        (b) => b.beltColor == beltId || b.beltColor == cleanName,
       );
     } catch (e) {
       // no data found
     }
 
-    final result = _buildBeltTasks(
-      beltId: beltId,
-      beltData: beltData,
-    );
+    final result = _buildBeltTasks(beltId: beltId, beltData: beltData);
 
     int displayPercentage = result.percentage;
     if (displayPercentage >= 100) displayPercentage = 100;
 
     // Lock Logic matching Home Screen
     bool isLocked = false;
-    if (beltId == BeltDefinitions.black && currentBeltCode != BeltDefinitions.black) {
+    if (beltId == BeltDefinitions.black &&
+        currentBeltCode != BeltDefinitions.black) {
       isLocked = true;
     }
 
@@ -354,8 +351,8 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       },
       child: BeltCard(
         beltName: beltName,
-        percentage: displayPercentage, 
-        color: color, 
+        percentage: displayPercentage,
+        color: color,
         tasks: result.tasks,
       ),
     );
@@ -389,7 +386,6 @@ class BeltCard extends StatelessWidget {
     required this.tasks,
   });
 
-
   String _getBeltImagePath(String name) {
     final coreName = name.split(' - ').first;
     return BeltDefinitions.getByName(coreName).assetPath;
@@ -419,7 +415,7 @@ class BeltCard extends StatelessWidget {
     String progressLabel = percentage >= 100
         ? "Achieved"
         : "$percentageLeft% Left";
-        
+
     return Container(
       decoration: BoxDecoration(
         // Visual Style: White -> Green gradient
@@ -484,38 +480,46 @@ class BeltCard extends StatelessWidget {
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: tasks.map((task) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(task.icon, color: Colors.white, size: 16),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: GoogleFonts.roboto(
+                        children: tasks
+                            .map(
+                              (task) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      task.icon,
                                       color: Colors.white,
-                                      fontSize: 12,
-                                      height: 1.4,
+                                      size: 16,
                                     ),
-                                    children: [
-                                      TextSpan(text: '${task.label} '),
-                                      TextSpan(
-                                        text: task.value,
-                                        style: const TextStyle(
-                                          // Visual Style: Specific Green for values
-                                          color: Color(0xFF00FFA6),
-                                          fontWeight: FontWeight.w500,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: GoogleFonts.roboto(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            height: 1.4,
+                                          ),
+                                          children: [
+                                            TextSpan(text: '${task.label} '),
+                                            TextSpan(
+                                              text: task.value,
+                                              style: const TextStyle(
+                                                // Visual Style: Specific Green for values
+                                                color: Color(0xFF00FFA6),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                        )).toList(),
+                            )
+                            .toList(),
                       ),
                     ),
                   ),

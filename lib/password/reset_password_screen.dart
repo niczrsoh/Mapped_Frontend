@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/password/reset_password_controller.dart';
 
@@ -9,20 +10,20 @@ class ResetPasswordScreen extends StatelessWidget {
   // Use Get.put or Get.find depending on how you navigate here
   // If navigating via Get.to(), Get.put initializes it.
   InputDecoration _inputDecoration(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        filled: true,
-        fillColor: Colors.white10,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          borderSide: const BorderSide(color: Color(0xFF00C7A7)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15.0),
-          borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1.5),
-        ),
-      );
+    hintText: hint,
+    hintStyle: const TextStyle(color: Colors.white70),
+    filled: true,
+    fillColor: Colors.white10,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.0),
+      borderSide: const BorderSide(color: Color(0xFF00C7A7)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.0),
+      borderSide: const BorderSide(color: Color(0xFF00C7A7), width: 1.5),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +52,7 @@ class ResetPasswordScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Login',
+                  'login'.tr(),
                   style: GoogleFonts.inter(
                     color: const Color(0xFFFFEEFF),
                     fontSize: 16,
@@ -66,7 +67,7 @@ class ResetPasswordScreen extends StatelessWidget {
             top: 147.0,
             left: 44.0,
             child: Text(
-              'Reset Password',
+              'reset_password_header'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 22,
@@ -82,7 +83,7 @@ class ResetPasswordScreen extends StatelessWidget {
             child: SizedBox(
               width: 294.0,
               child: Text(
-                "Enter the email or username associated with your account and we'll send a secure link to reset your password.",
+                "reset_password_description".tr(),
                 style: GoogleFonts.poppins(
                   color: Colors.white70,
                   fontSize: 14,
@@ -103,7 +104,7 @@ class ResetPasswordScreen extends StatelessWidget {
                 controller: controller.emailController,
                 style: const TextStyle(color: Colors.white),
                 cursorColor: const Color(0xFF00C7A7),
-                decoration: _inputDecoration('Email/Username'),
+                decoration: _inputDecoration('email'.tr()),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -152,15 +153,17 @@ class ResetPasswordScreen extends StatelessWidget {
             top: 470.0,
             left: 44.0,
             right: 44.0,
-            child: Obx(() => Text(
-                  controller.errorMessage.value,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                )),
+            child: Obx(
+              () => Text(
+                controller.errorMessage.value,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ),
         ],
       ),

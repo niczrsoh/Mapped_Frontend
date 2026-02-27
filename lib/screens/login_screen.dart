@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/account/touch_id_screen.dart';
 import 'package:mapped_frontend/controller/controller/login_controller.dart';
@@ -67,8 +68,8 @@ class LoginScreen extends GetView<LoginController> {
                     // Header
                     Obx(() => Text(
                           controller.isAdminMode.value
-                              ? "Login as Admin"
-                              : "Welcome Back",
+                              ? "login_title_admin".tr()
+                              : "login_title_user".tr(),
                           style: GoogleFonts.poppins(
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
@@ -93,7 +94,7 @@ class LoginScreen extends GetView<LoginController> {
                     TextButton(
                       onPressed: () => Get.toNamed(AppRoutes.resetPassword),
                       child: Text(
-                        "Forgot Password",
+                        "login_btn_forgot_password".tr(),
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF00E5CC),
                           fontWeight: FontWeight.w500,
@@ -106,7 +107,7 @@ class LoginScreen extends GetView<LoginController> {
 
                     // Login button
                     Obx(() => _RoundedActionButton(
-                      label: "Login",
+                      label: "login".tr(),
                       onPressed: () => controller.login(),
                       isLoading: controller.loading.value,
                     )),
@@ -117,7 +118,7 @@ class LoginScreen extends GetView<LoginController> {
                    Obx(() => Visibility(
                       visible: !controller.isAdminMode.value,
                       child: _RoundedActionButton(
-                        label: "Login with Fingerprint",
+                        label: "login_btn_fingerprint".tr(),
                         onPressed: () {
                           Get.to(() => const TouchIdScreen()); 
                         },
@@ -128,29 +129,31 @@ class LoginScreen extends GetView<LoginController> {
 
                     // Register link
                     Obx(() => Visibility(
-                          visible: !controller.isAdminMode.value,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Did not have an account? ",
-                                style: GoogleFonts.poppins(
-                                    color: Colors.white, fontSize: 14),
-                              ),
-                              InkWell(
-                                onTap: () => Get.toNamed(AppRoutes.register),
-                                child: const Text(
-                                  "Register",
-                                  style: TextStyle(
-                                    color: Color(0xFF00E5CC),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      visible: !controller.isAdminMode.value,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(  // or Expanded
+                            child: Text(
+                              "login_msg_no_account".tr(),
+                              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        )),
+                          InkWell(
+                            onTap: () => Get.toNamed(AppRoutes.register),
+                            child: Text(
+                              "login_link_register".tr(),
+                              style: TextStyle(
+                                color: Color(0xFF00E5CC),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
                     const SizedBox(height: 15),
 
                     // Admin / User toggle
@@ -162,8 +165,8 @@ class LoginScreen extends GetView<LoginController> {
                                 horizontal: 10, vertical: 5),
                             child: Text(
                               controller.isAdminMode.value
-                                  ? "User Login"
-                                  : "Admin Login",
+                                  ? "login_toggle_user".tr()
+                                  : "login_toggle_admin".tr(),
                               style: GoogleFonts.poppins(
                                 color: const Color(0xFF00E5CC),
                                 fontSize: 18,
@@ -270,7 +273,7 @@ class __EmailTextFieldState extends State<_EmailTextField> {
             controller: _textController,
             style: const TextStyle(color: Colors.white),
             decoration: LoginScreen._inputDecoration(
-              hint: 'Email',
+              hint: 'email'.tr(),
               hasError: hasError,
             ),
             keyboardType: TextInputType.emailAddress,
@@ -339,7 +342,7 @@ class __PasswordTextFieldState extends State<_PasswordTextField> {
             obscureText: _obscureText,
             style: const TextStyle(color: Colors.white),
             decoration: LoginScreen._inputDecoration(
-              hint: 'Password',
+              hint: 'password'.tr(),
               hasError: hasError,
             ).copyWith(
               suffixIcon: IconButton(

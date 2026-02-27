@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:http/http.dart' as http;
+import 'package:easy_localization/easy_localization.dart';
 import '../forum/forum_controller.dart';
 import 'comment_model.dart';
 import '../services/api_service.dart';
@@ -99,11 +100,11 @@ class CommentsController extends GetxController {
             .map((json) => Comment.fromJson(json))
             .toList();
       } else {
-        Get.snackbar("Error", "Failed to load comments");
+        Get.snackbar("error".tr(), "comment_snackbar_error_load".tr());
       }
     } catch (e) {
       print("Load Comments Error: $e");
-      Get.snackbar("Error", "Could not connect to server");
+      Get.snackbar("error".tr(), "comment_snackbar_error_connect".tr());
     } finally {
       isLoading.value = false;
     }
@@ -132,8 +133,8 @@ class CommentsController extends GetxController {
   Future<void> addComment(String postId, String text) async {
     if (!isEligibleToComment) {
       Get.snackbar(
-        "Access Denied",
-        "You are not allowed to reply in the forum until you achieve the green belt.",
+        "comment_snackbar_access_denied_title".tr(),
+        "comment_snackbar_access_denied_msg".tr(),
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
         duration: const Duration(seconds: 4),
@@ -161,19 +162,19 @@ class CommentsController extends GetxController {
       if (response.statusCode == 200) {
         await loadComments(postId, forceReload: true);
         await _updatePostCount();
-        Get.snackbar("Success", "Comment added");
+        Get.snackbar("success".tr(), "comment_snackbar_success_msg_short".tr());
       } else {
-        Get.snackbar("Error", "Could not add comment");
+        Get.snackbar("error".tr(), "comment_snackbar_error_add".tr());
       }
     } catch (e) {
       print("Add Comment Error: $e");
-      Get.snackbar("Error", "Could not connect to server");
+      Get.snackbar("error".tr(), "comment_snackbar_error_connect".tr());
     } finally {
       isPosting.value = false;
     }
   }
 
-  // Mark post/comment 
+  // Mark post/comment
   Future<void> markPostAsSubmitted(String commentId) async {
     final userId = forumController.currentUserId;
     submittedPostIds.add(commentId);

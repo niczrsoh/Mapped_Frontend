@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controller/controller/register_controller.dart';
 import '../global/routes.dart';
@@ -30,10 +31,7 @@ class RegisterScreen extends GetView<RegisterController> {
           width: 1,
         ),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
@@ -107,15 +105,15 @@ class RegisterScreen extends GetView<RegisterController> {
                   // Full Name Field
                   _FullNameTextField(controller: controller),
                   const SizedBox(height: 12),
-                  
+
                   // Email Field
                   _EmailTextField(controller: controller),
                   const SizedBox(height: 12),
-                  
+
                   // Password Field
                   _PasswordTextField(controller: controller),
                   const SizedBox(height: 12),
-                  
+
                   // Password Confirmation Field
                   _PasswordConfirmationTextField(controller: controller),
 
@@ -134,18 +132,21 @@ class RegisterScreen extends GetView<RegisterController> {
                               borderRadius: BorderRadius.circular(28),
                             ),
                           ),
-                          onPressed: controller.loading.value ? null : () {
-                            // Clear previous errors
-                            controller.fullNameError.value = '';
-                            controller.emailError.value = '';
-                            controller.passwordError.value = '';
-                            controller.passwordConfirmationError.value = '';
-                            
-                            // Validate form before registering
-                            if (controller.validateForm()) {
-                              controller.register();
-                            }
-                          },
+                          onPressed: controller.loading.value
+                              ? null
+                              : () {
+                                  // Clear previous errors
+                                  controller.fullNameError.value = '';
+                                  controller.emailError.value = '';
+                                  controller.passwordError.value = '';
+                                  controller.passwordConfirmationError.value =
+                                      '';
+
+                                  // Validate form before registering
+                                  if (controller.validateForm()) {
+                                    controller.register();
+                                  }
+                                },
                           child: controller.loading.value
                               ? const SizedBox(
                                   height: 16,
@@ -155,7 +156,7 @@ class RegisterScreen extends GetView<RegisterController> {
                                   ),
                                 )
                               : Text(
-                                  'Register',
+                                  'register_btn_register'.tr(),
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
@@ -169,23 +170,25 @@ class RegisterScreen extends GetView<RegisterController> {
                   ),
 
                   const SizedBox(height: 12),
-
-                  // Already have an account
                   Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'Already have an account? ',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w300,
+                        Flexible(
+                          child: Text(
+                            'register_msg_have_account'.tr(),
+                            style: GoogleFonts.poppins(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w300,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 4), // Small gap
                         InkWell(
                           onTap: () => Get.toNamed(AppRoutes.login),
                           child: Text(
-                            'Login',
+                            'login'.tr(),
                             style: GoogleFonts.poppins(
                               color: Color(0xFF00C7A7),
                               fontWeight: FontWeight.w600,
@@ -212,23 +215,25 @@ class RegisterScreen extends GetView<RegisterController> {
                         onPressed: () {
                           controller.registerWithGoogle();
                         },
-                        child: Obx(() => controller.googleLoading.value
-                            ? const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
+                        child: Obx(
+                          () => controller.googleLoading.value
+                              ? const SizedBox(
+                                  height: 16,
+                                  width: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  'register_btn_google'.tr(),
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                              )
-                            : Text(
-                                'Register via Google',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              )),
+                        ),
                       ),
                     ),
                   ),
@@ -245,33 +250,35 @@ class RegisterScreen extends GetView<RegisterController> {
 // Full Name TextField
 class _FullNameTextField extends StatefulWidget {
   final RegisterController controller;
-  
+
   const _FullNameTextField({required this.controller});
-  
+
   @override
   __FullNameTextFieldState createState() => __FullNameTextFieldState();
 }
 
 class __FullNameTextFieldState extends State<_FullNameTextField> {
   late TextEditingController _textController;
-  
+
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.controller.fullName.value);
-    
+    _textController = TextEditingController(
+      text: widget.controller.fullName.value,
+    );
+
     ever(widget.controller.fullName, (value) {
       if (_textController.text != value) {
         _textController.text = value;
       }
     });
   }
-  
+
   @override
   void dispose() {
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -279,7 +286,7 @@ class __FullNameTextFieldState extends State<_FullNameTextField> {
       children: [
         Obx(() {
           final hasError = widget.controller.fullNameError.value.isNotEmpty;
-          
+
           return TextField(
             controller: _textController,
             style: GoogleFonts.openSans(
@@ -289,7 +296,7 @@ class __FullNameTextFieldState extends State<_FullNameTextField> {
             ),
             cursorColor: const Color(0xFF00C7A7),
             decoration: RegisterScreen._inputDecoration(
-              label: 'Full Name',
+              label: 'register_hint_full_name'.tr(),
               hasError: hasError,
             ),
             onChanged: (value) {
@@ -327,33 +334,35 @@ class __FullNameTextFieldState extends State<_FullNameTextField> {
 // Email TextField
 class _EmailTextField extends StatefulWidget {
   final RegisterController controller;
-  
+
   const _EmailTextField({required this.controller});
-  
+
   @override
   __EmailTextFieldState createState() => __EmailTextFieldState();
 }
 
 class __EmailTextFieldState extends State<_EmailTextField> {
   late TextEditingController _textController;
-  
+
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.controller.email.value);
-    
+    _textController = TextEditingController(
+      text: widget.controller.email.value,
+    );
+
     ever(widget.controller.email, (value) {
       if (_textController.text != value) {
         _textController.text = value;
       }
     });
   }
-  
+
   @override
   void dispose() {
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -361,7 +370,7 @@ class __EmailTextFieldState extends State<_EmailTextField> {
       children: [
         Obx(() {
           final hasError = widget.controller.emailError.value.isNotEmpty;
-          
+
           return TextField(
             controller: _textController,
             style: GoogleFonts.openSans(
@@ -371,7 +380,7 @@ class __EmailTextFieldState extends State<_EmailTextField> {
             ),
             cursorColor: const Color(0xFF00C7A7),
             decoration: RegisterScreen._inputDecoration(
-              label: 'Email',
+              label: 'email'.tr(),
               hasError: hasError,
             ),
             keyboardType: TextInputType.emailAddress,
@@ -410,9 +419,9 @@ class __EmailTextFieldState extends State<_EmailTextField> {
 // Password TextField
 class _PasswordTextField extends StatefulWidget {
   final RegisterController controller;
-  
+
   const _PasswordTextField({required this.controller});
-  
+
   @override
   __PasswordTextFieldState createState() => __PasswordTextFieldState();
 }
@@ -420,24 +429,26 @@ class _PasswordTextField extends StatefulWidget {
 class __PasswordTextFieldState extends State<_PasswordTextField> {
   late TextEditingController _textController;
   bool _obscureText = true;
-  
+
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.controller.password.value);
-    
+    _textController = TextEditingController(
+      text: widget.controller.password.value,
+    );
+
     ever(widget.controller.password, (value) {
       if (_textController.text != value) {
         _textController.text = value;
       }
     });
   }
-  
+
   @override
   void dispose() {
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -445,7 +456,7 @@ class __PasswordTextFieldState extends State<_PasswordTextField> {
       children: [
         Obx(() {
           final hasError = widget.controller.passwordError.value.isNotEmpty;
-          
+
           return TextField(
             controller: _textController,
             style: GoogleFonts.openSans(
@@ -455,7 +466,7 @@ class __PasswordTextFieldState extends State<_PasswordTextField> {
             ),
             cursorColor: const Color(0xFF00C7A7),
             decoration: InputDecoration(
-              hintText: 'Password',
+              hintText: 'password'.tr(),
               hintStyle: const TextStyle(color: Colors.white),
               filled: true,
               fillColor: Colors.white10,
@@ -497,7 +508,11 @@ class __PasswordTextFieldState extends State<_PasswordTextField> {
                 widget.controller.passwordError.value = '';
               }
               // Also clear confirmation error if password changes
-              if (widget.controller.passwordConfirmationError.value.isNotEmpty) {
+              if (widget
+                  .controller
+                  .passwordConfirmationError
+                  .value
+                  .isNotEmpty) {
                 widget.controller.passwordConfirmationError.value = '';
               }
             },
@@ -528,42 +543,47 @@ class __PasswordTextFieldState extends State<_PasswordTextField> {
 // Password Confirmation TextField
 class _PasswordConfirmationTextField extends StatefulWidget {
   final RegisterController controller;
-  
+
   const _PasswordConfirmationTextField({required this.controller});
-  
+
   @override
-  __PasswordConfirmationTextFieldState createState() => __PasswordConfirmationTextFieldState();
+  __PasswordConfirmationTextFieldState createState() =>
+      __PasswordConfirmationTextFieldState();
 }
 
-class __PasswordConfirmationTextFieldState extends State<_PasswordConfirmationTextField> {
+class __PasswordConfirmationTextFieldState
+    extends State<_PasswordConfirmationTextField> {
   late TextEditingController _textController;
   bool _obscureText = true;
-  
+
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.controller.passwordConfirmation.value);
-    
+    _textController = TextEditingController(
+      text: widget.controller.passwordConfirmation.value,
+    );
+
     ever(widget.controller.passwordConfirmation, (value) {
       if (_textController.text != value) {
         _textController.text = value;
       }
     });
   }
-  
+
   @override
   void dispose() {
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Obx(() {
-          final hasError = widget.controller.passwordConfirmationError.value.isNotEmpty;
-          
+          final hasError =
+              widget.controller.passwordConfirmationError.value.isNotEmpty;
+
           return TextField(
             controller: _textController,
             style: GoogleFonts.openSans(
@@ -573,7 +593,7 @@ class __PasswordConfirmationTextFieldState extends State<_PasswordConfirmationTe
             ),
             cursorColor: const Color(0xFF00C7A7),
             decoration: InputDecoration(
-              hintText: 'Password Confirmation',
+              hintText: 'register_hint_password_confirm'.tr(),
               hintStyle: const TextStyle(color: Colors.white),
               filled: true,
               fillColor: Colors.white10,

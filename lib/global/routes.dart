@@ -23,6 +23,7 @@ import '../screens/notification_screen.dart';
 import '../forum_searchtags/forum_searchtags_screen.dart';
 import '../forum/forum_controller.dart';
 import '../create_post/create_post_screen.dart';
+import '../screens/privacy_policy_screen.dart';
 
 class AppRoutes {
   //chatbot
@@ -45,6 +46,7 @@ class AppRoutes {
   static const String editProfile = '/edit-profile';
   static const String notification = '/notification';
   static const String security = '/security';
+  static const String privacyPolicy = '/privacy-policy';
 
   static const String bottomNav = '/bottom-nav';
   static const String forum = '/forum';
@@ -118,13 +120,17 @@ class AppPages {
     ),
     GetPage(name: AppRoutes.notification, page: () => NotificationScreen()),
     GetPage(
-      name: AppRoutes.forum, 
+      name: AppRoutes.privacyPolicy,
+      page: () => const PrivacyPolicyScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.forum,
       page: () => ForumScreen(),
       binding: BindingsBuilder(() {
         Get.put(ForumController());
       }),
     ),
-      GetPage(
+    GetPage(
       name: AppRoutes.coachBot,
       page: () => CoachBotScreen(),
       binding: BindingsBuilder(() {
@@ -133,7 +139,10 @@ class AppPages {
     ),
     GetPage(name: AppRoutes.session, page: () => SessionDashboardScreen()),
     GetPage(name: AppRoutes.main, page: () => const MainNavigationScreen()),
-    GetPage(name: AppRoutes.forumSearchTags, page: () => ForumSearchtagsScreen()),
+    GetPage(
+      name: AppRoutes.forumSearchTags,
+      page: () => ForumSearchtagsScreen(),
+    ),
     GetPage(name: AppRoutes.createPost, page: () => CreatePostScreen()),
     // GetPage(
     //   name: AppRoutes.verificationCode,
@@ -141,7 +150,7 @@ class AppPages {
     //   transition: Transition.rightToLeft,
     // ),
     GetPage(
-      name: AppRoutes.adminReport, 
+      name: AppRoutes.adminReport,
       page: () => AdminMainScreen(),
       transition: Transition.native,
     ),

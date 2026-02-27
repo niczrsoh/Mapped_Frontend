@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/session/session_upcoming_screen.dart';
 import 'session_current_screen.dart';
 import 'session_history_screen.dart';
@@ -12,10 +13,10 @@ class SessionDashboardScreen extends StatelessWidget {
   const SessionDashboardScreen({super.key});
 
   String _formatDuration(dynamic duration) {
-    if (duration == null) return '0 Mins';
+    if (duration == null) return '0 ${'duration'.tr()}';
     final d = duration.toString();
     if (d.toLowerCase().contains('min')) return d;
-    return '$d Mins';
+    return '$d ${'duration'.tr()}';
   }
 
   Widget _buildSessionContentRows({
@@ -133,7 +134,6 @@ class SessionDashboardScreen extends StatelessWidget {
     required Widget Function() navigationTarget,
     double maxHeight = 105,
   }) {
-
     final userController = Get.find<UserController>();
     bool isEmpty = sessions.isEmpty;
 
@@ -159,7 +159,7 @@ class SessionDashboardScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Text(
-                    "No $title Sessions Available",
+                    'session_dash_empty_state'.tr(namedArgs: {'title': title}),
                     style: GoogleFonts.roboto(color: Colors.white54),
                   ),
                 ),
@@ -218,8 +218,14 @@ class SessionDashboardScreen extends StatelessWidget {
                               date: session.uiDate ?? session.date ?? '-',
                               time: _formatDuration(session.duration),
                               venue: session.venue ?? '-',
-                              trainees: '${session.totalTrainees} Trainees',
-                              trainer: 'Coach: Sir ${userController.userName}',
+                              trainees: 'session_dash_trainee_count'.tr(
+                                namedArgs: {
+                                  'count': '${session.totalTrainees}',
+                                },
+                              ),
+                              trainer: 'session_dash_coach_label'.tr(
+                                namedArgs: {'name': userController.userName},
+                              ),
                             ),
                           ),
                         );
@@ -244,7 +250,7 @@ class SessionDashboardScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Session Dashboard',
+          'session_dash_title'.tr(),
           style: GoogleFonts.roboto(
             color: Colors.white,
             fontSize: 16,
@@ -284,7 +290,7 @@ class SessionDashboardScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'Session Dashboard',
+                        'session_dash_header_badge'.tr(),
                         style: GoogleFonts.roboto(
                           color: Colors.white,
                           fontSize: 12,
@@ -297,22 +303,21 @@ class SessionDashboardScreen extends StatelessWidget {
 
                   _buildScrollableSessionBox(
                     context: context,
-                    title: 'Current',
+                    title: 'session_dash_sec_current'.tr(),
                     sessions: controller.currentList,
                     navigationTarget: () => const SessionCurrentScreen(),
                   ),
 
-
                   _buildScrollableSessionBox(
                     context: context,
-                    title: 'Upcoming',
+                    title: 'session_dash_sec_upcoming'.tr(),
                     sessions: controller.upcomingList,
                     navigationTarget: () => UpcomingSessionsScreen(),
                   ),
 
                   _buildScrollableSessionBox(
                     context: context,
-                    title: 'History',
+                    title: 'session_dash_sec_history'.tr(),
                     sessions: controller.historyList,
                     navigationTarget: () => const SessionHistoryScreen(),
                   ),

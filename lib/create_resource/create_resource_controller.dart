@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -60,7 +61,7 @@ class CreateResourceController extends GetxController {
         userAvatar.value = storedAvatar;
 
       if (currentUserId == null) {
-        userName.value = "Guest";
+        userName.value = 'user_guest'.tr();
         return;
       }
 
@@ -71,7 +72,7 @@ class CreateResourceController extends GetxController {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         userName.value =
-            data['name'] ?? data['user']?['name'] ?? 'Unknown User';
+            data['name'] ?? data['user']?['name'] ?? 'unknown_user'.tr();
         userAvatar.value = data['avatar'] ?? data['user']?['avatar'] ?? '';
       }
     } catch (e) {
@@ -92,8 +93,8 @@ class CreateResourceController extends GetxController {
         for (var image in images) {
           if (selectedImages.length >= maxImages) {
             Get.snackbar(
-              "Limit Reached",
-              "Maximum $maxImages images allowed",
+              'snackbar_limit_title'.tr(),
+              'snackbar_limit_msg'.tr(namedArgs: {'max': maxImages.toString()}),
               backgroundColor: Colors.orange,
               colorText: Colors.white,
             );
@@ -104,8 +105,13 @@ class CreateResourceController extends GetxController {
           final fileSize = await image.length();
           if (fileSize > maxImageSizeBytes) {
             Get.snackbar(
-              "File Too Large",
-              "Image must be less than ${maxImageSizeMB}MB. File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB",
+              'snackbar_size_title'.tr(),
+              'snackbar_size_msg'.tr(
+                namedArgs: {
+                  'max': maxImageSizeMB.toString(),
+                  'size': (fileSize / 1024 / 1024).toStringAsFixed(2),
+                },
+              ),
               backgroundColor: Colors.red,
               colorText: Colors.white,
               duration: const Duration(seconds: 3),
@@ -125,8 +131,8 @@ class CreateResourceController extends GetxController {
     try {
       if (selectedImages.length >= maxImages) {
         Get.snackbar(
-          "Limit Reached",
-          "Maximum $maxImages images allowed",
+          'snackbar_limit_title'.tr(),
+          'snackbar_limit_msg'.tr(namedArgs: {'max': maxImages.toString()}),
           backgroundColor: Colors.orange,
           colorText: Colors.white,
         );
@@ -139,8 +145,13 @@ class CreateResourceController extends GetxController {
         final fileSize = await image.length();
         if (fileSize > maxImageSizeBytes) {
           Get.snackbar(
-            "File Too Large",
-            "Image must be less than ${maxImageSizeMB}MB. File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB",
+            'snackbar_size_title'.tr(),
+            'snackbar_size_msg'.tr(
+              namedArgs: {
+                'max': maxImageSizeMB.toString(),
+                'size': (fileSize / 1024 / 1024).toStringAsFixed(2),
+              },
+            ),
             backgroundColor: Colors.red,
             colorText: Colors.white,
             duration: const Duration(seconds: 3),
@@ -151,7 +162,7 @@ class CreateResourceController extends GetxController {
         selectedImages.add(image);
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to take photo");
+      Get.snackbar('error'.tr(), 'error_pick_images'.tr());
     }
   }
 
@@ -199,7 +210,7 @@ class CreateResourceController extends GetxController {
       );
       Get.back();
     } else {
-      Get.snackbar("Error", "Please enter a valid YouTube URL");
+      Get.snackbar('error'.tr(), 'error_invalid_youtube'.tr());
     }
   }
 
@@ -222,12 +233,12 @@ class CreateResourceController extends GetxController {
   // --- SUBMIT ---
   Future<void> submitPost() async {
     if (titleController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Title cannot be empty");
+      Get.snackbar('error'.tr(), 'create_resource_error_empty_title'.tr());
       return;
     }
 
     if (textController.text.trim().isEmpty) {
-      Get.snackbar("Error", "Content cannot be empty");
+      Get.snackbar('error'.tr(), 'create_resource_error_empty_content'.tr());
       return;
     }
 
@@ -235,7 +246,7 @@ class CreateResourceController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       currentUserId = prefs.getString('user_id');
       if (currentUserId == null) {
-        Get.snackbar("Error", "User session expired. Please login again.");
+        Get.snackbar('error'.tr(), 'error_session_expired'.tr());
         return;
       }
     }
@@ -335,7 +346,7 @@ class CreateResourceController extends GetxController {
         ytPlayerController = null;
 
         Get.back();
-        Get.snackbar("Success", "Resource published successfully");
+        Get.snackbar('success'.tr(), 'create_resource_success_published'.tr());
 
         // Refresh both resource and forum pages
         try {
@@ -354,13 +365,18 @@ class CreateResourceController extends GetxController {
       } else {
         print("❌ Error: $responseBody");
         Get.snackbar(
-          "Error",
-          "Failed to upload resource (${response.statusCode})",
+          'error'.tr(),
+          'create_resource_error_upload_failed'.tr(
+            namedArgs: {'statusCode': response.statusCode.toString()},
+          ),
         );
       }
     } catch (e) {
       print("❌ Error sending resource: $e");
-      Get.snackbar("Error", "Connection error: $e");
+      Get.snackbar(
+        'error'.tr(),
+        'error_connection'.tr(namedArgs: {'error': e.toString()}),
+      );
     } finally {
       isPosting.value = false;
     }

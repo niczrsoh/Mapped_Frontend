@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import '../Participants/trainee_controller.dart';
 import '../session/session_controller.dart';
@@ -14,7 +15,6 @@ import '../Participants/trainee_screen.dart';
 import '../session/session_dashboard_screen.dart';
 import '../forum/forum_screen.dart';
 import '../resource/resource_screen.dart';
-
 
 class HomeSearchScreen extends StatefulWidget {
   const HomeSearchScreen({super.key});
@@ -31,7 +31,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
   final ResourceController _resourceController = Get.put(ResourceController());
   final TextEditingController _searchController = TextEditingController();
 
-  String _selectedFilter = 'All';
+  late String _selectedFilter;
   String _searchQuery = '';
 
   // --- STYLE CONSTANTS ---
@@ -48,6 +48,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedFilter = 'all'.tr();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _traineeController.fetchTrainees();
@@ -97,9 +98,9 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                         },
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Home',
-                        style: TextStyle(
+                      Text(
+                        'home'.tr(),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
@@ -109,9 +110,9 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  const Text(
-                    'Search',
-                    style: TextStyle(
+                  Text(
+                    'home_search_title_main'.tr(),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -125,7 +126,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                       controller: _searchController,
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'Search...',
+                        hintText: 'home_search_hint_search'.tr(),
                         hintStyle: TextStyle(
                           color: Colors.white.withOpacity(0.5),
                         ),
@@ -150,15 +151,15 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildFilterChip('All'),
+                        _buildFilterChip('all'.tr()),
                         const SizedBox(width: 12),
-                        _buildFilterChip('Participants'),
+                        _buildFilterChip('participants'.tr()),
                         const SizedBox(width: 12),
-                        _buildFilterChip('Sessions'),
+                        _buildFilterChip('sessions'.tr()),
                         const SizedBox(width: 12),
-                        _buildFilterChip('Forum'),
+                        _buildFilterChip('forum'.tr()),
                         const SizedBox(width: 12),
-                        _buildFilterChip('Resource'),
+                        _buildFilterChip('home_search_filter_resource'.tr()),
                       ],
                     ),
                   ),
@@ -183,8 +184,8 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 1. DYNAMIC PARTICIPANTS SECTION
-                      if (_selectedFilter == 'All' ||
-                          _selectedFilter == 'Participants') ...[
+                      if (_selectedFilter == 'all'.tr() ||
+                          _selectedFilter == 'participants'.tr()) ...[
                         Obx(() {
                           if (_traineeController.loading.value) {
                             return const Center(
@@ -210,13 +211,14 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                               .toList();
 
                           List<dynamic> displayList = filteredList;
-                          if (_selectedFilter == 'All') {
+                          if (_selectedFilter == 'all'.tr()) {
                             displayList = filteredList.take(2).toList();
-                          } else if (_selectedFilter == 'Participants') {
+                          } else if (_selectedFilter == 'participants'.tr()) {
                             displayList = filteredList.take(6).toList();
                           }
 
-                          if (_selectedFilter == 'All' && displayList.isEmpty) {
+                          if (_selectedFilter == 'all'.tr() &&
+                              displayList.isEmpty) {
                             return const SizedBox.shrink();
                           }
 
@@ -224,12 +226,14 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionHeader(
-                                'Participants',
-                                'Participants',
+                                'participants'.tr(),
+                                'participants'.tr(),
                               ),
                               const SizedBox(height: 14),
                               if (displayList.isEmpty)
-                                _buildEmptyState('No participants found')
+                                _buildEmptyState(
+                                  'home_search_empty_participants'.tr(),
+                                )
                               else
                                 ListView.builder(
                                   shrinkWrap: true,
@@ -248,8 +252,8 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                         }),
                       ],
 
-                      if (_selectedFilter == 'All' ||
-                          _selectedFilter == 'Sessions') ...[
+                      if (_selectedFilter == 'all'.tr() ||
+                          _selectedFilter == 'sessions'.tr()) ...[
                         Obx(() {
                           if (_sessionController.isLoading.value) {
                             return const Center(
@@ -298,13 +302,13 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                           }).toList();
 
                           List<dynamic> displaySessions = filteredSessions;
-                          if (_selectedFilter == 'All') {
+                          if (_selectedFilter == 'all'.tr()) {
                             displaySessions = filteredSessions.take(2).toList();
-                          } else if (_selectedFilter == 'Sessions') {
+                          } else if (_selectedFilter == 'sessions'.tr()) {
                             displaySessions = filteredSessions.take(6).toList();
                           }
 
-                          if (_selectedFilter == 'All' &&
+                          if (_selectedFilter == 'all'.tr() &&
                               displaySessions.isEmpty) {
                             return const SizedBox.shrink();
                           }
@@ -312,10 +316,15 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionHeader('Sessions', 'Sessions'),
+                              _buildSectionHeader(
+                                'sessions'.tr(),
+                                'sessions'.tr(),
+                              ),
                               const SizedBox(height: 14),
                               if (displaySessions.isEmpty)
-                                _buildEmptyState('No upcoming sessions found')
+                                _buildEmptyState(
+                                  'home_search_empty_sessions'.tr(),
+                                )
                               else
                                 ListView.builder(
                                   shrinkWrap: true,
@@ -325,11 +334,18 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                                     final session = displaySessions[index];
 
                                     String duration = session.duration != null
-                                        ? '${session.duration} Mins'
-                                        : '0 min';
-                                    String level = session.level ?? 'N/A';
+                                        ? 'home_search_lbl_duration_mins'.tr(
+                                            namedArgs: {
+                                              'duration': session.duration
+                                                  .toString(),
+                                            },
+                                          )
+                                        : 'home_search_lbl_zero_min'.tr();
+                                    String level =
+                                        session.level ?? 'lbl_na'.tr();
                                     String venue =
-                                        session.venue ?? 'Unknown Venue';
+                                        session.venue ??
+                                        'home_search_lbl_unknown_venue'.tr();
                                     String dateStr = _formatDate(session.date);
 
                                     Map<String, dynamic> sessionMap = {};
@@ -381,8 +397,8 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                         }),
                       ],
 
-                      if (_selectedFilter == 'All' ||
-                          _selectedFilter == 'Forum') ...[
+                      if (_selectedFilter == 'all'.tr() ||
+                          _selectedFilter == 'forum'.tr()) ...[
                         Obx(() {
                           if (_forumController.isLoading.value) {
                             return const Center(
@@ -395,24 +411,24 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                             );
                           }
 
-                          final filteredPosts = _forumController.allPosts.where((
-                            post,
-                          ) {
-                            final content = post.content.toLowerCase();
-                            final author = post.authorName.toLowerCase();
-                            final query = _searchQuery.toLowerCase();
-                            return content.contains(query) ||
-                                author.contains(query);
-                          }).toList();
+                          final filteredPosts = _forumController.allPosts.where(
+                            (post) {
+                              final content = post.content.toLowerCase();
+                              final author = post.authorName.toLowerCase();
+                              final query = _searchQuery.toLowerCase();
+                              return content.contains(query) ||
+                                  author.contains(query);
+                            },
+                          ).toList();
 
                           List<dynamic> displayPosts = filteredPosts;
-                          if (_selectedFilter == 'All') {
+                          if (_selectedFilter == 'all'.tr()) {
                             displayPosts = filteredPosts.take(2).toList();
-                          } else if (_selectedFilter == 'Forum') {
+                          } else if (_selectedFilter == 'forum'.tr()) {
                             displayPosts = filteredPosts.take(6).toList();
                           }
 
-                          if (_selectedFilter == 'All' &&
+                          if (_selectedFilter == 'all'.tr() &&
                               displayPosts.isEmpty) {
                             return const SizedBox.shrink();
                           }
@@ -420,10 +436,10 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionHeader('Forum', 'Forum'),
+                              _buildSectionHeader('forum'.tr(), 'forum'.tr()),
                               const SizedBox(height: 14),
                               if (displayPosts.isEmpty)
-                                _buildEmptyState('No forum posts found')
+                                _buildEmptyState('home_search_empty_forum'.tr())
                               else
                                 ListView.builder(
                                   shrinkWrap: true,
@@ -431,7 +447,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                                   itemCount: displayPosts.length,
                                   itemBuilder: (context, index) {
                                     final post = displayPosts[index];
-                            
+
                                     String snippet = post.content;
                                     if (snippet.length > 50) {
                                       snippet =
@@ -462,8 +478,9 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                         }),
                       ],
 
-                      if (_selectedFilter == 'All' ||
-                          _selectedFilter == 'Resource') ...[
+                      if (_selectedFilter == 'all'.tr() ||
+                          _selectedFilter ==
+                              'home_search_filter_resource'.tr()) ...[
                         Obx(() {
                           if (_resourceController.isLoading.value) {
                             return const Center(
@@ -485,14 +502,14 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                               .toList();
 
                           List<dynamic> displayResources = resources;
-                          if (_selectedFilter == 'All') {
+                          if (_selectedFilter == 'all'.tr()) {
                             displayResources = resources.take(2).toList();
-                          } else if (_selectedFilter == 'Resource') {
+                          } else if (_selectedFilter ==
+                              'home_search_filter_resource'.tr()) {
                             displayResources = resources.take(6).toList();
                           }
 
-                  
-                          if (_selectedFilter == 'All' &&
+                          if (_selectedFilter == 'all'.tr() &&
                               displayResources.isEmpty) {
                             return const SizedBox.shrink();
                           }
@@ -500,10 +517,15 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionHeader('Resources', 'Resource'),
+                              _buildSectionHeader(
+                                'home_search_header_resources'.tr(),
+                                'home_search_filter_resource'.tr(),
+                              ),
                               const SizedBox(height: 14),
                               if (displayResources.isEmpty)
-                                _buildEmptyState('No resources found')
+                                _buildEmptyState(
+                                  'home_search_empty_resources'.tr(),
+                                )
                               else
                                 ListView.builder(
                                   shrinkWrap: true,
@@ -543,7 +565,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
     );
   }
 
-
   Widget _buildEmptyState(String message) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -557,10 +578,10 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
   }
 
   Widget _buildDynamicParticipantCard(Map<String, dynamic> trainee) {
-    final String name = trainee['name'] ?? 'Unknown';
-    final String belt = trainee['belt'] ?? 'White';
+    final String name = trainee['name'] ?? 'unknown'.tr();
+    final String belt = trainee['belt'] ?? 'home_search_lbl_default_belt'.tr();
 
-    String noteText = 'None';
+    String noteText = 'none'.tr();
     var conditions = trainee['conditions'];
     if (conditions != null) {
       if (conditions is List && conditions.isNotEmpty) {
@@ -568,14 +589,14 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
       } else {
         String text = conditions.toString().trim();
         if (text.isEmpty || text == 'null') {
-          noteText = 'None';
+          noteText = 'none'.tr();
         } else if (text.contains('-')) {
           final parts = text
               .split('-')
               .map((e) => e.trim())
               .where((e) => e.isNotEmpty)
               .toList();
-          noteText = parts.isNotEmpty ? parts.join(", ") : 'None';
+          noteText = parts.isNotEmpty ? parts.join(", ") : 'none'.tr();
         } else {
           noteText = text;
         }
@@ -671,9 +692,9 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Note : ',
-                      style: TextStyle(
+                    Text(
+                      'note'.tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -796,7 +817,12 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
 
                   Obx(
                     () => Text(
-                      '${likes.value} likes - $replies replies',
+                      'home_search_msg_likes_replies'.tr(
+                        namedArgs: {
+                          'likes': likes.value.toString(),
+                          'replies': replies.toString(),
+                        },
+                      ),
                       style: TextStyle(color: Colors.grey[400], fontSize: 12),
                     ),
                   ),
@@ -821,7 +847,6 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
         errorBuilder: (context, error, stackTrace) =>
             const Icon(Icons.image, color: Colors.white54, size: 24),
       );
-
     } else if (resource.videoUrl != null && resource.videoUrl!.isNotEmpty) {
       final videoId = YoutubePlayer.convertUrlToId(resource.videoUrl!);
       if (videoId != null && videoId.isNotEmpty) {
@@ -857,14 +882,13 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
           size: 24,
         );
       }
-
     } else if (resource.resourceType.toLowerCase() == 'link' ||
         resource.content.contains('http://') ||
         resource.content.contains('https://')) {
       thumbnail = Container(
         width: 60,
         height: 50,
-        color: const Color(0xFF1A1D29), 
+        color: const Color(0xFF1A1D29),
         child: Center(
           child: Container(
             decoration: BoxDecoration(
@@ -873,14 +897,13 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
             ),
             padding: const EdgeInsets.all(6),
             child: const Icon(
-              Icons.play_circle_filled, 
+              Icons.play_circle_filled,
               color: Color(0xFF09FACA),
               size: 20,
             ),
           ),
         ),
       );
-
     } else {
       thumbnail = Container(
         width: 60,
@@ -956,7 +979,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
 
   Widget _buildSectionHeader(String title, String filterKey) {
     final bool showSeeMore =
-        _selectedFilter == 'All' || _selectedFilter == filterKey;
+        _selectedFilter == 'all'.tr() || _selectedFilter == filterKey;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -971,28 +994,28 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
         if (showSeeMore)
           TextButton(
             onPressed: () {
-              if (filterKey == 'Participants') {
+              if (filterKey == 'participants'.tr()) {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const TraineesScreen()),
                 );
                 return;
               }
 
-              if (filterKey == 'Sessions') {
+              if (filterKey == 'sessions'.tr()) {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => SessionDashboardScreen()),
                 );
                 return;
               }
 
-              if (filterKey == 'Forum') {
+              if (filterKey == 'forum'.tr()) {
                 Navigator.of(
                   context,
                 ).push(MaterialPageRoute(builder: (_) => ForumScreen()));
                 return;
               }
 
-              if (filterKey == 'Resource') {
+              if (filterKey == 'home_search_filter_resource'.tr()) {
                 Navigator.of(
                   context,
                 ).push(MaterialPageRoute(builder: (_) => ResourceScreen()));
@@ -1002,14 +1025,13 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
               setState(() => _selectedFilter = filterKey);
             },
             child: Text(
-              'See more',
+              'home_search_btn_see_more'.tr(),
               style: TextStyle(color: accentColor, fontWeight: FontWeight.w600),
             ),
           ),
       ],
     );
   }
-
 
   Widget _buildGradientBorderContainer({
     required Widget child,
@@ -1035,7 +1057,7 @@ class _HomeSearchScreenState extends State<HomeSearchScreen> {
   }
 
   String _formatDate(dynamic dateValue) {
-    if (dateValue == null) return 'Date TBD';
+    if (dateValue == null) return 'home_search_lbl_date_tbd'.tr();
     try {
       DateTime dt;
       if (dateValue is DateTime) {

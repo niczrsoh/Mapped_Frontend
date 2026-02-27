@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'dart:async';
@@ -43,7 +44,7 @@ class CreateResourceScreen extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Resource Dashboard',
+          'create_resource_title_edit'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -128,7 +129,7 @@ class CreateResourceScreen extends StatelessWidget {
                         fontSize: 16,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Resource Title',
+                        hintText: 'create_resource_hint_title'.tr(),
                         hintStyle: const TextStyle(color: Colors.white54),
                         border: InputBorder.none,
                         counterStyle: GoogleFonts.roboto(
@@ -143,7 +144,7 @@ class CreateResourceScreen extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 6, left: 4),
                       child: Text(
-                        "* Title is required to continue",
+                        'create_resource_error_title_required'.tr(),
                         style: GoogleFonts.roboto(
                           color: Colors.redAccent,
                           fontSize: 12,
@@ -175,7 +176,7 @@ class CreateResourceScreen extends StatelessWidget {
                 maxLength: 2000,
                 style: GoogleFonts.roboto(color: Colors.white, fontSize: 15),
                 decoration: InputDecoration(
-                  hintText: 'Share your resource details here...',
+                  hintText: 'create_resource_hint_content'.tr(),
                   hintStyle: GoogleFonts.roboto(color: Colors.white54),
                   border: InputBorder.none,
                   counterStyle: GoogleFonts.roboto(
@@ -189,7 +190,7 @@ class CreateResourceScreen extends StatelessWidget {
 
             // Combined Row: Media Icons (Left) + Next Button (Right)
             _buildActionRow(
-              buttonLabel: 'Next',
+              buttonLabel: 'next'.tr(),
               onButtonTap: controller.previewPost,
               isLoading: false,
             ),
@@ -204,7 +205,13 @@ class CreateResourceScreen extends StatelessWidget {
                   children: [
                     // Image Counter
                     Text(
-                      'Images: ${controller.selectedImages.length}/${CreateResourceController.maxImages}',
+                      'lbl_images_count'.tr(
+                        namedArgs: {
+                          'current': controller.selectedImages.length
+                              .toString(),
+                          'max': CreateResourceController.maxImages.toString(),
+                        },
+                      ),
                       style: GoogleFonts.roboto(
                         color:
                             controller.selectedImages.length >=
@@ -304,7 +311,7 @@ class CreateResourceScreen extends StatelessWidget {
           onPressed: controller.backToEdit,
         ),
         title: Text(
-          'Resource Preview',
+          'create_resource_title_preview'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -421,7 +428,7 @@ class CreateResourceScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Obx(
               () => _buildActionRow(
-                buttonLabel: 'Post',
+                buttonLabel: 'create_resource_btn_post'.tr(),
                 onButtonTap: controller.submitPost,
                 isLoading: controller.isPosting.value,
                 disableMedia: controller.isPosting.value,
@@ -489,19 +496,19 @@ class CreateResourceScreen extends StatelessWidget {
           children: [
             _buildSmallIcon(
               icon: Icons.camera_alt,
-              label: 'Camera',
+              label: 'camera'.tr(),
               onTap: disableMedia ? null : controller.pickImageFromCamera,
             ),
             const SizedBox(width: 30),
             _buildSmallIcon(
               icon: Icons.image,
-              label: 'Gallery',
+              label: 'gallery'.tr(),
               onTap: disableMedia ? null : controller.pickImageFromGallery,
             ),
             const SizedBox(width: 30),
             _buildSmallIcon(
               icon: Icons.link,
-              label: 'URL Link',
+              label: 'lbl_url'.tr(),
               onTap: disableMedia
                   ? null
                   : () {
@@ -509,7 +516,7 @@ class CreateResourceScreen extends StatelessWidget {
                       TextEditingController linkController =
                           TextEditingController();
                       Get.defaultDialog(
-                        title: "Add Video Link",
+                        title: 'dialog_video_title'.tr(),
                         titleStyle: GoogleFonts.inter(
                           fontWeight: FontWeight.bold,
                         ),
@@ -517,13 +524,13 @@ class CreateResourceScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: TextField(
                             controller: linkController,
-                            decoration: const InputDecoration(
-                              hintText: "Paste YouTube URL here",
+                            decoration: InputDecoration(
+                              hintText: 'dialog_video_hint'.tr(),
                             ),
                           ),
                         ),
-                        textConfirm: "Add",
-                        textCancel: "Cancel",
+                        textConfirm: 'add'.tr(),
+                        textCancel: 'cancel'.tr(),
                         confirmTextColor: Colors.white,
                         buttonColor: const Color(0xFF09FACA),
                         onConfirm: () {

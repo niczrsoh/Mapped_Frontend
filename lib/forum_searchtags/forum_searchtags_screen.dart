@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/gestures.dart';
 import 'package:mapped_frontend/forum/forum_model.dart';
@@ -41,7 +42,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            'Forum Dashboard',
+            'forum_search_title_dashboard'.tr(),
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -69,7 +70,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
           controller: controller.searchController,
           style: GoogleFonts.roboto(color: Colors.white, fontSize: 14),
           decoration: InputDecoration(
-            hintText: 'Search by name or tags...',
+            hintText: 'hint_search'.tr(),
             hintStyle: GoogleFonts.roboto(
               color: Colors.white54,
               fontSize: 14,
@@ -98,7 +99,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Popular Tags',
+                'title_popular_tags'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -106,11 +107,12 @@ class ForumSearchtagsScreen extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: controller
-                    .toggleTagsExpanded,
+                onTap: controller.toggleTagsExpanded,
                 child: Obx(
                   () => Text(
-                    controller.isTagsExpanded.value ? 'Show Less' : 'View All',
+                    controller.isTagsExpanded.value
+                        ? 'btn_show_less'.tr()
+                        : 'btn_view_all'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -126,7 +128,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
           Obx(() {
             if (controller.popularTags.isEmpty) {
               return Text(
-                "No tags found",
+                "empty_tags".tr(),
                 style: GoogleFonts.roboto(color: Colors.grey),
               );
             }
@@ -200,7 +202,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Search tags or keywords to find posts',
+                  'forum_search_msg_search_prompt'.tr(),
                   style: GoogleFonts.roboto(
                     color: Colors.white24,
                     fontSize: 14,
@@ -224,8 +226,10 @@ class ForumSearchtagsScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   controller.selectedTag.value.isNotEmpty
-                      ? 'No posts found for ${controller.selectedTag.value}'
-                      : 'No posts found',
+                      ? 'empty_posts_for_tag'.tr(
+                          namedArgs: {'tag': controller.selectedTag.value},
+                        )
+                      : 'empty_posts'.tr(),
                   style: GoogleFonts.roboto(
                     color: Colors.white54,
                     fontSize: 16,
@@ -236,7 +240,7 @@ class ForumSearchtagsScreen extends StatelessWidget {
                   TextButton(
                     onPressed: controller.clearSelection,
                     child: Text(
-                      'Clear Filter',
+                      'btn_clear_filter'.tr(),
                       style: GoogleFonts.roboto(
                         color: const Color(0xFF09FACA),
                         fontSize: 14,

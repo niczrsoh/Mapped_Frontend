@@ -1,6 +1,7 @@
 // screens/help_support_screen.dart
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/help_support/help_support_controller.dart';
 
@@ -33,7 +34,7 @@ class HelpSupportScreen extends StatelessWidget {
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text(
-        'Help and Support',
+        'help_support_title_main'.tr(),
         style: GoogleFonts.poppins(
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -105,17 +106,13 @@ class HelpSupportScreen extends StatelessWidget {
                   color: Color(0xFF09FACA),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 24),
               ),
               const SizedBox(height: 24),
 
               // Success Message
               Text(
-                "We've received your message. Our team will respond soon.",
+                'help_support_success_msg'.tr(),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.roboto(
                   fontSize: 16,
@@ -140,7 +137,7 @@ class HelpSupportScreen extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: Text(
-                    'OK',
+                    'ok'.tr(),
                     style: GoogleFonts.roboto(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -165,7 +162,7 @@ class HelpSupportScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
-        'If you are experiencing any issues, please let us know. We will try to solve them as soon as possible.',
+        'help_support_info_message'.tr(),
         style: GoogleFonts.roboto(
           fontSize: 14,
           fontWeight: FontWeight.w400,
@@ -183,7 +180,7 @@ class HelpSupportScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Title',
+          'help_support_lbl_title'.tr(),
           style: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -199,11 +196,8 @@ class HelpSupportScreen extends StatelessWidget {
             color: Colors.white,
           ),
           decoration: InputDecoration(
-            hintText: 'Add your grievance title here',
-            hintStyle: GoogleFonts.roboto(
-              fontSize: 14,
-              color: Colors.white38,
-            ),
+            hintText: 'help_support_hint_title'.tr(),
+            hintStyle: GoogleFonts.roboto(fontSize: 14, color: Colors.white38),
             filled: true,
             fillColor: const Color(0xFF252836),
             border: OutlineInputBorder(
@@ -217,7 +211,7 @@ class HelpSupportScreen extends StatelessWidget {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Please enter a title';
+              return 'help_support_validator_title'.tr();
             }
             return null;
           },
@@ -232,7 +226,7 @@ class HelpSupportScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Explain the problem',
+          'help_support_lbl_desc'.tr(),
           style: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -249,11 +243,8 @@ class HelpSupportScreen extends StatelessWidget {
             color: Colors.white,
           ),
           decoration: InputDecoration(
-            hintText: 'Type your enquiry here',
-            hintStyle: GoogleFonts.roboto(
-              fontSize: 14,
-              color: Colors.white38,
-            ),
+            hintText: 'help_support_hint_desc'.tr(),
+            hintStyle: GoogleFonts.roboto(fontSize: 14, color: Colors.white38),
             filled: true,
             fillColor: const Color(0xFF252836),
             border: OutlineInputBorder(
@@ -267,10 +258,10 @@ class HelpSupportScreen extends StatelessWidget {
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Please describe your problem';
+              return 'help_support_error_desc_required'.tr();
             }
             if (value.trim().length < 10) {
-              return 'Please provide more details (at least 10 characters)';
+              return 'help_support_error_desc_length'.tr();
             }
             return null;
           },
@@ -281,40 +272,42 @@ class HelpSupportScreen extends StatelessWidget {
 
   // ========== SUBMIT BUTTON ==========
   Widget _buildSubmitButton() {
-    return Obx(() => SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: controller.isSubmitting.value
-                ? null
-                : controller.submitTicket,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF09FACA),
-              foregroundColor: const Color(0xFF1A1D29),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
+    return Obx(
+      () => SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton(
+          onPressed: controller.isSubmitting.value
+              ? null
+              : controller.submitTicket,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF09FACA),
+            foregroundColor: const Color(0xFF1A1D29),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: controller.isSubmitting.value
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFF1A1D29),
-                    ),
-                  )
-                : Text(
-                    'SUBMIT',
-                    style: GoogleFonts.roboto(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                    ),
-                  ),
+            elevation: 0,
           ),
-        ));
+          child: controller.isSubmitting.value
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFF1A1D29),
+                  ),
+                )
+              : Text(
+                  'submit_caps'.tr(),
+                  style: GoogleFonts.roboto(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                  ),
+                ),
+        ),
+      ),
+    );
   }
 
   // ========== CONTACT INFO ==========
@@ -322,7 +315,7 @@ class HelpSupportScreen extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Need more help? Contact our support team or browse our FAQs for answers to common questions at ',
+          'help_support_msg_contact'.tr(),
           textAlign: TextAlign.center,
           style: GoogleFonts.roboto(
             fontSize: 12,
@@ -334,7 +327,7 @@ class HelpSupportScreen extends StatelessWidget {
         GestureDetector(
           onTap: controller.contactSupport,
           child: Text(
-            'info@insideeu.eu',
+            'help_support_email'.tr(),
             textAlign: TextAlign.center,
             style: GoogleFonts.roboto(
               fontSize: 12,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/coachBot/coachBot_chat_screen.dart';
@@ -31,7 +32,7 @@ class CoachBotHistoryController extends GetxController {
     try {
       final userId = userController.userData['_id'];
       if (userId == null) {
-        _showError('User not logged in');
+        _showError('error_not_logged_in'.tr());
         return;
       }
 
@@ -49,11 +50,11 @@ class CoachBotHistoryController extends GetxController {
 
         debugPrint('✅ Loaded ${conversations.length} conversations');
       } else {
-        _showError('Failed to load history');
+        _showError('history_error_load_failed'.tr());
       }
     } catch (e) {
       debugPrint('History Error: $e');
-      _showError('Network error. Please check your connection.');
+      _showError('error_network'.tr());
     } finally {
       isLoading.value = false;
     }
@@ -71,10 +72,10 @@ class CoachBotHistoryController extends GetxController {
   /// Delete a single conversation
   void deleteConversation(String conversationId) {
     conversations.removeWhere((conv) => conv.id == conversationId);
-    
+
     Get.snackbar(
-      'Deleted',
-      'Conversation removed',
+      'deleted'.tr(),
+      'history_snackbar_deleted_msg'.tr(),
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: const Color(0xFF09FACA),
       colorText: Colors.white,
@@ -86,13 +87,13 @@ class CoachBotHistoryController extends GetxController {
   /// Clear all history
   void clearAllHistory() {
     Get.defaultDialog(
-      title: 'Clear All History',
+      title: 'history_dialog_clear_all_title'.tr(),
       titleStyle: const TextStyle(color: Colors.white),
       backgroundColor: const Color(0xFF252836),
-      middleText: 'Are you sure you want to delete all conversations? This cannot be undone.',
+      middleText: 'history_dialog_clear_all_msg'.tr(),
       middleTextStyle: const TextStyle(color: Colors.white70),
-      textConfirm: 'Clear All',
-      textCancel: 'Cancel',
+      textConfirm: 'history_btn_clear_all'.tr(),
+      textCancel: 'cancel'.tr(),
       confirmTextColor: Colors.white,
       cancelTextColor: Colors.white,
       buttonColor: Colors.red,
@@ -100,8 +101,8 @@ class CoachBotHistoryController extends GetxController {
         conversations.clear();
         Get.back();
         Get.snackbar(
-          'Cleared',
-          'All history deleted',
+          'history_snackbar_cleared_title'.tr(),
+          'history_snackbar_cleared_msg'.tr(),
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: const Color(0xFF09FACA),
           colorText: Colors.white,
@@ -126,14 +127,14 @@ class CoachBotHistoryController extends GetxController {
         'cached': conversation.cached,
         'preset': conversation.preset,
       },
-      preventDuplicates: false, 
+      preventDuplicates: false,
     );
   }
 
   /// Show error message
   void _showError(String message) {
     Get.snackbar(
-      'Error',
+      'error'.tr(),
       message,
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.red,
@@ -153,7 +154,7 @@ class ConversationHistory {
   final DateTime timestamp;
   final int tokens;
   final String? model;
-  
+
   // These fields caused the error. We keep them non-nullable (bool)
   // but ensure we provide default values in the constructor and fromJson.
   final bool? cached;
@@ -166,8 +167,8 @@ class ConversationHistory {
     required this.timestamp,
     this.tokens = 0,
     this.model,
-    this.cached = false, 
-    this.preset = false, 
+    this.cached = false,
+    this.preset = false,
   });
 
   factory ConversationHistory.fromJson(Map<String, dynamic> json) {
@@ -175,7 +176,9 @@ class ConversationHistory {
       id: json['_id'] ?? '',
       userMessage: json['userMessage'] ?? '',
       botResponse: json['botResponse'] ?? '',
-      timestamp: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      timestamp: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
       tokens: json['tokensUsed']?['total_tokens'] ?? 0,
       model: json['model'],
       // FIX: Use '?? false' to handle nulls from API safely

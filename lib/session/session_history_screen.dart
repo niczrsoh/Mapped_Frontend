@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
+import 'package:easy_localization/easy_localization.dart';
 import 'session_controller.dart';
 import 'session_details.dart';
 import 'session_reflect.dart';
@@ -108,7 +109,9 @@ class SessionHistoryScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Coach : $trainer',
+                  'session_history_coach_prefix'.tr(
+                    namedArgs: {'name': trainer},
+                  ),
                   style: GoogleFonts.roboto(
                     color: Colors.white,
                     fontSize: 12,
@@ -146,7 +149,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'View Session',
+                          'session_history_btn_view'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 12,
@@ -162,10 +165,9 @@ class SessionHistoryScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-  
+
                   TextButton(
                     onPressed: () async {
-
                       await controller.fetchDashboardData();
 
                       final upToDateSession = controller.historyList.firstWhere(
@@ -189,9 +191,8 @@ class SessionHistoryScreen extends StatelessWidget {
                         );
                       } else {
                         Get.to(
-                          () => SessionReflectionsScreen(
-                            sessionData: sessionMap,
-                          ),
+                          () =>
+                              SessionReflectionsScreen(sessionData: sessionMap),
                         );
                       }
                     },
@@ -208,7 +209,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Reflect Session',
+                          'session_history_btn_reflect'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 12,
@@ -253,7 +254,7 @@ class SessionHistoryScreen extends StatelessWidget {
           },
         ),
         title: Text(
-          'Session Dashboard',
+          'session_history_title'.tr(),
           style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 16,
@@ -278,7 +279,7 @@ class SessionHistoryScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Session History',
+                    'session_history_header_badge'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -312,7 +313,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'History',
+                          'session_history_lbl_history'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -325,7 +326,7 @@ class SessionHistoryScreen extends StatelessWidget {
                             if (controller.historyList.isEmpty) {
                               return Center(
                                 child: Text(
-                                  "No History Sessions Available",
+                                  "session_history_empty".tr(),
                                   style: GoogleFonts.roboto(
                                     color: Colors.white54,
                                   ),
@@ -352,7 +353,9 @@ class SessionHistoryScreen extends StatelessWidget {
                                             d != 'null') {
                                           return d.toLowerCase().contains('min')
                                               ? d
-                                              : '$d min';
+                                              : 'session_history_unit_min'.tr(
+                                                  namedArgs: {'count': d},
+                                                );
                                         }
                                         return '-';
                                       }(),
@@ -360,8 +363,12 @@ class SessionHistoryScreen extends StatelessWidget {
                                       venue:
                                           controller.historyList[i].venue ??
                                           '-',
-                                      trainees:
-                                          '${controller.historyList[i].totalTrainees} Trainees',
+                                      trainees: 'session_history_trainees_count'.tr(
+                                        namedArgs: {
+                                          'count':
+                                              '${controller.historyList[i].totalTrainees}',
+                                        },
+                                      ),
                                       trainer: userController.userName,
                                       sessionData: controller.historyList[i],
                                     ),
@@ -409,7 +416,7 @@ class SessionHistoryScreen extends StatelessWidget {
                         ),
                       ),
                       label: Text(
-                        'ASK COACHBOT',
+                        'btn_coachbot'.tr(),
                         style: GoogleFonts.roboto(
                           color: const Color(0xFF062A20),
                           fontWeight: FontWeight.w500,

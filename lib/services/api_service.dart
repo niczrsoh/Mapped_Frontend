@@ -126,6 +126,34 @@ class ApiService {
     }
   }
 
+  // DELETE ACCOUNT
+  Future<Map<String, dynamic>> deleteAccount(String userId) async {
+    final url = Uri.parse('$baseUrl/users/$userId');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      print('Delete Account Status: ${response.statusCode}');
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': responseBody};
+      } else {
+        final String errorMsg = responseBody['msg'] ?? 'Delete account failed';
+        return {'success': false, 'error': errorMsg};
+      }
+    } catch (e) {
+      print('API Error during delete account: $e');
+      return {
+        'success': false,
+        'error': 'Network Error. Check server connection.',
+      };
+    }
+  }
+
   // GET USER PROFILE
   // GET USER PROFILE
   Future<Map<String, dynamic>> getUserProfile(String userId) async {
