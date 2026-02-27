@@ -129,29 +129,31 @@ class LoginScreen extends GetView<LoginController> {
 
                     // Register link
                     Obx(() => Visibility(
-                          visible: !controller.isAdminMode.value,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "login_msg_no_account".tr(),
-                                style: GoogleFonts.poppins(
-                                    color: Colors.white, fontSize: 14),
-                              ),
-                              InkWell(
-                                onTap: () => Get.toNamed(AppRoutes.register),
-                                child: Text(
-                                  "login_link_register".tr(),
-                                  style: TextStyle(
-                                    color: Color(0xFF00E5CC),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      visible: !controller.isAdminMode.value,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(  // or Expanded
+                            child: Text(
+                              "login_msg_no_account".tr(),
+                              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        )),
+                          InkWell(
+                            onTap: () => Get.toNamed(AppRoutes.register),
+                            child: Text(
+                              "login_link_register".tr(),
+                              style: TextStyle(
+                                color: Color(0xFF00E5CC),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
                     const SizedBox(height: 15),
 
                     // Admin / User toggle

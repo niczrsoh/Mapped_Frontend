@@ -170,19 +170,21 @@ class RegisterScreen extends GetView<RegisterController> {
                   ),
 
                   const SizedBox(height: 12),
-
-                  // Already have an account
                   Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'register_msg_have_account'.tr(),
-                          style: GoogleFonts.poppins(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w300,
+                        Flexible(
+                          child: Text(
+                            'register_msg_have_account'.tr(),
+                            style: GoogleFonts.poppins(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w300,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 4), // Small gap
                         InkWell(
                           onTap: () => Get.toNamed(AppRoutes.login),
                           child: Text(

@@ -199,8 +199,6 @@ class _SessionFlowScreenState extends State<SessionFlowScreen> {
         colorText: Colors.black,
         snackPosition: SnackPosition.BOTTOM,
       );
-
-      Get.offAll(() => const MainNavigationScreen(initialIndex: 1));
       Get.to(() => SessionDetailsScreen(sessionData: dataToPass));
     } else {
       Get.snackbar(
