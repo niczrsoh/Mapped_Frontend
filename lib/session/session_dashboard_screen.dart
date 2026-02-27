@@ -134,7 +134,6 @@ class SessionDashboardScreen extends StatelessWidget {
     required Widget Function() navigationTarget,
     double maxHeight = 105,
   }) {
-
     final userController = Get.find<UserController>();
     bool isEmpty = sessions.isEmpty;
 
@@ -160,7 +159,7 @@ class SessionDashboardScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Text(
-                    "${'lbl_na'.tr()} $title ${'sessions'.tr()}",
+                    'session_dash_empty_state'.tr(namedArgs: {'title': title}),
                     style: GoogleFonts.roboto(color: Colors.white54),
                   ),
                 ),
@@ -219,10 +218,14 @@ class SessionDashboardScreen extends StatelessWidget {
                               date: session.uiDate ?? session.date ?? '-',
                               time: _formatDuration(session.duration),
                               venue: session.venue ?? '-',
-                              trainees:
-                                  '${session.totalTrainees} ${'participants'.tr()}',
-                              trainer:
-                                  '${'coachbot_ctrl_fallback_name'.tr()}: Sir ${userController.userName}',
+                              trainees: 'session_dash_trainee_count'.tr(
+                                namedArgs: {
+                                  'count': '${session.totalTrainees}',
+                                },
+                              ),
+                              trainer: 'session_dash_coach_label'.tr(
+                                namedArgs: {'name': userController.userName},
+                              ),
                             ),
                           ),
                         );
@@ -247,9 +250,7 @@ class SessionDashboardScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'home_nav_session'.tr() +
-              ' ' +
-              'admin_manage_title_dashboard'.tr().split(' ').last,
+          'session_dash_title'.tr(),
           style: GoogleFonts.roboto(
             color: Colors.white,
             fontSize: 16,
@@ -289,9 +290,7 @@ class SessionDashboardScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'home_nav_session'.tr() +
-                            ' ' +
-                            'admin_manage_title_dashboard'.tr().split(' ').last,
+                        'session_dash_header_badge'.tr(),
                         style: GoogleFonts.roboto(
                           color: Colors.white,
                           fontSize: 12,
@@ -304,21 +303,21 @@ class SessionDashboardScreen extends StatelessWidget {
 
                   _buildScrollableSessionBox(
                     context: context,
-                    title: 'home_search_empty_sessions'.tr().split(' ').first,
+                    title: 'session_dash_sec_current'.tr(),
                     sessions: controller.currentList,
                     navigationTarget: () => const SessionCurrentScreen(),
                   ),
 
                   _buildScrollableSessionBox(
                     context: context,
-                    title: 'Upcoming',
+                    title: 'session_dash_sec_upcoming'.tr(),
                     sessions: controller.upcomingList,
                     navigationTarget: () => UpcomingSessionsScreen(),
                   ),
 
                   _buildScrollableSessionBox(
                     context: context,
-                    title: 'History',
+                    title: 'session_dash_sec_history'.tr(),
                     sessions: controller.historyList,
                     navigationTarget: () => const SessionHistoryScreen(),
                   ),

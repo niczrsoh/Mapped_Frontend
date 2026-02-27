@@ -109,7 +109,9 @@ class SessionHistoryScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'coachbot_ctrl_fallback_name'.tr() + ' : $trainer',
+                  'session_history_coach_prefix'.tr(
+                    namedArgs: {'name': trainer},
+                  ),
                   style: GoogleFonts.roboto(
                     color: Colors.white,
                     fontSize: 12,
@@ -147,7 +149,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'session_btn_view_session'.tr(),
+                          'session_history_btn_view'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 12,
@@ -207,7 +209,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'session_btn_reflect_session'.tr(),
+                          'session_history_btn_reflect'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontSize: 12,
@@ -252,9 +254,7 @@ class SessionHistoryScreen extends StatelessWidget {
           },
         ),
         title: Text(
-          'home_nav_session'.tr() +
-              ' ' +
-              'admin_manage_title_dashboard'.tr().split(' ').last,
+          'session_history_title'.tr(),
           style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 16,
@@ -279,9 +279,7 @@ class SessionHistoryScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'home_nav_session'.tr() +
-                        ' ' +
-                        'session_title_history'.tr(),
+                    'session_history_header_badge'.tr(),
                     style: GoogleFonts.roboto(
                       color: Colors.white,
                       fontSize: 12,
@@ -315,7 +313,7 @@ class SessionHistoryScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'session_title_history'.tr(),
+                          'session_history_lbl_history'.tr(),
                           style: GoogleFonts.roboto(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -328,7 +326,7 @@ class SessionHistoryScreen extends StatelessWidget {
                             if (controller.historyList.isEmpty) {
                               return Center(
                                 child: Text(
-                                  "session_empty_history_sessions".tr(),
+                                  "session_history_empty".tr(),
                                   style: GoogleFonts.roboto(
                                     color: Colors.white54,
                                   ),
@@ -355,7 +353,9 @@ class SessionHistoryScreen extends StatelessWidget {
                                             d != 'null') {
                                           return d.toLowerCase().contains('min')
                                               ? d
-                                              : '$d min';
+                                              : 'session_history_unit_min'.tr(
+                                                  namedArgs: {'count': d},
+                                                );
                                         }
                                         return '-';
                                       }(),
@@ -363,8 +363,12 @@ class SessionHistoryScreen extends StatelessWidget {
                                       venue:
                                           controller.historyList[i].venue ??
                                           '-',
-                                      trainees:
-                                          '${controller.historyList[i].totalTrainees} Trainees',
+                                      trainees: 'session_history_trainees_count'.tr(
+                                        namedArgs: {
+                                          'count':
+                                              '${controller.historyList[i].totalTrainees}',
+                                        },
+                                      ),
                                       trainer: userController.userName,
                                       sessionData: controller.historyList[i],
                                     ),
@@ -412,7 +416,7 @@ class SessionHistoryScreen extends StatelessWidget {
                         ),
                       ),
                       label: Text(
-                        'session_btn_ask_coachbot'.tr(),
+                        'btn_coachbot'.tr(),
                         style: GoogleFonts.roboto(
                           color: const Color(0xFF062A20),
                           fontWeight: FontWeight.w500,

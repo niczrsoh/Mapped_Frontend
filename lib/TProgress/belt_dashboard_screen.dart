@@ -95,7 +95,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'belt_dash_title'.tr(),
+          'Dashboard',
           style: GoogleFonts.inter(
             color: Colors.white,
             fontWeight: FontWeight.w400,
@@ -129,7 +129,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                       ],
                     ),
                     child: Text(
-                      'belt_dash_badge'.tr(),
+                      "Dashboard",
                       style: GoogleFonts.roboto(
                         color: Colors.white,
                         fontWeight: FontWeight.w400,
@@ -156,7 +156,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                   children: [
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_white'.tr(),
+                      beltName: 'White Belt - Get Started',
                       beltId: BeltDefinitions.white,
                       color: Colors.white,
                       currentBeltCode: currentBeltCode,
@@ -164,7 +164,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_yellow'.tr(),
+                      beltName: 'Yellow Belt - Build Consistency',
                       beltId: BeltDefinitions.yellow,
                       color: const Color(0xFFFFD700),
                       currentBeltCode: currentBeltCode,
@@ -172,7 +172,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_green'.tr(),
+                      beltName: 'Green Belt - Start Adapting',
                       beltId: BeltDefinitions.green,
                       color: const Color(0xFF4CAF50),
                       currentBeltCode: currentBeltCode,
@@ -180,7 +180,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_blue'.tr(),
+                      beltName: 'Blue Belt - Support Others',
                       beltId: BeltDefinitions.blue,
                       color: const Color(0xFF2196F3),
                       currentBeltCode: currentBeltCode,
@@ -188,7 +188,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_brown'.tr(),
+                      beltName: 'Brown Belt - Lead by Example',
                       beltId: BeltDefinitions.brown,
                       color: const Color(0xFFA52A2A),
                       currentBeltCode: currentBeltCode,
@@ -196,7 +196,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildBeltCard(
                       context: context,
-                      beltName: 'belt_dash_name_black'.tr(),
+                      beltName: 'Black Belt - Master',
                       beltId: BeltDefinitions.black,
                       color: const Color(0xFF000000),
                       currentBeltCode: currentBeltCode,
@@ -221,9 +221,7 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       return BeltDataResult([
         BeltTask(
           icon: Icons.star,
-          label: achieved
-              ? 'belt_dash_status_achieved'.tr()
-              : 'belt_dash_status_not_achieved'.tr(),
+          label: achieved ? "Mastery Achieved" : "Not yet achieved",
           value: "",
         ),
       ], achieved ? 100 : 0);
@@ -250,45 +248,31 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       switch (taskDef.type) {
         case RequirementType.session:
           currentMetricValue = currentSess;
-          valueText = 'belt_dash_metric_sessions'.tr(
-            namedArgs: {'count': currentSess.toString()},
-          );
+          valueText = "$currentSess Sessions";
           break;
         case RequirementType.activeDay:
           currentMetricValue = currentDays;
-          valueText = 'belt_dash_metric_days'.tr(
-            namedArgs: {'count': currentDays.toString()},
-          );
+          valueText = "$currentDays Days";
           break;
         case RequirementType.resource:
           currentMetricValue = openResources;
-          valueText = 'belt_dash_metric_resources'.tr(
-            namedArgs: {'count': openResources.toString()},
-          );
+          valueText = "$openResources Resources";
           break;
         case RequirementType.recommendation:
           currentMetricValue = currentRecs;
-          valueText = 'belt_dash_metric_times'.tr(
-            namedArgs: {'count': currentRecs.toString()},
-          );
+          valueText = "$currentRecs Times";
           break;
         case RequirementType.reflection:
           currentMetricValue = beltData?.progress.reflectionCount ?? 0;
-          valueText = 'belt_dash_metric_reflection'.tr(
-            namedArgs: {'count': currentReflect.toString()},
-          );
+          valueText = "$currentReflect Short Reflection";
           break;
         case RequirementType.forumPost:
           currentMetricValue = currentPosts;
-          valueText = 'belt_dash_metric_forum'.tr(
-            namedArgs: {'count': currentPosts.toString()},
-          );
+          valueText = "$currentPosts time";
           break;
         case RequirementType.shareTip:
           currentMetricValue = currentTips;
-          valueText = 'belt_dash_metric_tip'.tr(
-            namedArgs: {'count': currentTips.toString()},
-          );
+          valueText = "$currentTips Tip/ Res";
           break;
         case RequirementType.mastery:
           currentMetricValue =
@@ -352,8 +336,8 @@ class _BeltDashboardScreenState extends State<BeltDashboardScreen> {
       onTap: () {
         if (isLocked) {
           Get.snackbar(
-            'belt_dash_snackbar_locked_title'.tr(),
-            'belt_dash_snackbar_locked_msg'.tr(),
+            "Locked",
+            "Complete the Brown Belt to unlock Mastery.",
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.white10,
             colorText: Colors.white,
@@ -402,7 +386,6 @@ class BeltCard extends StatelessWidget {
     required this.tasks,
   });
 
-
   String _getBeltImagePath(String name) {
     final coreName = name.split(' - ').first;
     return BeltDefinitions.getByName(coreName).assetPath;
@@ -430,10 +413,8 @@ class BeltCard extends StatelessWidget {
   Widget build(BuildContext context) {
     int percentageLeft = 100 - percentage;
     String progressLabel = percentage >= 100
-        ? 'belt_dash_status_achieved'.tr()
-        : 'belt_dash_status_left'.tr(
-            namedArgs: {'percent': percentageLeft.toString()},
-          );
+        ? "Achieved"
+        : "$percentageLeft% Left";
 
     return Container(
       decoration: BoxDecoration(

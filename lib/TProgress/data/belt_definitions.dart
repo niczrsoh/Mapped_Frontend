@@ -86,10 +86,24 @@ class BeltDefinitions {
 
   static BeltDefinition getByName(String name) {
     final cleanName = name.replaceAll(' Belt', '');
-    return belts.firstWhere(
-      (b) => b.name.toLowerCase() == cleanName.toLowerCase(),
-      orElse: () => belts.first,
-    );
+    //make a switch statement white, yellow, green to white_belt, yellow_belt, green_belt
+    switch (cleanName) {
+      case 'White':
+        return belts.firstWhere((b) => b.name.toLowerCase() == 'belt_white', orElse: () => belts.first);
+      case 'Yellow':
+        return belts.firstWhere((b) => b.name.toLowerCase() == 'belt_yellow', orElse: () => belts.first);
+      case 'Green':
+        return belts.firstWhere((b) => b.name.toLowerCase() == 'belt_green', orElse: () => belts.first);
+      case 'Blue':
+        return belts.firstWhere((b) => b.name.toLowerCase() == 'belt_blue', orElse: () => belts.first);
+      case 'Brown':
+        return belts.firstWhere((b) => b.name.toLowerCase() == 'belt_brown', orElse: () => belts.first);
+      case 'Black':
+        return belts.firstWhere((b) => b.name.toLowerCase() == 'belt_black', orElse: () => belts.first);
+      default:
+        return belts.firstWhere((b) => b.name.toLowerCase() == cleanName.toLowerCase(), orElse: () => belts.first);
+    }
+  
   }
 
   static BeltDefinition? getNext(String currentCode) {
