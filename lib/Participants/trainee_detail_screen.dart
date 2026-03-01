@@ -468,14 +468,14 @@ class TraineeDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  'trainee_detail_certification_progress'.tr(),
-                                  style: GoogleFonts.roboto(
-                                    color: const Color(0xFF00FFB9),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                                // Text(
+                                //   'trainee_detail_certification_progress'.tr(),
+                                //   style: GoogleFonts.roboto(
+                                //     color: const Color(0xFF00FFB9),
+                                //     fontSize: 14,
+                                //     fontWeight: FontWeight.w600,
+                                //   ),
+                                // ),
                                 const SizedBox(height: 10),
                                 Row(
                                   children: [
@@ -780,7 +780,7 @@ class _DetailRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            text,
+            text.tr(),
             style: GoogleFonts.roboto(
               color: Colors.grey.shade300,
               fontSize: 12,

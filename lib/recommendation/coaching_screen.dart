@@ -357,35 +357,35 @@ class DailyCoachingScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Use This Plan Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    _useRecommendationForSession(
-                      context,
-                      recommendationController,
-                    );
-                  },
-                  icon: const Icon(Icons.check_circle, size: 24),
-                  label: Text(
-                    'daily_coaching_btn_use_plan'.tr(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                ),
-              ),
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: ElevatedButton.icon(
+              //     onPressed: () {
+              //       _useRecommendationForSession(
+              //         context,
+              //         recommendationController,
+              //       );
+              //     },
+              //     icon: const Icon(Icons.check_circle, size: 24),
+              //     label: Text(
+              //       'daily_coaching_btn_use_plan'.tr(),
+              //       style: TextStyle(
+              //         fontWeight: FontWeight.bold,
+              //         fontSize: 16,
+              //         letterSpacing: 0.5,
+              //       ),
+              //     ),
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.green,
+              //       foregroundColor: Colors.white,
+              //       padding: const EdgeInsets.symmetric(vertical: 16),
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //       ),
+              //       elevation: 2,
+              //     ),
+              //   ),
+              // ),
 
               const SizedBox(height: 40),
             ],

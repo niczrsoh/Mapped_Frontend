@@ -1,4 +1,4 @@
-package com.example.mapped_frontend
+package com.mapped.mapped_frontend
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

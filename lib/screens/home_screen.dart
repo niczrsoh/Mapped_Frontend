@@ -897,20 +897,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // All helper methods remain unchanged
   String _getCurrentDate() {
     final now = DateTime.now();
-    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final days = [
+      'mon'.tr(),
+      'tue'.tr(),
+      'wed'.tr(),
+      'thu'.tr(),
+      'fri'.tr(),
+      'sat'.tr(),
+      'sun'.tr(),
+    ];
     final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'jan'.tr(),
+      'feb'.tr(),
+      'mar'.tr(),
+      'apr'.tr(),
+      'may'.tr(),
+      'jun'.tr(),
+      'jul'.tr(),
+      'aug'.tr(),
+      'sep'.tr(),
+      'oct'.tr(),
+      'nov'.tr(),
+      'dec'.tr(),
     ];
 
     return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day} ${now.year}';
