@@ -4,8 +4,8 @@ import 'dart:math' as math;
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/user_controller';
-import 'package:shared_preferences/shared_preferences.dart';          // <-- added
-import 'package:mapped_frontend/global/routes.dart';                   // <-- added (must contain AppRoutes.main & AppRoutes.adminReport)
+import 'package:shared_preferences/shared_preferences.dart'; // <-- added
+import 'package:mapped_frontend/global/routes.dart'; // <-- added (must contain AppRoutes.main & AppRoutes.adminReport)
 
 // ------------------------------------------------------------
 // Route names (if not already defined elsewhere, you can keep them here)
@@ -40,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen>
   int _currentStage = 0;
 
   // --- New variables for auto‑login ---
-  String? _nextRoute;          // will hold the destination after animation
+  String? _nextRoute; // will hold the destination after animation
   bool _sessionChecked = false; // becomes true when the login check finishes
 
   @override
@@ -68,65 +68,95 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     // --- Start both the animation and the session check ---
-    _checkLoginStatus();        // <-- added
+    _checkLoginStatus(); // <-- added
     _startSplashSequence();
   }
 
   // --- New method: check if user is already logged in ---
   Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('user_id');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
 
-    if (userId != null) {
-      // User has a saved session – restore the user ID and fetch profile
-      final userController = Get.find<UserController>();
-      userController.userId.value = userId;
+      if (userId != null) {
+        // User has a saved session – restore the user ID and fetch profile
+        final userController = Get.find<UserController>();
+        userController.userId.value = userId;
 
-      // Optional: fetch the latest profile from the backend
-      await userController.fetchUserProfile();
+        // Fetch the profile in the background without making the user wait
+        Future.microtask(() async {
+          try {
+            await userController.fetchUserProfile();
+          } catch (e) {
+            debugPrint('Error fetching profile in background: $e');
+          }
+        });
 
-      // Determine destination based on role
-      final role = prefs.getString('user_role') ?? 'trainee';
-      _nextRoute = (role == 'admin') ? AppRoutes.adminReport : AppRoutes.main;
-    } else {
-      // No saved session → go to welcome screen
+        // Determine destination based on role
+        final role = prefs.getString('user_role') ?? 'trainee';
+        _nextRoute = (role == 'admin') ? AppRoutes.adminReport : AppRoutes.main;
+      } else {
+        // No saved session → go to welcome screen
+        _nextRoute = AppRoutes.welcome;
+      }
+    } catch (e) {
+      debugPrint('Error getting session: $e');
       _nextRoute = AppRoutes.welcome;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _sessionChecked = true;
+        });
+      } else {
+        _sessionChecked = true;
+      }
     }
-    _sessionChecked = true;
   }
 
   void _startSplashSequence() async {
     // Stage 0: Glowing map pin logo
     setState(() => _currentStage = 0);
     _fadeController.forward();
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(
+      const Duration(milliseconds: 1000),
+    ); // Faster animation
     await _fadeController.reverse();
 
     // Stage 1: Martial artist silhouette
     setState(() => _currentStage = 1);
     _fadeController.forward();
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(
+      const Duration(milliseconds: 1000),
+    ); // Faster animation
     await _fadeController.reverse();
 
     // Stage 2: "Explore with MAPPED" animated circle
     setState(() => _currentStage = 2);
     _fadeController.forward();
     _circleController.forward();
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 200));
     _textController.forward();
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future.delayed(
+      const Duration(milliseconds: 1200),
+    ); // Faster animation
     await _fadeController.reverse();
     _circleController.reset();
     _textController.reset();
 
-    // --- Wait for the session check to finish (should already be done) ---
-    while (!_sessionChecked) {
-      await Future.delayed(const Duration(milliseconds: 50));
+    // --- Wait for the session check to finish ---
+    if (!_sessionChecked && mounted) {
+      setState(() => _currentStage = 3); // Loading stage
+      _fadeController.forward();
+      // Keep waiting until the check is done
+      while (!_sessionChecked) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      await _fadeController.reverse();
     }
 
     // --- Navigate to the determined route ---
     if (mounted) {
-      Get.offNamed(_nextRoute!);
+      Get.offNamed(_nextRoute ?? AppRoutes.welcome);
     }
   }
 
@@ -168,9 +198,40 @@ class _SplashScreenState extends State<SplashScreen>
         return _buildMartialArtistSilhouette();
       case 2:
         return _buildExploreWithMapped();
+      case 3:
+        return _buildLoadingStatus();
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildLoadingStatus() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D9B5)),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Connecting to server...',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: Colors.white.withValues(alpha: 0.9),
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Checking login status',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildGlowingMapPin() {

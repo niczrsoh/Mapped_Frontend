@@ -122,7 +122,7 @@ class CoachBotScreen extends StatelessWidget {
                       const SizedBox(height: 12),
 
                       _buildQuickActionButton(
-                        icon: Icons.location_on_outlined, // Good for location
+                        icon: Icons.person_2_outlined, // Good for focus
                         title: 'coachbot_draft_find_dojang'.tr(),
                         onTap: () => controller.findDojang(),
                       ),
