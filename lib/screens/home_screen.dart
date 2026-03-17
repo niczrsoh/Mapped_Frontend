@@ -4,20 +4,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_screen.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/TProgress/belt_dashboard_screen.dart';
-import 'package:mapped_frontend/forum/forum_screen.dart';
-import 'package:mapped_frontend/forum/forum_controller.dart';
 import 'package:mapped_frontend/recommendation/coaching_screen.dart';
 import 'package:mapped_frontend/resource/resource_screen.dart';
 import 'package:mapped_frontend/Participants/trainee_screen.dart';
 import 'package:mapped_frontend/controller/bottom_nav_controller.dart';
 import 'package:mapped_frontend/session/session_planner.dart';
-import 'package:mapped_frontend/session/session_dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mapped_frontend/controller/controller/trainer_controller.dart';
 import 'package:mapped_frontend/session/session_controller.dart';
-import 'package:mapped_frontend/resource/resource_controller.dart';
-import 'package:mapped_frontend/comment/comment_controller.dart';
-import 'package:mapped_frontend/create_post/create_post_controller.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_modelV2.dart';
 import 'package:mapped_frontend/TProgress/data/belt_definitions.dart';
@@ -47,13 +41,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // Ensure ForumController is registered before controllers that depend on it
-    Get.put(ForumController());
-    Get.put(TrainerController());
-    Get.put(SessionController());
-    Get.put(ResourceController());
-    Get.put(CommentsController());
-    Get.put(CreatePostController());
-    Get.put(BeltProgressRingController());
+    // Get.put(ForumController());
+    // Get.put(TrainerController());
+    // Get.put(SessionController());
+    // Get.put(ResourceController());
+    // Get.put(CommentsController());
+    // Get.put(CreatePostController());
+    // Get.put(BeltProgressRingController());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshData();
     });
@@ -82,10 +76,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ? Get.find<SessionController>()
           : Get.put(SessionController());
 
-      await trainerCtrl.updateActiveDays();
-      // Ensure server-side daily-check completes, then refresh belt progress before sessions
-      await beltCtrl.fetchBeltProgress();
-      await sessionCtrl.fetchDashboardData();
+      await Future.wait([
+        (() async {
+          await trainerCtrl.updateActiveDays();
+          // Ensure server-side daily-check completes, then refresh belt progress before sessions
+          await beltCtrl.fetchBeltProgress();
+        })(),
+        sessionCtrl.fetchDashboardData(),
+      ]);
     } catch (e) {
       print("Error refreshing home data: $e");
       // Optionally show a snackbar here

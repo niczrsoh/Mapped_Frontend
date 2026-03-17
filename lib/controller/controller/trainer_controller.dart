@@ -39,7 +39,7 @@ class TrainerController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    updateActiveDays();
+    // Removed redundant updateActiveDays() call here
   }
 
   Future<void> _loadRecommendationCount() async {
@@ -118,16 +118,6 @@ class TrainerController extends GetxController {
               int.tryParse(data['activeDaysCount'].toString()) ?? 0;
 
           activeDaysCount.value = backendCount;
-          try {
-            if (Get.isRegistered<BeltProgressRingController>()) {
-              await Get.find<BeltProgressRingController>().fetchBeltProgress();
-              print(
-                '⤴️ BeltProgressRingController refreshed after daily-check',
-              );
-            }
-          } catch (e) {
-            print('⚠️ Failed to refresh belt progress after daily-check: $e');
-          }
         }
       } else {
         print("❌ Daily Check Failed: ${response.body}");

@@ -104,7 +104,7 @@ class CommentsController extends GetxController {
       }
     } catch (e) {
       print("Load Comments Error: $e");
-      Get.snackbar("error".tr(), "comment_snackbar_error_connect".tr());
+    //  Get.snackbar("error".tr(), "comment_snackbar_error_connect".tr());
     } finally {
       isLoading.value = false;
     }
@@ -168,7 +168,7 @@ class CommentsController extends GetxController {
       }
     } catch (e) {
       print("Add Comment Error: $e");
-      Get.snackbar("error".tr(), "comment_snackbar_error_connect".tr());
+   //   Get.snackbar("error".tr(), "comment_snackbar_error_connect".tr());
     } finally {
       isPosting.value = false;
     }
