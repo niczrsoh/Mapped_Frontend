@@ -7,11 +7,12 @@ import 'package:http/http.dart' as http;
 
 class ResetPasswordController extends GetxController {
   final emailController = TextEditingController();
-  
+
   // Observable states
   final isLoading = false.obs;
   final errorMessage = "".obs;
-  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api/users";
+  final String baseUrl =
+      "https://mapped-backend-node-js-ce6r.onrender.com/api/users";
 
   Future<void> sendResetEmail() async {
     String email = emailController.text.trim();
@@ -24,18 +25,18 @@ class ResetPasswordController extends GetxController {
         final response = await http.post(
           Uri.parse('$baseUrl/forgot-password'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'identifier': email}), 
+          body: jsonEncode({'identifier': email}),
         );
 
         final data = jsonDecode(response.body);
 
         if (response.statusCode == 200 && data['success'] == true) {
-          email = data['email']; 
-          emailController.text = email; 
+          email = data['email'];
+          emailController.text = email;
         } else {
           errorMessage.value = data['msg'] ?? "User not found.";
           isLoading.value = false;
-          return; 
+          return;
         }
       } catch (e) {
         errorMessage.value = "Backend connection failed.";
@@ -46,7 +47,7 @@ class ResetPasswordController extends GetxController {
 
     if (!_validateEmail(email)) {
       // Stop loading if validation fails
-      isLoading.value = false; 
+      isLoading.value = false;
       return;
     }
 
@@ -68,7 +69,6 @@ class ResetPasswordController extends GetxController {
       );
 
       Future.delayed(const Duration(seconds: 2), () => Get.back());
-
     } on FirebaseAuthException catch (e) {
       errorMessage.value = e.message ?? "An error occurred";
     } catch (e) {
@@ -77,6 +77,7 @@ class ResetPasswordController extends GetxController {
       isLoading.value = false;
     }
   }
+
   // --- HELPER VALIDATION ---
   bool _validateEmail(String email) {
     if (email.isEmpty) {

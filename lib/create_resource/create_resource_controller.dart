@@ -14,7 +14,7 @@ import '../resource/resource_controller.dart';
 class CreateResourceController extends GetxController {
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "https://mapped-backend-node-js.onrender.com";
+      : "https://mapped-backend-node-js-ce6r.onrender.com";
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController textController = TextEditingController();

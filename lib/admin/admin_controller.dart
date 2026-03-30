@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AdminController extends GetxController {
   // Replace with your actual server URL
   final String baseUrl =
-      "https://mapped-backend-node-js.onrender.com/api/admin";
+      "https://mapped-backend-node-js-ce6r.onrender.com/api/admin";
 
   // Observable variables
   var reportedPosts = <ForumPost>[].obs;

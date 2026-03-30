@@ -45,9 +45,12 @@ class AdminAccountScreen extends StatelessWidget {
                       backgroundColor: Colors.grey[800],
                       // Added safety check for empty strings to avoid FormatException
                       backgroundImage: const AssetImage('assets/images/g4.png'),
-                      foregroundImage: (controller.reportedPosts.isNotEmpty && 
-                                        controller.reportedPosts[0].authorImage != null)
-                          ? NetworkImage("https://mapped-backend-node-js.onrender.com/api/${controller.reportedPosts[0].authorImage}")
+                      foregroundImage:
+                          (controller.reportedPosts.isNotEmpty &&
+                              controller.reportedPosts[0].authorImage != null)
+                          ? NetworkImage(
+                              "https://mapped-backend-node-js-ce6r.onrender.com/api/${controller.reportedPosts[0].authorImage}",
+                            )
                           : null,
                     ),
                     const SizedBox(width: 20),

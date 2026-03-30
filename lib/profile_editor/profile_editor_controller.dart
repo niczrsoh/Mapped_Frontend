@@ -13,7 +13,7 @@ class ProfileEditorController extends GetxController {
   // Configuration
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "https://mapped-backend-node-js.onrender.com";
+      : "https://mapped-backend-node-js-ce6r.onrender.com";
 
   // Form key for validation
   final formKey = GlobalKey<FormState>();

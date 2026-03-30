@@ -6,7 +6,7 @@ import '../session/session_model.dart';
 
 class ApiService {
   //-----------------end----------------------------
-  final String baseUrl = "https://mapped-backend-node-js.onrender.com/api";
+  final String baseUrl = "https://mapped-backend-node-js-ce6r.onrender.com/api";
 
   Future<Map<String, dynamic>> registerUser({
     required String fullName,

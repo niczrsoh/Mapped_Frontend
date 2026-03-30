@@ -11,7 +11,7 @@ import 'resource_searchtags_model.dart';
 class ResourceSearchtagsController extends GetxController {
   final String baseUrl = kIsWeb
       ? "http://localhost:5000"
-      : "https://mapped-backend-node-js.onrender.com";
+      : "https://mapped-backend-node-js-ce6r.onrender.com";
 
   // 1. Dynamic User ID
   String currentUserId = '';
