@@ -726,7 +726,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                 const SizedBox(height: 12),
                 GestureDetector(
-                  onTap: () {
+                  onTap: () async {
+                    await Get.find<TrainerController>()
+                        .incrementRecommendationCount();
                     Navigator.of(context)
                         .push(
                           MaterialPageRoute(

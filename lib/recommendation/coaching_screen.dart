@@ -61,26 +61,27 @@ class DailyCoachingScreen extends StatelessWidget {
     return Center(
       child:
       Column(
-      crossAxisAlignment: CrossAxisAlignment.center,  
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5eead4)),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'daily_coaching_loading_main'.tr(),
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[400], fontSize: 16),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'daily_coaching_loading_sub'.tr(),
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[600], fontSize: 14),
-        ),
-      ],
-    ));
+        crossAxisAlignment: CrossAxisAlignment.center,  
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5eead4)),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'daily_coaching_loading_main'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[400], fontSize: 16),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'daily_coaching_loading_sub'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildErrorState(RecommendationController controller) {
@@ -333,8 +334,7 @@ class DailyCoachingScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await trainerController.incrementRecommendationCount();
+                      onPressed: () {
                         // Navigate to CoachBot or show dialog
                         _showCoachBotDialog(context);
                       },
@@ -386,7 +386,6 @@ class DailyCoachingScreen extends StatelessWidget {
               //     ),
               //   ),
               // ),
-
               const SizedBox(height: 40),
             ],
           ),
