@@ -126,8 +126,8 @@
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				FD372F4FFD5D0A3C12BAACAF /* Pods */,
-				2EED7EB42F4C3C76004E75DB /* GoogleService-Info.plist */,
 				6A685B9B63E7FB324D519924 /* Frameworks */,
+				2EED7EB42F4C3C76004E75DB /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
