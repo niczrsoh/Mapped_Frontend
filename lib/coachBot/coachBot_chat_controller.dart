@@ -4,7 +4,7 @@ import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/controller/user_controller';
-import 'package:mapped_frontend/helper/constants.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 
 class CoachBotChatController extends GetxController {
   // Dependencies
@@ -24,7 +24,7 @@ class CoachBotChatController extends GetxController {
   bool isHistoryView = false;
 
   // API Configuration
-  static const String baseUrl = apiBaseUrl;
+  final ApiService _apiService = ApiService();
   static const String apiPath = '/api/coachbot';
 
   @override
@@ -125,7 +125,7 @@ class CoachBotChatController extends GetxController {
 
       // Make API request
       final response = await http.post(
-        Uri.parse('$baseUrl$apiPath/chat'),
+        Uri.parse('${_apiService.baseUrl}$apiPath/chat'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': userController.userData['_id'],
@@ -182,7 +182,7 @@ class CoachBotChatController extends GetxController {
   Future<void> _loadSuggestions() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl$apiPath/suggestions?context=general'),
+        Uri.parse('${_apiService.baseUrl}$apiPath/suggestions?context=general'),
       );
 
       if (response.statusCode == 200) {
@@ -206,7 +206,7 @@ class CoachBotChatController extends GetxController {
       if (userId == null) return;
 
       final response = await http.get(
-        Uri.parse('$baseUrl$apiPath/insights/$userId'),
+        Uri.parse('${_apiService.baseUrl}$apiPath/insights/$userId'),
       );
 
       if (response.statusCode == 200) {

@@ -6,12 +6,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/help_support/help_support_model.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 
 class HelpSupportController extends GetxController {
   // Configuration
-  final String baseUrl = kIsWeb
-      ? "http://localhost:5000"
-      : "https://mapped-backend-node-js-ce6r.onrender.com";
+  final ApiService _apiService = ApiService();
 
   // Form key
   final formKey = GlobalKey<FormState>();
@@ -105,7 +104,7 @@ class HelpSupportController extends GetxController {
       );
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/support/tickets'),
+        Uri.parse('${_apiService.baseUrl}/api/support/tickets'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(ticket.toJson()),
       );
@@ -171,7 +170,7 @@ class HelpSupportController extends GetxController {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/support/tickets/user/$userId'),
+        Uri.parse('${_apiService.baseUrl}/api/support/tickets/user/$userId'),
       );
 
       if (response.statusCode == 200) {

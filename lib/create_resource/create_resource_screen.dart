@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -14,10 +15,12 @@ class CreateResourceScreen extends StatelessWidget {
     CreateResourceController(),
   );
 
+  final ApiService _apiService = ApiService();
+
   String _getAvatarUrl(String path) {
     if (path.isEmpty) return '';
     if (path.startsWith('http')) return path;
-    return "${controller.baseUrl}/$path";
+    return "${_apiService.baseUrl}/$path";
   }
 
   @override

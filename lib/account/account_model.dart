@@ -1,5 +1,6 @@
 // models/account_model.dart
 import 'package:flutter/material.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 
 /// Model for menu items in the account screen
 class AccountMenuItem {
@@ -24,6 +25,7 @@ class AccountMenuItem {
 class AccountSection {
   final List<AccountMenuItem> items;
   final bool isDark;
+  
 
   AccountSection({required this.items, this.isDark = true});
 }
@@ -56,6 +58,7 @@ class AccountHeaderData {
 
   /// Get full avatar URL with cache-busting parameter
   String get avatarUrl {
+    final ApiService _apiService = ApiService();
     if (avatar.isEmpty) return '';
 
     // Check if avatar is already a full URL (Cloudinary)
@@ -67,7 +70,7 @@ class AccountHeaderData {
     }
 
     // Relative path, prepend backend URL
-    final baseUrl = 'https://mapped-backend-node-js-ce6r.onrender.com/$avatar';
+    final baseUrl = '${_apiService.baseUrl}/$avatar';
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     return '$baseUrl?t=$timestamp';
   }

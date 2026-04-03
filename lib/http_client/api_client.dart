@@ -1,10 +1,11 @@
 import 'package:get/get.dart';
-import '../helper/constants.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 
 class ApiClient extends GetConnect {
+  final ApiService _apiService = ApiService();
   @override
   void onInit() {
-    httpClient.baseUrl = apiBaseUrl;
+    httpClient.baseUrl = _apiService.baseUrl;
     httpClient.timeout = const Duration(seconds: 20);
     super.onInit();
   }

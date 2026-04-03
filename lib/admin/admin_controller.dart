@@ -4,12 +4,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:mapped_frontend/forum/forum_model.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminController extends GetxController {
   // Replace with your actual server URL
-  final String baseUrl =
-      "https://mapped-backend-node-js-ce6r.onrender.com/api/admin";
+  final ApiService _apiService = ApiService();
 
   // Observable variables
   var reportedPosts = <ForumPost>[].obs;
@@ -45,7 +45,7 @@ class AdminController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       final currentUserId = prefs.getString('user_id') ?? '';
 
-      final response = await http.get(Uri.parse('$baseUrl/reports'));
+      final response = await http.get(Uri.parse('${_apiService.baseUrl}/admin/reports'));
 
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
@@ -75,7 +75,7 @@ class AdminController extends GetxController {
   // --- 2. Admin Delete Post ---
   Future<void> deletePost(String postId) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/post/$postId'));
+      final response = await http.delete(Uri.parse('${_apiService.baseUrl}/admin/post/$postId'));
 
       if (response.statusCode == 200) {
         reportedPosts.removeWhere((p) => p.id == postId);
@@ -98,7 +98,7 @@ class AdminController extends GetxController {
   // --- 3. Dismiss Report (Clear Reports Array) ---
   Future<void> dismissReport(String postId) async {
     try {
-      final response = await http.patch(Uri.parse('$baseUrl/dismiss/$postId'));
+      final response = await http.patch(Uri.parse('${_apiService.baseUrl}/admin/dismiss/$postId'));
 
       if (response.statusCode == 200) {
         reportedPosts.removeWhere((p) => p.id == postId);
@@ -122,7 +122,7 @@ class AdminController extends GetxController {
   Future<void> blockUser(String userId) async {
     try {
       final response = await http.patch(
-        Uri.parse('$baseUrl/user/block/$userId'),
+        Uri.parse('${_apiService.baseUrl}/admin/user/block/$userId'),
       );
 
       if (response.statusCode == 200) {
@@ -149,7 +149,7 @@ class AdminController extends GetxController {
   Future<void> unblockUser(String userId) async {
     try {
       final response = await http.patch(
-        Uri.parse('$baseUrl/user/unblock/$userId'),
+        Uri.parse('${_apiService.baseUrl}/admin/user/unblock/$userId'),
       );
 
       if (response.statusCode == 200) {

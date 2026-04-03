@@ -62,7 +62,6 @@ class _ForumScreenState extends State<ForumScreen> {
                 ),
               ),
               _buildPostsListSliver(),
-              // 🔁 Pagination at the bottom
               SliverToBoxAdapter(child: _buildPagination()),
             ],
           ),
@@ -126,25 +125,17 @@ class _ForumScreenState extends State<ForumScreen> {
   // ---------- CREATE POST SECTION ----------
   Widget _buildCreatePostSection() {
     void handlePostCreation() async {
-      // Check if Blue Belt is LOCKED (meaning Green is not finished)
       if (beltController.detailedBeltData.isEmpty) {
-        // Show loading indicator
         Get.dialog(
           const Center(
             child: CircularProgressIndicator(color: Color(0xFF09FACA)),
           ),
           barrierDismissible: false,
         );
-
-        // Force a refresh
         await beltController.fetchBeltProgress();
-
-        // Close loading indicator
         if (Get.isDialogOpen ?? false) Get.back();
       }
 
-      // 2. Perform the check
-      // We check if it IS locked (True = Blocked)
       if (beltController.isBeltLocked('Blue')) {
         Get.snackbar(
           "forum_snackbar_access_denied_title".tr(),
@@ -158,7 +149,6 @@ class _ForumScreenState extends State<ForumScreen> {
           borderRadius: 12,
         );
       } else {
-        // Unlocked -> Go to Create Screen
         Get.to(() => CreatePostScreen());
       }
     }
@@ -172,12 +162,9 @@ class _ForumScreenState extends State<ForumScreen> {
             return CircleAvatar(
               radius: 22,
               backgroundColor: Colors.grey[300],
+              // ✅ FIXED: use controller.getFullImageUrl (dynamic ApiService.baseUrl)
               backgroundImage: avatar.isNotEmpty
-                  ? NetworkImage(
-                      avatar.startsWith('http')
-                          ? avatar
-                          : 'https://mapped-backend-node-js-ce6r.onrender.com/$avatar',
-                    )
+                  ? NetworkImage(controller.getFullImageUrl(avatar))
                   : null,
               child: avatar.isEmpty
                   ? const Icon(Icons.person, color: Colors.grey)
@@ -214,7 +201,6 @@ class _ForumScreenState extends State<ForumScreen> {
           const SizedBox(width: 12),
           GestureDetector(
             onTap: handlePostCreation,
-            //onTap: () => Get.to(() => CreatePostScreen()),
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -271,7 +257,7 @@ class _ForumScreenState extends State<ForumScreen> {
     });
   }
 
-  // ---------- POST CARD (unchanged) ----------
+  // ---------- POST CARD ----------
   Widget _buildPostCard(ForumPost post) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -298,7 +284,7 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // ---------- POST CONTENT (unchanged) ----------
+  // ---------- POST CONTENT ----------
   Widget _buildPostContent(ForumPost post) {
     return RichText(
       text: TextSpan(
@@ -345,7 +331,7 @@ class _ForumScreenState extends State<ForumScreen> {
     return spans;
   }
 
-  // ---------- POST HEADER (updated: no .value on currentUserId) ----------
+  // ---------- POST HEADER ----------
   Widget _buildPostHeader(ForumPost post) {
     return Row(
       children: [
@@ -402,7 +388,6 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // Helper to keep code clean
   bool isAuthor(ForumPost post) {
     return post.authorId.toString() == controller.currentUserId;
   }
@@ -471,7 +456,7 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // ---------- POST IMAGES (unchanged) ----------
+  // ---------- POST IMAGES ----------
   Widget _buildPostImages(ForumPost post) {
     if (post.images.length == 1) {
       return GestureDetector(
@@ -546,7 +531,7 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // ---------- INTERACTION BUTTONS (unchanged) ----------
+  // ---------- INTERACTION BUTTONS ----------
   Widget _buildInteractionButtons(ForumPost post) {
     return Builder(
       builder: (context) => Row(
@@ -623,7 +608,7 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // ---------- PIN CONFIRMATION DIALOG (unchanged) ----------
+  // ---------- PIN CONFIRMATION DIALOG ----------
   void _showPinConfirmationDialog(ForumPost post) {
     bool currentlyPinned = post.isPinned.value;
 
@@ -663,8 +648,8 @@ class _ForumScreenState extends State<ForumScreen> {
                 const SizedBox(height: 16),
                 Text(
                   currentlyPinned
-                      ? "forum_dialog_pin_title_pin".tr()
-                      : "forum_dialog_pin_title_unpin".tr(),
+                      ? "forum_dialog_pin_title_unpin".tr()
+                      : "forum_dialog_pin_title_pin".tr(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,
@@ -721,7 +706,7 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // ---------- DELETE CONFIRMATION DIALOG (unchanged) ----------
+  // ---------- DELETE CONFIRMATION DIALOG ----------
   void _showDeleteConfirmationDialog(ForumPost post) {
     Get.defaultDialog(
       title: 'forum_dialog_delete_title'.tr(),
@@ -742,7 +727,7 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // ---------- REPORT DIALOGS (unchanged) ----------
+  // ---------- REPORT DIALOGS ----------
   void _showReportDialog(ForumPost post) {
     if (!controller.canReportPost(post)) {
       Get.snackbar(
@@ -1020,20 +1005,19 @@ class _ForumScreenState extends State<ForumScreen> {
     );
   }
 
-  // ---------- 🆕 PAGINATION WIDGET ----------
+  // ---------- PAGINATION ----------
   Widget _buildPagination() {
     return Obx(() {
       final total = controller.totalPages.value;
       final current = controller.currentPage.value;
 
-      if (total <= 1) return const SizedBox.shrink(); // Hide if only one page
+      if (total <= 1) return const SizedBox.shrink();
 
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Previous button
             IconButton(
               icon: const Icon(Icons.chevron_left, color: Colors.white54),
               onPressed: current > 1
@@ -1041,8 +1025,6 @@ class _ForumScreenState extends State<ForumScreen> {
                   : null,
             ),
             const SizedBox(width: 8),
-
-            // Page numbers
             ...List.generate(total, (index) {
               final page = index + 1;
               final isCurrent = page == current;
@@ -1079,9 +1061,7 @@ class _ForumScreenState extends State<ForumScreen> {
                 ),
               );
             }),
-
             const SizedBox(width: 8),
-            // Next button
             IconButton(
               icon: const Icon(Icons.chevron_right, color: Colors.white54),
               onPressed: current < total
@@ -1096,16 +1076,12 @@ class _ForumScreenState extends State<ForumScreen> {
 }
 
 // ============================================================================
-// EXTERNAL WIDGETS (PostVideoPlayer, PostImageGallery, FullScreenImageViewer)
+// EXTERNAL WIDGETS (unchanged – they already use controller.getFullImageUrl)
 // ============================================================================
-// These widgets are already perfect and remain unchanged from the original code.
 
-// ---------- VIDEO PLAYER ----------
 class PostVideoPlayer extends StatefulWidget {
   final String videoUrl;
-
   const PostVideoPlayer({super.key, required this.videoUrl});
-
   @override
   State<PostVideoPlayer> createState() => _PostVideoPlayerState();
 }
@@ -1125,16 +1101,9 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
 
   Future<void> _initializePlayer() async {
     try {
-      if (widget.videoUrl.isEmpty) {
-        throw Exception('Video URL is empty');
-      }
-
+      if (widget.videoUrl.isEmpty) throw Exception('Video URL is empty');
       final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
-
-      if (videoId == null) {
-        throw Exception('Invalid YouTube URL');
-      }
-
+      if (videoId == null) throw Exception('Invalid YouTube URL');
       _controller = YoutubePlayerController(
         initialVideoId: videoId,
         flags: const YoutubePlayerFlags(
@@ -1147,21 +1116,10 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
           enableCaption: false,
         ),
       );
-
       await Future.delayed(const Duration(milliseconds: 300));
-
-      if (mounted) {
-        setState(() {
-          _isReady = true;
-        });
-      }
+      if (mounted) setState(() => _isReady = true);
     } catch (e) {
-      print("Error initializing YouTube player: $e");
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-        });
-      }
+      if (mounted) setState(() => _hasError = true);
     }
   }
 
@@ -1171,62 +1129,46 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
     super.dispose();
   }
 
-  Widget _buildErrorWidget() {
-    return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, color: Colors.red, size: 40),
-          const SizedBox(height: 10),
-          Text(
-            'forum_video_error'.tr(),
-            style: const TextStyle(color: Colors.white54),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingWidget() {
-    return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(color: Color(0xFF09FACA)),
-            const SizedBox(height: 10),
-            Text(
-              'forum_video_loading'.tr(),
-              style: const TextStyle(color: Colors.white54),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return _buildErrorWidget();
+      return Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[800],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 40),
+            const SizedBox(height: 10),
+            Text('forum_video_error'.tr(), style: const TextStyle(color: Colors.white54)),
+          ],
+        ),
+      );
     }
-
     if (!_isReady || _controller == null) {
-      return _buildLoadingWidget();
+      return Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[800],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Color(0xFF09FACA)),
+              const SizedBox(height: 10),
+              Text('forum_video_loading'.tr(), style: const TextStyle(color: Colors.white54)),
+            ],
+          ),
+        ),
+      );
     }
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: YoutubePlayer(
@@ -1238,30 +1180,23 @@ class _PostVideoPlayerState extends State<PostVideoPlayer> {
           handleColor: Color(0xFF09FACA),
         ),
         onReady: () {
-          if (mounted) {
-            setState(() {
-              _isReady = true;
-            });
-          }
+          if (mounted) setState(() => _isReady = true);
         },
       ),
     );
   }
 }
 
-// ---------- INSTAGRAM-STYLE IMAGE GALLERY ----------
 class PostImageGallery extends StatefulWidget {
   final List<String> images;
   final ForumController controller;
   final Function(int)? onImageTap;
-
   const PostImageGallery({
     super.key,
     required this.images,
     required this.controller,
     this.onImageTap,
   });
-
   @override
   State<PostImageGallery> createState() => _PostImageGalleryState();
 }
@@ -1287,58 +1222,36 @@ class _PostImageGalleryState extends State<PostImageGallery> {
   Future<void> _checkImageRatios() async {
     if (widget.images.isEmpty) return;
     if (widget.images.length == 1) {
-      setState(() {
-        _allImagesSameRatio = true;
-      });
+      setState(() => _allImagesSameRatio = true);
       return;
     }
-
     try {
       List<double> aspectRatios = [];
-
       for (var imageUrl in widget.images) {
         final String fullUrl = widget.controller.getFullImageUrl(imageUrl);
         final Image image = Image.network(fullUrl);
-
         final Completer<double> completer = Completer<double>();
-
-        image.image
-            .resolve(const ImageConfiguration())
-            .addListener(
-              ImageStreamListener((ImageInfo info, bool _) {
-                if (!completer.isCompleted) {
-                  final double ratio = info.image.width / info.image.height;
-                  completer.complete(ratio);
-                }
-              }),
-            );
-
+        image.image.resolve(const ImageConfiguration()).addListener(
+          ImageStreamListener((ImageInfo info, bool _) {
+            if (!completer.isCompleted) {
+              completer.complete(info.image.width / info.image.height);
+            }
+          }),
+        );
         aspectRatios.add(await completer.future);
       }
-
-      // Check if all aspect ratios are similar (within 5% tolerance)
       if (aspectRatios.isEmpty) {
-        setState(() {
-          _allImagesSameRatio = false;
-        });
+        setState(() => _allImagesSameRatio = false);
         return;
       }
-
       final double firstRatio = aspectRatios[0];
-      const double tolerance = 0.05; // 5% tolerance
-
+      const double tolerance = 0.05;
       final bool allSame = aspectRatios.every((ratio) {
         return (ratio - firstRatio).abs() / firstRatio <= tolerance;
       });
-
-      setState(() {
-        _allImagesSameRatio = allSame;
-      });
+      setState(() => _allImagesSameRatio = allSame);
     } catch (e) {
-      print('Error checking aspect ratios: $e');
-      setState(() {
-        _allImagesSameRatio = false;
-      });
+      setState(() => _allImagesSameRatio = false);
     }
   }
 
@@ -1346,7 +1259,6 @@ class _PostImageGalleryState extends State<PostImageGallery> {
   Widget build(BuildContext context) {
     final bool useSameRatio = _allImagesSameRatio ?? false;
     final BoxFit fitMode = useSameRatio ? BoxFit.contain : BoxFit.cover;
-
     return Container(
       height: useSameRatio ? null : 400,
       constraints: useSameRatio
@@ -1362,11 +1274,7 @@ class _PostImageGalleryState extends State<PostImageGallery> {
             borderRadius: BorderRadius.circular(12),
             child: PageView.builder(
               controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
+              onPageChanged: (index) => setState(() => _currentPage = index),
               itemCount: widget.images.length,
               itemBuilder: (context, index) {
                 return GestureDetector(
@@ -1374,18 +1282,12 @@ class _PostImageGalleryState extends State<PostImageGallery> {
                   child: Image.network(
                     widget.controller.getFullImageUrl(widget.images[index]),
                     fit: fitMode,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[800],
-                        child: const Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            color: Colors.white54,
-                            size: 50,
-                          ),
-                        ),
-                      );
-                    },
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.white54, size: 50),
+                      ),
+                    ),
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
@@ -1393,8 +1295,7 @@ class _PostImageGalleryState extends State<PostImageGallery> {
                         child: Center(
                           child: CircularProgressIndicator(
                             value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                                 : null,
                             color: const Color(0xFF09FACA),
                           ),
@@ -1453,17 +1354,14 @@ class _PostImageGalleryState extends State<PostImageGallery> {
   }
 }
 
-// ---------- FULL SCREEN IMAGE VIEWER ----------
 class FullScreenImageViewer extends StatefulWidget {
   final List<String> imageUrls;
   final int initialIndex;
-
   const FullScreenImageViewer({
     super.key,
     required this.imageUrls,
     this.initialIndex = 0,
   });
-
   @override
   State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
 }
@@ -1493,11 +1391,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
         children: [
           PageView.builder(
             controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
+            onPageChanged: (index) => setState(() => _currentIndex = index),
             itemCount: widget.imageUrls.length,
             itemBuilder: (context, index) {
               return InteractiveViewer(
@@ -1512,32 +1406,22 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                       return Center(
                         child: CircularProgressIndicator(
                           value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
+                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                               : null,
                           color: const Color(0xFF09FACA),
                         ),
                       );
                     },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              color: Colors.white54,
-                              size: 80,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Failed to load image',
-                              style: TextStyle(color: Colors.white54),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                    errorBuilder: (context, error, stackTrace) => const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.broken_image, color: Colors.white54, size: 80),
+                          SizedBox(height: 16),
+                          Text('Failed to load image', style: TextStyle(color: Colors.white54)),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -1566,10 +1450,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
               child: SafeArea(
                 child: Container(
                   height: 48,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(24),

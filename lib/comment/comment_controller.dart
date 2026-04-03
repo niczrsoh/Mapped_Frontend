@@ -53,7 +53,7 @@ class CommentsController extends GetxController {
       if (userId.isEmpty) return;
 
       final response = await http.get(
-        Uri.parse('${forumController.baseUrl}/api/auth/$userId'),
+        Uri.parse('${_apiService.baseUrl}/auth/$userId'),
       );
 
       if (response.statusCode == 200) {
@@ -90,7 +90,7 @@ class CommentsController extends GetxController {
 
     try {
       final response = await http.get(
-        Uri.parse('${forumController.baseUrl}/api/forum/$postId'),
+        Uri.parse('${_apiService.baseUrl}/forum/$postId'),
       );
 
       if (response.statusCode == 200) {
@@ -151,7 +151,7 @@ class CommentsController extends GetxController {
     isPosting.value = true;
     try {
       final response = await http.post(
-        Uri.parse('${forumController.baseUrl}/api/forum/comment/$postId'),
+        Uri.parse('${_apiService.baseUrl}/forum/comment/$postId'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': forumController.currentUserId,

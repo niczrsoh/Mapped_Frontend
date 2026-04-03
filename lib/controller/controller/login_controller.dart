@@ -26,9 +26,6 @@ class LoginController extends GetxController {
   final isLoading = false.obs;
   final errorMessage = "".obs;
 
-  final String baseUrl =
-      "https://mapped-backend-node-js-ce6r.onrender.com/api/users";
-
   // 🔥 Reactive name to display on the Touch ID Screen
   final RxString storedName = ''.obs;
   var isAuthenticating = false.obs;
@@ -207,7 +204,7 @@ class LoginController extends GetxController {
       errorMessage.value = "";
 
       final response = await http.post(
-        Uri.parse('$baseUrl/reset-password'),
+        Uri.parse('${_apiService.baseUrl}/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'newPassword': newPass}),
       );
@@ -315,7 +312,7 @@ class LoginController extends GetxController {
   Future<void> _syncPasswordToMongo(String email, String newPass) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/reset-password'),
+        Uri.parse('${_apiService.baseUrl}/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'newPassword': newPass}),
       );

@@ -6,6 +6,7 @@ import 'package:mapped_frontend/account/account_controller.dart';
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/controller/bottom_nav_controller.dart';
 import 'package:mapped_frontend/screens/home_screen.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'package:mapped_frontend/text_size/text_size_controller.dart';
 import 'global/app_binding.dart';
 import 'global/routes.dart';
@@ -13,6 +14,8 @@ import 'package:easy_localization/easy_localization.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final service = ApiService();
+  service.validateServer();
 
   await Firebase.initializeApp();
   await EasyLocalization.ensureInitialized();

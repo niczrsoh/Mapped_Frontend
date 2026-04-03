@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapped_frontend/helper/constants.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'recommendation_model.dart';
 
 class RecommendationService {
   // Update this to your actual API URL
-  static const String baseUrl = '$apiBaseUrl/api/recommendations';
+  final ApiService _apiService = ApiService();
   // For Android emulator: 'https://mapped-backend-node-js-ce6r.onrender.com/api/recommendations'
   // For iOS simulator: 'http://localhost:5000/api/recommendations'
   // For production: 'https://your-domain.com/api/recommendations'
@@ -18,7 +18,7 @@ class RecommendationService {
   }) async {
     try {
       final uri = Uri.parse(
-        '$baseUrl/generate/$userId${forceNew ? '?forceNew=true' : ''}',
+        '${_apiService.baseUrl}/generate/$userId${forceNew ? '?forceNew=true' : ''}',
       );
 
       print('🔄 Generating recommendation for user: $userId');
@@ -60,7 +60,7 @@ class RecommendationService {
   /// Get the latest active recommendation
   Future<SessionRecommendation?> getLatestRecommendation(String userId) async {
     try {
-      final uri = Uri.parse('$baseUrl/latest/$userId');
+      final uri = Uri.parse('${_apiService.baseUrl}/latest/$userId');
 
       print('🔄 Fetching latest recommendation for user: $userId');
 
@@ -93,7 +93,7 @@ class RecommendationService {
     int limit = 10,
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/history/$userId?limit=$limit');
+      final uri = Uri.parse('${_apiService.baseUrl}/history/$userId?limit=$limit');
 
       final response = await http
           .get(uri, headers: {'Content-Type': 'application/json'})
@@ -126,7 +126,7 @@ class RecommendationService {
     bool wasImplemented = false,
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/feedback/$recommendationId');
+      final uri = Uri.parse('${_apiService.baseUrl}/feedback/$recommendationId');
 
       final response = await http
           .post(
@@ -156,7 +156,7 @@ class RecommendationService {
   /// Mark recommendation as implemented
   Future<bool> markAsImplemented(String recommendationId) async {
     try {
-      final uri = Uri.parse('$baseUrl/implement/$recommendationId');
+      final uri = Uri.parse('${_apiService.baseUrl}/implement/$recommendationId');
 
       final response = await http
           .put(uri, headers: {'Content-Type': 'application/json'})
@@ -177,7 +177,7 @@ class RecommendationService {
   /// Dismiss a recommendation
   Future<bool> dismissRecommendation(String recommendationId) async {
     try {
-      final uri = Uri.parse('$baseUrl/$recommendationId');
+      final uri = Uri.parse('${_apiService.baseUrl}/$recommendationId');
 
       final response = await http
           .delete(uri, headers: {'Content-Type': 'application/json'})
@@ -198,7 +198,7 @@ class RecommendationService {
   /// Get analytics
   Future<Map<String, dynamic>?> getAnalytics(String userId) async {
     try {
-      final uri = Uri.parse('$baseUrl/analytics/$userId');
+      final uri = Uri.parse('${_apiService.baseUrl}/analytics/$userId');
 
       final response = await http
           .get(uri, headers: {'Content-Type': 'application/json'})
@@ -222,7 +222,7 @@ class RecommendationService {
   /// Check service health
   Future<bool> checkHealth() async {
     try {
-      final uri = Uri.parse('$baseUrl/health');
+      final uri = Uri.parse('${_apiService.baseUrl}/health');
 
       final response = await http
           .get(uri, headers: {'Content-Type': 'application/json'})

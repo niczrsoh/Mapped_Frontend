@@ -2,13 +2,15 @@ import 'dart:convert';
 import 'package:get/get.dart' hide Trans;
 import 'package:http/http.dart' as http;
 import 'package:easy_localization/easy_localization.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'forum_model.dart';
 import '../create_post/create_post_controller.dart';
 
 class ForumController extends GetxController {
-  // CONFIGURATION
-  final String baseUrl = "https://mapped-backend-node-js-ce6r.onrender.com";
+
+  final ApiService _apiService = ApiService();
+  // CONFIGURATIO
 
   String currentUserId = '';
 
@@ -87,7 +89,7 @@ class ForumController extends GetxController {
   Future<void> loadPosts() async {
     isLoading.value = true;
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/forum'));
+      final response = await http.get(Uri.parse('${_apiService.baseUrl}/forum'));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         allPosts.value = data
@@ -127,7 +129,7 @@ class ForumController extends GetxController {
     isLoading.value = true;
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/forum/search?q=$query'),
+        Uri.parse('${_apiService.baseUrl}/forum/search?q=$query'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -187,7 +189,7 @@ class ForumController extends GetxController {
 
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/api/forum/pin/${post.id}'),
+        Uri.parse('${_apiService.baseUrl}/forum/pin/${post.id}'),
       );
       if (response.statusCode != 200) {
         // Revert on failure
@@ -221,7 +223,7 @@ class ForumController extends GetxController {
 
     try {
       final response = await http.delete(
-        Uri.parse('$baseUrl/api/forum/${post.id}'),
+        Uri.parse('${_apiService.baseUrl}/forum/${post.id}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'userId': currentUserId}),
       );
@@ -284,7 +286,7 @@ class ForumController extends GetxController {
 
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/forum/report/${post.id}'),
+        Uri.parse('${_apiService.baseUrl}/forum/report/${post.id}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': currentUserId,
@@ -333,7 +335,7 @@ class ForumController extends GetxController {
 
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/api/forum/like/${post.id}'),
+        Uri.parse('${_apiService.baseUrl}/forum/like/${post.id}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'userId': currentUserId}),
       );
@@ -356,6 +358,6 @@ class ForumController extends GetxController {
   // ----------------------------------------------
   String getFullImageUrl(String relativePath) {
     if (relativePath.startsWith('http')) return relativePath;
-    return "$baseUrl/$relativePath";
+    return "'${_apiService.baseUrl}/$relativePath";
   }
 }

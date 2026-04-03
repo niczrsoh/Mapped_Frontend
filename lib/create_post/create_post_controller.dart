@@ -13,16 +13,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_controller.dart';
 
 class CreatePostController extends GetxController {
-  final String baseUrl = kIsWeb
-      ? "http://localhost:5000"
-      : "https://mapped-backend-node-js-ce6r.onrender.com";
-
   final TextEditingController textController = TextEditingController();
-  // Removed tagsController since we extract from text now
   final ImagePicker _picker = ImagePicker();
 
   var selectedImages = <XFile>[].obs;
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService = ApiService(); // ✅ uses ApiService
   var isPosting = false.obs;
   var showPreview = false.obs;
   var postSuccess = false.obs;
@@ -50,9 +45,8 @@ class CreatePostController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    postSuccess.value = false; // Reset success flag
+    postSuccess.value = false;
     fetchCurrentUser();
-    // Listen to text changes
     textController.addListener(_updateContentState);
   }
 
@@ -71,6 +65,7 @@ class CreatePostController extends GetxController {
         videoUrl.value.isNotEmpty;
   }
 
+  // ✅ Uses _apiService.baseUrl (dynamic, from primary/backup)
   Future<void> fetchCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -88,8 +83,9 @@ class CreatePostController extends GetxController {
         return;
       }
 
+      // ✅ Endpoint: baseUrl already contains '/api', so '/auth/...' becomes '/api/auth/...'
       final response = await http.get(
-        Uri.parse('$baseUrl/api/auth/$currentUserId'),
+        Uri.parse('${_apiService.baseUrl}/auth/$currentUserId'),
       );
 
       if (response.statusCode == 200) {
@@ -104,10 +100,9 @@ class CreatePostController extends GetxController {
   }
 
   // --- IMAGES ---
-  // Constants for image validation
   static const int maxImages = 4;
   static const int maxImageSizeMB = 1;
-  static const int maxImageSizeBytes = maxImageSizeMB * 1024 * 1024; // 1MB
+  static const int maxImageSizeBytes = maxImageSizeMB * 1024 * 1024;
 
   Future<void> pickImageFromGallery() async {
     try {
@@ -124,7 +119,6 @@ class CreatePostController extends GetxController {
             break;
           }
 
-          // Check file size
           final fileSize = await image.length();
           if (fileSize > maxImageSizeBytes) {
             Get.snackbar(
@@ -141,7 +135,6 @@ class CreatePostController extends GetxController {
             );
             continue;
           }
-
           selectedImages.add(image);
         }
       }
@@ -165,7 +158,6 @@ class CreatePostController extends GetxController {
 
       final XFile? image = await _picker.pickImage(source: ImageSource.camera);
       if (image != null) {
-        // Check file size
         final fileSize = await image.length();
         if (fileSize > maxImageSizeBytes) {
           Get.snackbar(
@@ -182,7 +174,6 @@ class CreatePostController extends GetxController {
           );
           return;
         }
-
         selectedImages.add(image);
       }
     } catch (e) {
@@ -255,9 +246,7 @@ class CreatePostController extends GetxController {
   // --- HASHTAG LOGIC ---
   List<String> _extractHashtags(String text) {
     RegExp regExp = RegExp(r"#[a-zA-Z0-9_]+");
-
     Iterable<Match> matches = regExp.allMatches(text);
-
     return matches.map((m) => m.group(0)!).toSet().toList();
   }
 
@@ -282,20 +271,18 @@ class CreatePostController extends GetxController {
     isPosting.value = true;
 
     try {
+      // ✅ Use dynamic baseUrl
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/api/forum'),
+        Uri.parse('${_apiService.baseUrl}/forum'),
       );
 
       request.fields['userId'] = currentUserId!;
       request.fields['text'] = textController.text.trim();
 
-      // 1. EXTRACT TAGS AUTOMATICALLY
       List<String> extractedTags = _extractHashtags(textController.text);
-
-      // 2. SEND AS COMMA-SEPARATED STRING
       if (extractedTags.isNotEmpty) {
-        request.fields['tags'] = extractedTags.join(','); // e.g. "#tag1,#tag2"
+        request.fields['tags'] = extractedTags.join(',');
         print("Sending tags: ${request.fields['tags']}");
       }
 
@@ -304,7 +291,6 @@ class CreatePostController extends GetxController {
       if (videoThumbnail.value.isNotEmpty)
         request.fields['videoThumbnail'] = videoThumbnail.value;
 
-      // Add Images
       for (var image in selectedImages) {
         if (kIsWeb) {
           var bytes = await image.readAsBytes();
@@ -330,16 +316,10 @@ class CreatePostController extends GetxController {
       var responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Set success flag FIRST to trigger navigation immediately
         postSuccess.value = true;
-
         await _updateShareTipCount();
-
-        // Wait a bit for navigation to start
         await Future.delayed(const Duration(milliseconds: 200));
 
-        // Then reset state (after navigation)
-        textController.clear();
         selectedImages.clear();
         videoUrl.value = '';
         videoThumbnail.value = '';
@@ -348,10 +328,8 @@ class CreatePostController extends GetxController {
         showPreview.value = false;
         _updateContentState();
 
-        // Show success message
         Get.snackbar('success'.tr(), 'create_post_success_published'.tr());
 
-        // Refresh Feed
         try {
           Get.find<ForumController>().loadPosts();
         } catch (e) {
@@ -372,18 +350,16 @@ class CreatePostController extends GetxController {
     }
   }
 
-  // Fetch previously shared tips from backend
+  // --- BELT PROGRESS & SHARE TIPS (unchanged but uses _apiService) ---
   Future<void> fetchSharedTips() async {
     try {
       if (currentUserId == null || currentUserId!.isEmpty) {
         final prefs = await SharedPreferences.getInstance();
         currentUserId = prefs.getString('user_id');
       }
-
       if (currentUserId == null || currentUserId!.isEmpty) return;
 
       final result = await _apiService.getUserShareTipProgress(currentUserId!);
-
       if (result['success'] == true && result['data'] != null) {
         final List<dynamic> postIds = result['data'] as List<dynamic>;
         sharedTipPostIds.value = postIds
@@ -392,22 +368,15 @@ class CreatePostController extends GetxController {
             .toSet();
       }
     } catch (e) {
-      // Silent fail - user can still share tips
+      // silent
     }
   }
 
-  // Mark tip/resource share as submitted with duplicate prevention
   Future<void> markShareTipAsSubmitted(String postId) async {
     sharedTipPostIds.add(postId);
-
     try {
-      try {
-        await _apiService.recordShareTipSubmission(postId, currentUserId!);
-      } catch (e) {
-        print("⚠️ Individual share tip tracking not available: $e");
-      }
+      await _apiService.recordShareTipSubmission(postId, currentUserId!);
       await _updateShareTipCount();
-
       if (Get.isRegistered<BeltProgressRingController>()) {
         await Get.find<BeltProgressRingController>().fetchBeltProgress();
       }
@@ -418,15 +387,12 @@ class CreatePostController extends GetxController {
 
   Future<void> _updateShareTipCount() async {
     try {
-      if (currentUserId == null || currentUserId!.isEmpty) {
-        return;
-      }
+      if (currentUserId == null || currentUserId!.isEmpty) return;
       await _apiService.updateBeltProgress(
         userId: currentUserId!,
         beltColor: 'B',
         actionType: 'shareTip',
       );
-
       if (Get.isRegistered<BeltProgressRingController>()) {
         await Get.find<BeltProgressRingController>().fetchBeltProgress();
       }
@@ -439,14 +405,9 @@ class CreatePostController extends GetxController {
     if (sharedTipPostIds.isEmpty) {
       await fetchSharedTips();
     }
-
     if (sharedTipPostIds.contains(postId)) {
       sharedTipPostIds.remove(postId);
-      print("✅ Removed from local Set. New size: ${sharedTipPostIds.length}");
-    } else {
-      print("⚪ Post $postId not found in local shared tips Set");
     }
-
     if (Get.isRegistered<BeltProgressRingController>()) {
       await Get.find<BeltProgressRingController>().fetchBeltProgress();
     }

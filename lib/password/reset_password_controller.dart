@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
+import 'package:mapped_frontend/services/api_service.dart';
 
 class ResetPasswordController extends GetxController {
   final emailController = TextEditingController();
@@ -11,8 +12,7 @@ class ResetPasswordController extends GetxController {
   // Observable states
   final isLoading = false.obs;
   final errorMessage = "".obs;
-  final String baseUrl =
-      "https://mapped-backend-node-js-ce6r.onrender.com/api/users";
+  final ApiService _apiService = ApiService();
 
   Future<void> sendResetEmail() async {
     String email = emailController.text.trim();
@@ -23,7 +23,7 @@ class ResetPasswordController extends GetxController {
         errorMessage.value = "";
 
         final response = await http.post(
-          Uri.parse('$baseUrl/forgot-password'),
+          Uri.parse('${_apiService.baseUrl}/user/forgot-password'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'identifier': email}),
         );

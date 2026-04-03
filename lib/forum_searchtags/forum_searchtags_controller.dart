@@ -4,11 +4,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_model.dart';
 
 class ForumSearchtagsController extends GetxController {
-  final String baseUrl = "https://mapped-backend-node-js-ce6r.onrender.com";
+  final ApiService _apiService = ApiService();
 
   // 1. Dynamic User ID
   String currentUserId = '';
@@ -70,7 +71,7 @@ class ForumSearchtagsController extends GetxController {
   // 2. Fix Popular Tags Parsing
   Future<void> loadPopularTags() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/forum/tags'));
+      final response = await http.get(Uri.parse('${_apiService.baseUrl}/api/forum/tags'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -117,7 +118,7 @@ class ForumSearchtagsController extends GetxController {
 
   Future<void> loadAllTags() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/forum/tags'));
+      final response = await http.get(Uri.parse('${_apiService.baseUrl}/api/forum/tags'));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
 
@@ -182,7 +183,7 @@ class ForumSearchtagsController extends GetxController {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/forum/search?q=$trimmedQuery'),
+        Uri.parse('${_apiService.baseUrl}/api/forum/search?q=$trimmedQuery'),
       );
 
       if (response.statusCode == 200) {
@@ -213,7 +214,7 @@ class ForumSearchtagsController extends GetxController {
       }
 
       final uri = Uri.parse(
-        '$baseUrl/api/forum/search',
+        '${_apiService.baseUrl}/api/forum/search',
       ).replace(queryParameters: queryParams);
 
       print("📢 Calling API: $uri");
@@ -255,7 +256,7 @@ class ForumSearchtagsController extends GetxController {
   String getFullImageUrl(String relativePath) {
     if (relativePath.isEmpty) return '';
     if (relativePath.startsWith('http')) return relativePath;
-    return "$baseUrl/$relativePath";
+    return "'${_apiService.baseUrl}/$relativePath";
   }
 
   void _showTagsDialog() {

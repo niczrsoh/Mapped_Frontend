@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/coachBot/coachBot_chat_screen.dart';
-import 'package:mapped_frontend/helper/constants.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 
 class CoachBotHistoryController extends GetxController {
   // Dependencies
@@ -16,7 +16,7 @@ class CoachBotHistoryController extends GetxController {
   var isLoading = false.obs;
 
   // API Configuration
-  static const String baseUrl = apiBaseUrl;
+  final ApiService _apiService = ApiService();
   static const String apiPath = '/api/coachbot';
 
   @override
@@ -37,7 +37,7 @@ class CoachBotHistoryController extends GetxController {
       }
 
       final response = await http.get(
-        Uri.parse('$baseUrl$apiPath/history/$userId?limit=50'),
+        Uri.parse('${_apiService.baseUrl}$apiPath/history/$userId?limit=50'),
       );
 
       if (response.statusCode == 200) {

@@ -6,15 +6,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:mapped_frontend/services/api_service.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../forum/forum_controller.dart';
 import '../resource/resource_controller.dart';
 
 class CreateResourceController extends GetxController {
-  final String baseUrl = kIsWeb
-      ? "http://localhost:5000"
-      : "https://mapped-backend-node-js-ce6r.onrender.com";
+  final ApiService _apiService = ApiService();
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController textController = TextEditingController();
@@ -66,7 +65,7 @@ class CreateResourceController extends GetxController {
       }
 
       final response = await http.get(
-        Uri.parse('$baseUrl/api/auth/$currentUserId'),
+        Uri.parse('${_apiService.baseUrl}/api/auth/$currentUserId'),
       );
 
       if (response.statusCode == 200) {
@@ -256,7 +255,7 @@ class CreateResourceController extends GetxController {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/api/resources'),
+        Uri.parse('${_apiService.baseUrl}/api/resources'),
       );
 
       // Required fields

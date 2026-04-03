@@ -6,7 +6,23 @@ import '../session/session_model.dart';
 
 class ApiService {
   //-----------------end----------------------------
-  final String baseUrl = "https://mapped-backend-node-js-ce6r.onrender.com/api";
+  static const String _url1 = "https://mapped-backend-node-js.onrender.com/api";
+  static const String _url2 = "https://mapped-backend-node-js-ce6r.onrender.com/api";
+  String baseUrl = _url1;
+
+  Future<void> validateServer() async {
+      try {
+        final response = await http.get(Uri.parse(_url1)).timeout(
+          const Duration(seconds: 3),
+        );
+        // If primary works, baseUrl stays _url1 (already correct)
+        print('✅ Primary server reachable, using $_url1');
+      } catch (_) {
+        // Primary failed → switch to backup
+        baseUrl = _url2;
+        print('⚠️ Primary server unreachable, switched to backup: $_url2');
+      }
+  }
 
   Future<Map<String, dynamic>> registerUser({
     required String fullName,
