@@ -1,14 +1,13 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>202592286119-tsvc8tocvslnpgl4fc4bd8t93ihcg6eg.apps.googleusercontent.com</string>
+	<string>202592286119-0ct4a3kit16jdr7q0noh7j3km2seg3b5.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.202592286119-tsvc8tocvslnpgl4fc4bd8t93ihcg6eg</string>
+	<string>com.googleusercontent.apps.202592286119-0ct4a3kit16jdr7q0noh7j3km2seg3b5</string>
 	<key>ANDROID_CLIENT_ID</key>
-	<string>202592286119-65ocfrii2qgbhjdt3abdoe53o1n953c7.apps.googleusercontent.com</string>
+	<string>202592286119-5p781cbm0ip71npnad69ftrr4mebp1qg.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyBbhl0A7kZeVs11x5oXZ8AI-taurZJUz2U</string>
 	<key>GCM_SENDER_ID</key>
@@ -16,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.mapped.mapped</string>
+	<string>com.issid.mappedapp2026</string>
 	<key>PROJECT_ID</key>
 	<string>mapped-fd910</string>
 	<key>STORAGE_BUCKET</key>
@@ -32,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:202592286119:ios:db796911012405ced13282</string>
+	<string>1:202592286119:ios:ec836967fec9b26bd13282</string>
 </dict>
 </plist>

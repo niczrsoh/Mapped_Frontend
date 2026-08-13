@@ -117,6 +117,24 @@ class RegisterScreen extends GetView<RegisterController> {
                   // Password Confirmation Field
                   _PasswordConfirmationTextField(controller: controller),
 
+                  Obx(() {
+                    if (controller.error.value.isNotEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12, bottom: 4),
+                        child: Text(
+                          controller.error.value,
+                          style: GoogleFonts.poppins(
+                            color: Colors.redAccent,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+
                   const SizedBox(height: 20),
                   Obx(
                     () => Center(

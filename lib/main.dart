@@ -15,7 +15,7 @@ import 'package:easy_localization/easy_localization.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final service = ApiService();
-  service.validateServer();
+  await service.validateServer();
 
   await Firebase.initializeApp();
   await EasyLocalization.ensureInitialized();

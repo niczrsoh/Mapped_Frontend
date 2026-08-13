@@ -6,22 +6,40 @@ import '../session/session_model.dart';
 
 class ApiService {
   //-----------------end----------------------------
-  static const String _url1 = "https://mapped-backend-node-js.onrender.com/api";
+  // Singleton pattern — all controllers share the same instance & baseUrl
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
+  ApiService._internal();
+
+  static const String _url1 = "https://mapped-backend-node-js.onrender.com/api"; 
   static const String _url2 = "https://mapped-backend-node-js-ce6r.onrender.com/api";
+
   String baseUrl = _url1;
 
   Future<void> validateServer() async {
-      try {
-        final response = await http.get(Uri.parse(_url1)).timeout(
-          const Duration(seconds: 3),
-        );
-        // If primary works, baseUrl stays _url1 (already correct)
-        print('✅ Primary server reachable, using $_url1');
-      } catch (_) {
-        // Primary failed → switch to backup
-        baseUrl = _url2;
-        print('⚠️ Primary server unreachable, switched to backup: $_url2');
-      }
+    // Always start by trying the primary server
+    if (await _isServerReachable(_url1)) {
+      baseUrl = _url1;
+      print('✅ Primary server reachable, using $_url1');
+    } else if (await _isServerReachable(_url2)) {
+      baseUrl = _url2;
+      print('⚠️ Primary server unreachable, switched to backup: $_url2');
+    } else {
+      // Both failed — default to primary and let individual calls handle errors
+      baseUrl = _url1;
+      print('❌ Both servers unreachable, defaulting to primary: $_url1');
+    }
+  }
+
+  Future<bool> _isServerReachable(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(
+        const Duration(seconds: 5),
+      );
+      return response.statusCode >= 200 && response.statusCode < 500;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<Map<String, dynamic>> registerUser({

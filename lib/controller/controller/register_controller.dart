@@ -185,11 +185,12 @@ class RegisterController extends GetxController {
             );
             // Optional: Update Firebase display name to match MongoDB
             await FirebaseAuth.instance.currentUser?.updateDisplayName(userFullName);
+            print("✅ Firebase user created successfully: $userEmail");
           } on FirebaseAuthException catch (e) {
-            // If the user already exists in Firebase but not MongoDB, we handle it
-            if (e.code != 'email-already-in-use') {
-              print("Firebase Sync Error: ${e.message}");
-            }
+            print("⚠️ Firebase Auth Error [${e.code}]: ${e.message}");
+          } catch (e) {
+            // Catch any Firebase/Platform exception so MongoDB registration completes safely
+            print("❌ Firebase Sync Error: $e");
           }
 
           loading.value = false;
@@ -244,11 +245,35 @@ class RegisterController extends GetxController {
           
         } else {
           loading.value = false;
-          error.value = result['error'] ?? 'An unknown error occurred.';
+          final String errorMsg = result['error'] ?? 'An unknown error occurred.';
+          error.value = errorMsg;
+          if (errorMsg.toLowerCase().contains('email') ||
+              errorMsg.toLowerCase().contains('exist') ||
+              errorMsg.toLowerCase().contains('used')) {
+            emailError.value = errorMsg;
+          }
+          Get.snackbar(
+            'Registration Failed',
+            errorMsg,
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(10),
+            borderRadius: 8,
+          );
         }
       } catch (e) {
         loading.value = false;
         error.value = "An unexpected error occurred during registration.";
+        Get.snackbar(
+          'Registration Failed',
+          error.value,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(10),
+          borderRadius: 8,
+        );
         print("Registration Error: $e");
       }
   }
