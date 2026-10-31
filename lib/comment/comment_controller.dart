@@ -131,20 +131,20 @@ class CommentsController extends GetxController {
   }
 
   Future<void> addComment(String postId, String text) async {
-    if (!isEligibleToComment) {
-      Get.snackbar(
-        "comment_snackbar_access_denied_title".tr(),
-        "comment_snackbar_access_denied_msg".tr(),
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-        icon: const Icon(Icons.lock, color: Colors.white),
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-      );
-      return;
-    }
+    // if (!isEligibleToComment) {
+    //   Get.snackbar(
+    //     "comment_snackbar_access_denied_title".tr(),
+    //     "comment_snackbar_access_denied_msg".tr(),
+    //     backgroundColor: Colors.redAccent,
+    //     colorText: Colors.white,
+    //     duration: const Duration(seconds: 4),
+    //     icon: const Icon(Icons.lock, color: Colors.white),
+    //     snackPosition: SnackPosition.BOTTOM,
+    //     margin: const EdgeInsets.all(16),
+    //     borderRadius: 12,
+    //   );
+    //   return;
+    // }
 
     if (text.trim().isEmpty) return;
 
@@ -209,7 +209,17 @@ class CommentsController extends GetxController {
   Future<void> _updatePostCount() async {
     try {
       final userId = forumController.currentUserId;
+      if (userId.isEmpty) return;
 
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('has_posted_or_replied_$userId', true);
+
+      // Update post count for Blue belt ('B') and Green belt ('G')
+      await _apiService.updateBeltProgress(
+        userId: userId,
+        beltColor: 'B',
+        actionType: 'post',
+      );
       await _apiService.updateBeltProgress(
         userId: userId,
         beltColor: 'G',
@@ -217,7 +227,18 @@ class CommentsController extends GetxController {
       );
 
       if (Get.isRegistered<BeltProgressRingController>()) {
-        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+        final ringCtrl = Get.find<BeltProgressRingController>();
+        ringCtrl.incrementProgressCounter(
+          beltColor: 'B',
+          counter: 'post',
+          delta: 1,
+        );
+        ringCtrl.incrementProgressCounter(
+          beltColor: 'G',
+          counter: 'post',
+          delta: 1,
+        );
+        await ringCtrl.fetchBeltProgress();
       }
     } catch (e) {
       print("⚠️ Failed to update post count: $e");

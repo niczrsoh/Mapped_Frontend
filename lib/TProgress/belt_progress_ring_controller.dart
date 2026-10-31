@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:math';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import 'belt_progress_modelV2.dart';
 import '../controller/controller/trainer_controller.dart';
+import '../forum/forum_controller.dart';
 
 class BeltProgressRingController extends GetxController {
   var isLoading = false.obs;
@@ -42,12 +46,109 @@ class BeltProgressRingController extends GetxController {
       if (result['success'] == true && result['belts'] != null) {
         Map<String, dynamic> beltsData = result['belts'];
 
+        final prefs = await SharedPreferences.getInstance();
+        bool hasPostedOrReplied =
+            prefs.getBool('has_posted_or_replied_$userId') ?? false;
+        int sharedTipCount = prefs.getInt('shared_tip_count_$userId') ?? 0;
+
+        // Also check actual forum posts authored by this user
+        int forumUserPostCount = 0;
+        bool userCommentedInForum = false;
+        try {
+          if (Get.isRegistered<ForumController>()) {
+            final forumCtrl = Get.find<ForumController>();
+            if (forumCtrl.allPosts.isNotEmpty) {
+              forumUserPostCount = forumCtrl.allPosts
+                  .where((p) => p.authorId == userId)
+                  .length;
+            }
+          }
+          if (forumUserPostCount == 0) {
+            final forumRes = await http
+                .get(Uri.parse('${_apiService.baseUrl}/forum'))
+                .timeout(const Duration(seconds: 5));
+            if (forumRes.statusCode == 200) {
+              final List<dynamic> postsList = jsonDecode(forumRes.body);
+              for (final p in postsList) {
+                if (p is Map) {
+                  final u = p['user'];
+                  final authorId =
+                      u is Map ? u['_id']?.toString() : u?.toString();
+                  if (authorId == userId) {
+                    forumUserPostCount++;
+                  }
+                  final comments = p['comments'];
+                  if (!userCommentedInForum && comments is List) {
+                    for (final c in comments) {
+                      if (c is Map) {
+                        final cu = c['user'];
+                        final commentUserId =
+                            cu is Map ? cu['_id']?.toString() : cu?.toString();
+                        if (commentUserId == userId) {
+                          userCommentedInForum = true;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } catch (_) {}
+
+        int backendTipsB = (beltsData['B']?['shareTipCount'] is num)
+            ? (beltsData['B']['shareTipCount'] as num).toInt()
+            : 0;
+        int backendTipsR = (beltsData['R']?['shareTipCount'] is num)
+            ? (beltsData['R']['shareTipCount'] as num).toInt()
+            : 0;
+
+        sharedTipCount = [
+          sharedTipCount,
+          forumUserPostCount,
+          backendTipsB,
+          backendTipsR,
+        ].reduce(max);
+
+        if (sharedTipCount > 0) {
+          await prefs.setInt('shared_tip_count_$userId', sharedTipCount);
+          hasPostedOrReplied = true;
+          await prefs.setBool('has_posted_or_replied_$userId', true);
+        }
+
+        // If either B or G has postCount > 0 from backend or user commented, sync local flag
+        if (!hasPostedOrReplied) {
+          if ((beltsData['B']?['postCount'] ?? 0) > 0 ||
+              (beltsData['G']?['postCount'] ?? 0) > 0 ||
+              userCommentedInForum) {
+            hasPostedOrReplied = true;
+            await prefs.setBool('has_posted_or_replied_$userId', true);
+          }
+        }
+
         List<BeltProgressModelV2> parsedModels = [];
         Map<String, int> newMap = {};
 
         ['W', 'Y', 'G', 'B', 'R', 'L'].forEach((code) {
           if (beltsData.containsKey(code)) {
-            var data = beltsData[code];
+            var data = Map<String, dynamic>.from(beltsData[code]);
+
+            // If user already posted or replied in forum, ensure Blue and Green requirement is 1/1
+            if ((code == 'B' || code == 'G') && hasPostedOrReplied) {
+              int currentPosts = data['postCount'] ?? 0;
+              if (currentPosts < 1) {
+                data['postCount'] = 1;
+              }
+            }
+
+            // If user shared forum posts (tips/resources), update Blue and Brown shareTipCount
+            if ((code == 'B' || code == 'R') && sharedTipCount > 0) {
+              int currentTips = data['shareTipCount'] ?? 0;
+              if (currentTips < sharedTipCount) {
+                data['shareTipCount'] = sharedTipCount;
+              }
+            }
 
             var model = BeltProgressModelV2(
               beltColor: code,

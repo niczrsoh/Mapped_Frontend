@@ -1,3 +1,7 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "dart.env": {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/Users/nicholassoh/Downloads/flutter-3/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "LANG": "en_US.UTF-8"
+    }
 }

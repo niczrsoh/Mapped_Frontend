@@ -71,7 +71,6 @@ class UserController extends GetxController {
     try {
       isLoading.value = true;
       print('🌐 Fetching profile for user: ${userId.value}');
-      userData.value = {};
       
       final result = await _apiService.getUserProfile(userId.value);
       

@@ -320,12 +320,26 @@ class CoachBotChatScreen extends StatelessWidget {
   }
 
   // ==================== BOT MESSAGE ====================
+  String _formatMarkdownText(String rawText) {
+    final brRegex = RegExp(r'\s*<br\s*/?>\s*', caseSensitive: false);
+    return rawText
+        .split('\n')
+        .map((line) {
+          if (line.trimLeft().startsWith('|')) {
+            // Preserve single-line Markdown table row syntax while rendering line breaks inside cells
+            return line.replaceAll(brRegex, '\u2028');
+          }
+          return line.replaceAll(brRegex, '  \n');
+        })
+        .join('\n');
+  }
+
   Widget _buildBotMessage(ChatMessage message) {
     final textColor = message.isError
-        ? Colors.red[300]
+        ? Colors.red[300]!
         : const Color(0xFF1A1D29);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16, right: 40),
+      padding: const EdgeInsets.only(bottom: 16, right: 24),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -359,7 +373,7 @@ class CoachBotChatScreen extends StatelessWidget {
                     ),
                   ),
                   child: MarkdownBody(
-                    data: message.text,
+                    data: _formatMarkdownText(message.text),
                     selectable: true, // Allows users to copy text
                     styleSheet: MarkdownStyleSheet(
                       // Normal text style
@@ -371,13 +385,116 @@ class CoachBotChatScreen extends StatelessWidget {
                       // Bold text style (**text**)
                       strong: GoogleFonts.roboto(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700, // Bold weight
+                        fontWeight: FontWeight.w700,
                         color: textColor,
+                      ),
+                      // Italic text style (*text*)
+                      em: GoogleFonts.roboto(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: textColor,
+                      ),
+                      del: GoogleFonts.roboto(
+                        fontSize: 14,
+                        decoration: TextDecoration.lineThrough,
+                        color: textColor,
+                      ),
+                      // Headings (fix white-on-white text from dark theme)
+                      h1: GoogleFonts.poppins(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                        height: 1.3,
+                      ),
+                      h2: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                        height: 1.3,
+                      ),
+                      h3: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                        height: 1.3,
+                      ),
+                      h4: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                        height: 1.3,
+                      ),
+                      h5: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                        height: 1.3,
+                      ),
+                      h6: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                        height: 1.3,
                       ),
                       // List bullet style
                       listBullet: GoogleFonts.roboto(
                         fontSize: 14,
                         color: textColor,
+                      ),
+                      // Blockquotes & code blocks
+                      blockquote: GoogleFonts.roboto(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: textColor,
+                        height: 1.5,
+                      ),
+                      blockquoteDecoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(4),
+                        border: const Border(
+                          left: BorderSide(color: Color(0xFF0A8FD9), width: 3),
+                        ),
+                      ),
+                      code: GoogleFonts.robotoMono(
+                        fontSize: 13,
+                        color: textColor,
+                        backgroundColor: Colors.black.withValues(alpha: 0.07),
+                      ),
+                      codeblockDecoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      // Table styles (prevent squished columns & white-on-white text)
+                      tableHead: GoogleFonts.roboto(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                      ),
+                      tableBody: GoogleFonts.roboto(
+                        fontSize: 13,
+                        color: textColor,
+                        height: 1.4,
+                      ),
+                      tableHeadAlign: TextAlign.left,
+                      tableColumnWidth: const FixedColumnWidth(150),
+                      tableScrollbarThumbVisibility: true,
+                      tableVerticalAlignment: TableCellVerticalAlignment.top,
+                      tableCellsPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      tableHeadCellsDecoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.06),
+                      ),
+                      tableBorder: TableBorder.all(
+                        color: Colors.black26,
+                        width: 1,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      horizontalRuleDecoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide(width: 1, color: Colors.black26),
+                        ),
                       ),
                     ),
                   ),

@@ -265,20 +265,20 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   // ========== HANDLE SEND COMMENT ==========
   void _handleSendComment() async {
-    if (!controller.isEligibleToComment) {
-      Get.snackbar(
-        "comment_snackbar_access_denied_title".tr(),
-        "comment_snackbar_access_denied_msg".tr(),
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-        icon: const Icon(Icons.lock, color: Colors.white),
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-      );
-      return; // ⛔ STOP HERE
-    }
+    // if (!controller.isEligibleToComment) {
+    //   Get.snackbar(
+    //     "comment_snackbar_access_denied_title".tr(),
+    //     "comment_snackbar_access_denied_msg".tr(),
+    //     backgroundColor: Colors.redAccent,
+    //     colorText: Colors.white,
+    //     duration: const Duration(seconds: 4),
+    //     icon: const Icon(Icons.lock, color: Colors.white),
+    //     snackPosition: SnackPosition.BOTTOM,
+    //     margin: const EdgeInsets.all(16),
+    //     borderRadius: 12,
+    //   );
+    //   return; // ⛔ STOP HERE
+    // }
 
     if (commentController.text.trim().isNotEmpty &&
         !controller.isPosting.value) {

@@ -1012,12 +1012,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     BeltRequirement req,
     BeltProgressModelV2 data,
   ) {
-    if (req.beltId == BeltDefinitions.black) {
+    if (req.beltId == BeltDefinitions.black || data.isCompleted) {
       return 100.0;
-    }
-
-    if (data.progressPercentage != null && data.progressPercentage! > 0) {
-      return data.progressPercentage!;
     }
 
     final trainerCtrl = Get.find<TrainerController>();
@@ -1059,9 +1055,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       currentProgressSum += val.clamp(0, task.target);
     }
 
-    return targetProgressSum > 0
+    final calculatedPct = targetProgressSum > 0
         ? ((currentProgressSum / targetProgressSum) * 100).clamp(0.0, 100.0)
         : 0.0;
+    final backendPct = data.progressPercentage ?? 0.0;
+    return calculatedPct >= backendPct ? calculatedPct : backendPct;
   }
 
   String _getBeltName(String code) {

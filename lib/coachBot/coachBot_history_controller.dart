@@ -17,7 +17,7 @@ class CoachBotHistoryController extends GetxController {
 
   // API Configuration
   final ApiService _apiService = ApiService();
-  static const String apiPath = '/api/coachbot';
+  static const String apiPath = '/coachbot';
 
   @override
   void onInit() {

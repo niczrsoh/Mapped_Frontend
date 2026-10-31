@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mapped_frontend/TProgress/belt_progress_ring_controller.dart';
+import 'package:mapped_frontend/controller/user_controller';
 import 'package:mapped_frontend/services/api_service.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,7 +66,7 @@ class CreatePostController extends GetxController {
         videoUrl.value.isNotEmpty;
   }
 
-  // ✅ Uses _apiService.baseUrl (dynamic, from primary/backup)
+  // ✅ Uses UserController, SharedPreferences, and _apiService.getUserProfile
   Future<void> fetchCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -73,29 +74,72 @@ class CreatePostController extends GetxController {
       String? storedName = prefs.getString('user_name');
       String? storedAvatar = prefs.getString('user_avatar');
 
-      if (storedName != null && storedName.isNotEmpty)
-        userName.value = storedName;
-      if (storedAvatar != null && storedAvatar.isNotEmpty)
-        userAvatar.value = storedAvatar;
+      // Also check global UserController if registered
+      if (Get.isRegistered<UserController>()) {
+        final userCtrl = Get.find<UserController>();
+        if ((currentUserId == null || currentUserId!.isEmpty) &&
+            userCtrl.userId.value.isNotEmpty) {
+          currentUserId = userCtrl.userId.value;
+        }
+        final ctrlName = userCtrl.userData['name']?.toString().trim();
+        final ctrlAvatar = userCtrl.userData['avatar']?.toString().trim();
+        if ((storedName == null || storedName.isEmpty) &&
+            ctrlName != null &&
+            ctrlName.isNotEmpty &&
+            ctrlName != 'User') {
+          storedName = ctrlName;
+        }
+        if ((storedAvatar == null || storedAvatar.isEmpty) &&
+            ctrlAvatar != null &&
+            ctrlAvatar.isNotEmpty) {
+          storedAvatar = ctrlAvatar;
+        }
+      }
 
-      if (currentUserId == null) {
+      if (storedName != null && storedName.isNotEmpty) {
+        userName.value = storedName;
+      }
+      if (storedAvatar != null && storedAvatar.isNotEmpty) {
+        userAvatar.value = storedAvatar;
+      }
+
+      if (currentUserId == null || currentUserId!.isEmpty) {
         userName.value = 'user_guest'.tr();
         return;
       }
 
-      // ✅ Endpoint: baseUrl already contains '/api', so '/auth/...' becomes '/api/auth/...'
-      final response = await http.get(
-        Uri.parse('${_apiService.baseUrl}/auth/$currentUserId'),
-      );
+      // Fetch fresh profile from /api/profile/:userId
+      final result = await _apiService.getUserProfile(currentUserId!);
+      if (result['success'] == true && result['data'] is Map) {
+        final rawData = result['data'] as Map;
+        final Map userMap = rawData['user'] is Map
+            ? rawData['user'] as Map
+            : (rawData['data'] is Map ? rawData['data'] as Map : rawData);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final fetchedName = userMap['name']?.toString().trim();
+        final fetchedAvatar = userMap['avatar']?.toString().trim();
+
+        if (fetchedName != null && fetchedName.isNotEmpty) {
+          userName.value = fetchedName;
+          await prefs.setString('user_name', fetchedName);
+        }
+        if (fetchedAvatar != null && fetchedAvatar.isNotEmpty) {
+          userAvatar.value = fetchedAvatar;
+          await prefs.setString('user_avatar', fetchedAvatar);
+        }
+      }
+
+      if (userName.value.isEmpty || userName.value == 'Loading...') {
         userName.value =
-            data['name'] ?? data['user']?['name'] ?? 'unknown_user'.tr();
-        userAvatar.value = data['avatar'] ?? data['user']?['avatar'] ?? '';
+            (storedName != null && storedName.isNotEmpty)
+                ? storedName
+                : 'unknown_user'.tr();
       }
     } catch (e) {
       print("Error fetching user: $e");
+      if (userName.value.isEmpty || userName.value == 'Loading...') {
+        userName.value = 'unknown_user'.tr();
+      }
     }
   }
 
@@ -316,10 +360,17 @@ class CreatePostController extends GetxController {
       var responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        postSuccess.value = true;
         await _updateShareTipCount();
-        await Future.delayed(const Duration(milliseconds: 200));
 
+        try {
+          final forumCtrl = Get.find<ForumController>();
+          await forumCtrl.loadPosts();
+          forumCtrl.scrollToTop();
+        } catch (e) {
+          print("Forum controller not found");
+        }
+
+        textController.clear();
         selectedImages.clear();
         videoUrl.value = '';
         videoThumbnail.value = '';
@@ -327,14 +378,9 @@ class CreatePostController extends GetxController {
         ytPlayerController = null;
         showPreview.value = false;
         _updateContentState();
+        postSuccess.value = true;
 
         Get.snackbar('success'.tr(), 'create_post_success_published'.tr());
-
-        try {
-          Get.find<ForumController>().loadPosts();
-        } catch (e) {
-          print("Forum controller not found");
-        }
       } else {
         print("Error: $responseBody");
         Get.snackbar('error'.tr(), 'create_post_error_upload_failed'.tr());
@@ -387,17 +433,66 @@ class CreatePostController extends GetxController {
 
   Future<void> _updateShareTipCount() async {
     try {
+      if (currentUserId == null || currentUserId!.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        currentUserId = prefs.getString('user_id');
+      }
       if (currentUserId == null || currentUserId!.isEmpty) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('has_posted_or_replied_${currentUserId!}', true);
+      int prevTipCount = prefs.getInt('shared_tip_count_${currentUserId!}') ?? 0;
+      await prefs.setInt(
+        'shared_tip_count_${currentUserId!}',
+        prevTipCount + 1,
+      );
+
       await _apiService.updateBeltProgress(
         userId: currentUserId!,
         beltColor: 'B',
         actionType: 'shareTip',
       );
+      await _apiService.updateBeltProgress(
+        userId: currentUserId!,
+        beltColor: 'R',
+        actionType: 'shareTip',
+      );
+      await _apiService.updateBeltProgress(
+        userId: currentUserId!,
+        beltColor: 'B',
+        actionType: 'post',
+      );
+      await _apiService.updateBeltProgress(
+        userId: currentUserId!,
+        beltColor: 'G',
+        actionType: 'post',
+      );
       if (Get.isRegistered<BeltProgressRingController>()) {
-        await Get.find<BeltProgressRingController>().fetchBeltProgress();
+        final ringCtrl = Get.find<BeltProgressRingController>();
+        ringCtrl.incrementProgressCounter(
+          beltColor: 'B',
+          counter: 'post',
+          delta: 1,
+        );
+        ringCtrl.incrementProgressCounter(
+          beltColor: 'B',
+          counter: 'shareTip',
+          delta: 1,
+        );
+        ringCtrl.incrementProgressCounter(
+          beltColor: 'R',
+          counter: 'shareTip',
+          delta: 1,
+        );
+        ringCtrl.incrementProgressCounter(
+          beltColor: 'G',
+          counter: 'post',
+          delta: 1,
+        );
+        await ringCtrl.fetchBeltProgress();
       }
     } catch (e) {
-      print("⚠️ Failed to update share tip count: $e");
+      print("⚠️ Failed to update post/share tip count: $e");
     }
   }
 

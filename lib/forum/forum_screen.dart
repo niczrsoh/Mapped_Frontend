@@ -50,6 +50,7 @@ class _ForumScreenState extends State<ForumScreen> {
           onRefresh: controller.loadPosts,
           color: const Color(0xFF09FACA),
           child: CustomScrollView(
+            controller: controller.scrollController,
             slivers: [
               _buildSliverAppBar(),
               SliverToBoxAdapter(
@@ -136,21 +137,21 @@ class _ForumScreenState extends State<ForumScreen> {
         if (Get.isDialogOpen ?? false) Get.back();
       }
 
-      if (beltController.isBeltLocked('Blue')) {
-        Get.snackbar(
-          "forum_snackbar_access_denied_title".tr(),
-          "forum_snackbar_access_denied_blue_belt".tr(),
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-          icon: const Icon(Icons.lock, color: Colors.white),
-          duration: const Duration(seconds: 4),
-          snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
-      } else {
+      // if (beltController.isBeltLocked('Blue')) {
+      //   Get.snackbar(
+      //     "forum_snackbar_access_denied_title".tr(),
+      //     "forum_snackbar_access_denied_blue_belt".tr(),
+      //     backgroundColor: Colors.redAccent,
+      //     colorText: Colors.white,
+      //     icon: const Icon(Icons.lock, color: Colors.white),
+      //     duration: const Duration(seconds: 4),
+      //     snackPosition: SnackPosition.BOTTOM,
+      //     margin: const EdgeInsets.all(16),
+      //     borderRadius: 12,
+      //   );
+      // } else {
         Get.to(() => CreatePostScreen());
-      }
+      //}
     }
 
     return Padding(

@@ -11,8 +11,8 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  static const String _url1 = "https://mapped-backend-node-js.onrender.com/api"; 
-  static const String _url2 = "https://mapped-backend-node-js-ce6r.onrender.com/api";
+  static const String _url1 = "https://mapped-backend-node-js-ce6r.onrender.com/api"; 
+  static const String _url2 = "https://mapped-backend-node-js.onrender.com/api";//for backup purpose only
 
   String baseUrl = _url1;
 

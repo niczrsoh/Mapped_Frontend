@@ -1,15 +1,16 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:http/http.dart' as http;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mapped_frontend/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'forum_model.dart';
-import '../create_post/create_post_controller.dart';
 
 class ForumController extends GetxController {
 
   final ApiService _apiService = ApiService();
+  final ScrollController scrollController = ScrollController();
   // CONFIGURATIO
 
   String currentUserId = '';
@@ -96,8 +97,8 @@ class ForumController extends GetxController {
             .map((json) => ForumPost.fromJson(json, currentUserId))
             .toList();
 
-        // Sort pinned posts first
-        _sortAllPostsByPinned();
+        // Sort newest posts first so newly posted forums appear on top
+        _sortAllPostsByNewest();
 
         // Calculate total pages
         totalPages.value = (allPosts.length / pageSize).ceil();
@@ -137,7 +138,7 @@ class ForumController extends GetxController {
             .map((json) => ForumPost.fromJson(json, currentUserId))
             .toList();
 
-        _sortAllPostsByPinned();
+        _sortAllPostsByNewest();
 
         totalPages.value = (allPosts.length / pageSize).ceil();
         if (totalPages.value == 0) totalPages.value = 1;
@@ -206,13 +207,28 @@ class ForumController extends GetxController {
     }
   }
 
-  // Helper to sort allPosts: pinned first
+  // Helper to sort allPosts: newest first
+  void _sortAllPostsByNewest() {
+    allPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  // Helper to sort allPosts: pinned first, then newest first
   void _sortAllPostsByPinned() {
     allPosts.sort((a, b) {
       if (b.isPinned.value && !a.isPinned.value) return 1;
       if (!b.isPinned.value && a.isPinned.value) return -1;
-      return 0;
+      return b.createdAt.compareTo(a.createdAt);
     });
+  }
+
+  void scrollToTop() {
+    if (scrollController.hasClients) {
+      scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   // ----------------------------------------------
@@ -358,6 +374,6 @@ class ForumController extends GetxController {
   // ----------------------------------------------
   String getFullImageUrl(String relativePath) {
     if (relativePath.startsWith('http')) return relativePath;
-    return "'${_apiService.baseUrl}/$relativePath";
+    return "${_apiService.baseUrl}/$relativePath";
   }
 }

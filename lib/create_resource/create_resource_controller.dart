@@ -65,14 +65,21 @@ class CreateResourceController extends GetxController {
       }
 
       final response = await http.get(
-        Uri.parse('${_apiService.baseUrl}/api/auth/$currentUserId'),
+        Uri.parse('${_apiService.baseUrl}/profile/$currentUserId'),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         userName.value =
-            data['name'] ?? data['user']?['name'] ?? 'unknown_user'.tr();
-        userAvatar.value = data['avatar'] ?? data['user']?['avatar'] ?? '';
+            data['name'] ??
+            data['data']?['name'] ??
+            data['user']?['name'] ??
+            'unknown_user'.tr();
+        userAvatar.value =
+            data['avatar'] ??
+            data['data']?['avatar'] ??
+            data['user']?['avatar'] ??
+            '';
       }
     } catch (e) {
       print("Error fetching user: $e");
@@ -255,7 +262,7 @@ class CreateResourceController extends GetxController {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('${_apiService.baseUrl}/api/resources'),
+        Uri.parse('${_apiService.baseUrl}/resources'),
       );
 
       // Required fields

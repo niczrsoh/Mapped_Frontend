@@ -6,6 +6,7 @@ class ForumPost {
   final String authorName;
   final String? authorImage;
   final String timeAgo;
+  final DateTime createdAt;
   final String content;
   final List<String> hashtags;
   final List<String> images;
@@ -25,6 +26,7 @@ class ForumPost {
     required this.authorName,
     this.authorImage,
     required this.timeAgo,
+    DateTime? createdAt,
     required this.content,
     required this.hashtags,
     required this.images,
@@ -37,7 +39,8 @@ class ForumPost {
     bool isPinned = false,
     bool isReported = false,
     bool isUserBlocked = false, // Default value
-  }) : likes = likes.obs,
+  }) : createdAt = createdAt ?? DateTime.now(),
+       likes = likes.obs,
        isLiked = isLiked.obs,
        isPinned = isPinned.obs,
        isReported = isReported.obs,
@@ -68,12 +71,32 @@ class ForumPost {
       parsedImages = [json['image']];
     }
 
+    final userMap = json['user'] is Map ? json['user'] as Map : null;
+    final parsedAuthorId =
+        userMap != null ? userMap['_id']?.toString() : json['user']?.toString();
+
+    String? parsedName = json['name']?.toString().trim();
+    if (parsedName == null ||
+        parsedName.isEmpty ||
+        parsedName == 'Unknown' ||
+        parsedName == 'Unknown User') {
+      parsedName = userMap?['name']?.toString().trim();
+    }
+
+    String? parsedAvatar = json['avatar']?.toString().trim();
+    if (parsedAvatar == null || parsedAvatar.isEmpty) {
+      parsedAvatar = userMap?['avatar']?.toString().trim();
+    }
+
     return ForumPost(
       id: json['_id'] ?? '',
-      authorId: json['user'] is Map ? json['user']['_id'] : json['user'],
-      authorName: json['name'] ?? 'Unknown',
-      authorImage: json['avatar'],
+      authorId: parsedAuthorId,
+      authorName: (parsedName != null && parsedName.isNotEmpty)
+          ? parsedName
+          : 'Unknown',
+      authorImage: parsedAvatar,
       timeAgo: timeAgo,
+      createdAt: date,
       content: json['text'],
       hashtags: List<String>.from(json['tags'] ?? []),
       images: parsedImages,
